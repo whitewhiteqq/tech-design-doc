@@ -1,0 +1,76 @@
+name: Release
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    name: Build & attach skill zip
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write          # Upload the zip to the release
+      id-token: write          # Sign the provenance attestation
+      attestations: write      # Store the attestation
+      artifact-metadata: write # Store the artifact record
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Verify tag is on main
+        run: |
+          git fetch origin main
+          if ! git merge-base --is-ancestor "${GITHUB_SHA}" origin/main; then
+            echo "::error::Tag '${GITHUB_REF_NAME}' points to a commit that is not on main"
+            exit 1
+          fi
+
+      - name: Verify tag matches every version field
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          SKILL=$(sed -n 's/^  version: "\(.*\)"$/\1/p' skills/tech-design-doc/SKILL.md)
+          PLUGIN=$(python3 -c "import json;print(json.load(open('.claude-plugin/plugin.json'))['version'])")
+          MARKET=$(python3 -c "import json;print(json.load(open('.claude-plugin/marketplace.json'))['plugins'][0]['version'])")
+          for V in "$SKILL" "$PLUGIN" "$MARKET"; do
+            if [ "v${V}" != "${TAG}" ]; then
+              echo "::error::Tag '${TAG}' does not match versions SKILL.md=${SKILL} plugin.json=${PLUGIN} marketplace.json=${MARKET}"
+              exit 1
+            fi
+          done
+          echo "Tag '${TAG}' matches all version fields — proceeding"
+
+      - name: Build skill zip
+        run: |
+          mkdir -p dist
+          git archive --format=zip --prefix=tech-design-doc/ \
+            -o "dist/tech-design-doc-${GITHUB_REF_NAME}.zip" "${GITHUB_SHA}:skills/tech-design-doc"
+
+      - name: Smoke test
+        run: |
+          ZIP="dist/tech-design-doc-${GITHUB_REF_NAME}.zip"
+          if unzip -Z1 "$ZIP" | grep -E '\.zip$|\.index\.json$|kit/icons\.js$'; then
+            echo "::error::The zip holds vendor icon files"
+            exit 1
+          fi
+          mkdir smoke && unzip -q "$ZIP" -d smoke
+          test -f smoke/tech-design-doc/SKILL.md
+          find smoke -name '*.py' -print0 | xargs -0 python3 -m py_compile
+          OUT=$(python3 smoke/tech-design-doc/scripts/icons.py find lambda 2>&1 || true)
+          echo "$OUT" | grep -q "no icon pack" || { echo "::error::icons.py did not report the missing packs: $OUT"; exit 1; }
+          echo "Smoke test passed"
+
+      - name: Attest build provenance
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+        with:
+          subject-path: dist/*.zip
+
+      - name: Attach zip to the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "${GITHUB_REF_NAME}" dist/*.zip --clobber
