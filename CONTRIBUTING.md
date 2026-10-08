@@ -129,7 +129,7 @@ Principles:
 - Do not push directly to `main` or `develop` except for urgent maintainer-only repository administration.
 - Default to `Rebase and merge` for pull requests into `develop`. Use `Squash and merge` only when the branch contains exploratory or fixup commits; the single commit must then capture all essential context.
 - Avoid GitHub merge commits for routine pull requests.
-- Promote releases from `develop` to `main` with a pull request from `develop` into `main`, merged with `Squash and merge`. `main` and `develop` hold the same files but separate commits since the v0.1.0 squash merges, so a fast-forward is not possible.
+- Promote releases from `develop` to `main` with a maintainer-run fast-forward: `git push origin develop:main`. Never squash or rebase `develop` into `main` with a GitHub button: both create commits that `develop` lacks, and the next release PR then conflicts.
 - Tag every release on `main` with an annotated tag (`git tag -a v0.1.0 -m "..."`), then create a GitHub Release targeting that tag. Releases follow one path only: feature branch -> `develop` -> `main` -> version tag -> GitHub Release -> skill zip. Publishing the Release starts `.github/workflows/release.yml`: it checks that the tag is on `main` and matches every version field, builds `tech-design-doc-<tag>.zip` from `skills/tech-design-doc/`, smoke-tests it, attests its provenance and attaches it to the Release.
 
 ## Commit Message Style
@@ -211,7 +211,7 @@ Guidelines:
 5. Run the local checks above
 6. Submit a pull request to `develop` using `.github/pull_request_template.md`
 7. Merge with `Rebase and merge` (preferred) or `Squash and merge`; do not use merge commits
-8. Release `develop` to `main` with a pull request from `develop` into `main`, merged with `Squash and merge`
+8. Release `develop` to `main` with a maintainer-run fast-forward: `git fetch origin && git push origin origin/develop:main`
 9. Create and push an annotated version tag from `main`, then create a GitHub Release targeting that tag; the Release starts the workflow that attaches the skill zip
 10. Review responsibility is assigned through `.github/CODEOWNERS`
 
@@ -233,7 +233,7 @@ Docs-only and CI-only changes need no bump.
 - Configure `develop` to require linear history and the CI checks `Syntax`, `Vendor files`, and `Secrets`.
 - Configure `main` so only maintainers can update it, with no force pushes or deletions.
 - Never publish a Release for a tag that is not on `main`, or whose version differs from `SKILL.md` and `.claude-plugin/`: the release workflow fails and attaches nothing.
-- After each release PR merges into `main`, tag and release:
+- After each fast-forward of `main`, tag and release:
   ```bash
   git tag -a v<VERSION> -m "v<VERSION>: <one-line theme>
 
