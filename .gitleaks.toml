@@ -1,7 +1,8 @@
-# Gitleaks config: the default rules, plus allowlists for known sample values.
+# Gitleaks config: the default rules, plus an allowlist for known sample values.
+# [allowlist] (singular) works on gitleaks 8.24, the version gitleaks-action installs.
 [extend]
 useDefault = true
 
-[[allowlists]]
+[allowlist]
 description = "Sample Idempotency-Key in the example HTTP request of the Relay design page"
 regexes = ['''6f1c2a9e-3b7d-4c55-9a1e-0d2f7b8c4e11''']
