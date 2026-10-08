@@ -1,0 +1,31 @@
+{
+  "title": "Distributed transaction: AWS deployment",
+  "nodes": [
+    {"id": "a",        "label": "System A",          "sub": "Caller, retries on timeout", "at": [0, 0]},
+    {"id": "apigw",    "icon": "aws/api-gateway",    "label": "Amazon API Gateway", "sub": "HTTP entry", "at": [1, 0]},
+    {"id": "handler",  "icon": "aws/lambda",         "label": "AWS Lambda",         "sub": "Request handler", "at": [2, 0]},
+    {"id": "oplog",    "icon": "aws/dynamodb",       "label": "Amazon DynamoDB",    "sub": "Operation log + Streams", "at": [3, 0]},
+    {"id": "worker",   "icon": "aws/lambda",         "label": "AWS Lambda",         "sub": "Worker (stream consumer)", "at": [4, 0]},
+    {"id": "c",        "label": "System C API",      "sub": "Authoritative record", "at": [5, 0]},
+    {"id": "sched",    "icon": "aws/eventbridge",    "label": "Amazon EventBridge", "sub": "Recovery schedule", "at": [2, 1]},
+    {"id": "recovery", "icon": "aws/lambda",         "label": "AWS Lambda",         "sub": "Recovery job", "at": [3, 1]},
+    {"id": "dlq",      "icon": "aws/sqs",            "label": "Amazon SQS",         "sub": "Dead-letter queue", "at": [4, 1]},
+    {"id": "cw",       "icon": "aws/cloudwatch",     "label": "Amazon CloudWatch",  "sub": "Logs, metrics, alarms", "at": [1, 1]}
+  ],
+  "groups": [
+    {"id": "acct", "style": "aws-account", "label": "AWS account", "contains": ["region"]},
+    {"id": "region", "style": "region", "label": "ap-east-1", "contains": ["apigw", "handler", "oplog", "worker", "sched", "recovery", "dlq", "cw"]},
+    {"id": "ext-c", "style": "external", "label": "System C", "contains": ["c"]}
+  ],
+  "edges": [
+    {"from": "a",        "to": "apigw",    "step": 1},
+    {"from": "apigw",    "to": "handler",  "step": 2},
+    {"from": "handler",  "to": "oplog",    "step": 3, "label": "conditional write"},
+    {"from": "oplog",    "to": "worker",   "step": 4, "kind": "async", "label": "stream"},
+    {"from": "worker",   "to": "c",        "step": 5},
+    {"from": "sched",    "to": "recovery", "kind": "async"},
+    {"from": "recovery", "to": "oplog",    "kind": "failure", "label": "re-drive"},
+    {"from": "worker",   "to": "dlq",      "kind": "failure"},
+    {"from": "handler",  "to": "cw",       "kind": "monitor"}
+  ]
+}

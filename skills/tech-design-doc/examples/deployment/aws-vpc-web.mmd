@@ -1,0 +1,26 @@
+flowchart LR
+  n_users["Users"]
+  subgraph n_cloud["AWS Cloud"]
+    n_r53["Amazon Route 53"]
+    n_cf["Amazon CloudFront<br/><small>CDN + WAF</small>"]
+    n_s3["Amazon S3<br/><small>Static assets</small>"]
+    subgraph n_region["ap-east-1"]
+      subgraph n_vpc["VPC"]
+        subgraph n_pub["Public subnet"]
+          n_alb["Application Load Balancer"]
+        end
+        subgraph n_priv["Private subnet"]
+          n_ecs["Amazon ECS<br/><small>Fargate tasks</small>"]
+          n_rds["Amazon Aurora<br/><small>PostgreSQL</small>"]
+        end
+      end
+      n_sm["AWS Secrets Manager"]
+    end
+  end
+  n_users -->|"1"| n_cf
+  n_users -.->|"DNS"| n_r53
+  n_cf -->|"2"| n_alb
+  n_cf -.-> n_s3
+  n_alb -->|"3"| n_ecs
+  n_ecs -->|"4"| n_rds
+  n_ecs -.-> n_sm

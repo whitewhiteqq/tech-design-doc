@@ -1,0 +1,26 @@
+flowchart LR
+  n_a(["System A<br/><small>Caller, retries on timeout</small>"])
+  subgraph n_acct["AWS account"]
+    subgraph n_region["ap-east-1"]
+      n_apigw["Amazon API Gateway<br/><small>HTTP entry</small>"]
+      n_handler["AWS Lambda<br/><small>Request handler</small>"]
+      n_oplog["Amazon DynamoDB<br/><small>Operation log + Streams</small>"]
+      n_worker["AWS Lambda<br/><small>Worker (stream consumer)</small>"]
+      n_sched["Amazon EventBridge<br/><small>Recovery schedule</small>"]
+      n_recovery["AWS Lambda<br/><small>Recovery job</small>"]
+      n_dlq["Amazon SQS<br/><small>Dead-letter queue</small>"]
+      n_cw["Amazon CloudWatch<br/><small>Logs, metrics, alarms</small>"]
+    end
+  end
+  subgraph n_ext_c["System C"]
+    n_c(["System C API<br/><small>Authoritative record</small>"])
+  end
+  n_a -->|"1"| n_apigw
+  n_apigw -->|"2"| n_handler
+  n_handler -->|"3. conditional write"| n_oplog
+  n_oplog -.->|"4. stream"| n_worker
+  n_worker -->|"5"| n_c
+  n_sched -.-> n_recovery
+  n_recovery -.->|"re-drive"| n_oplog
+  n_worker -.-> n_dlq
+  n_handler -.-> n_cw
