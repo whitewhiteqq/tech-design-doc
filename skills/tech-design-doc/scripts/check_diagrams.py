@@ -112,7 +112,8 @@ def page_for_html(src: Path, tmp: Path) -> Path:
 def page_for_svgs(svgs: list[Path], mermaid: list[str], tmp: Path) -> Path:
     body = []
     for s in svgs:
-        body.append(f'<div style="margin:24px">{re.sub(r"^\s*<[?]xml[^>]*>", "", s.read_text(encoding="utf-8"))}</div>')
+        svg = re.sub(r"^\s*<[?]xml[^>]*>", "", s.read_text(encoding="utf-8"))
+        body.append(f'<div style="margin:24px">{svg}</div>')
     head = f'<script src="{MERMAID.as_uri()}"></script>' if mermaid else ""
     data = json.dumps(mermaid).replace("</", "<\\/")      # a "</script" inside a block cannot end the tag
     src = f'<script type="application/json" id="cd-src">{data}</script>'
