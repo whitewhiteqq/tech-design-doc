@@ -40,6 +40,13 @@ jobs:
       - name: Check JSON
         run: git ls-files -z '*.json' | xargs -0 -n1 python -m json.tool --no-ensure-ascii > /dev/null
 
+      - name: Marketplace manifests match
+        run: |
+          if ! cmp .claude-plugin/marketplace.json .codebuddy-plugin/marketplace.json; then
+            echo "::error::.codebuddy-plugin/marketplace.json must be an identical copy of .claude-plugin/marketplace.json"
+            exit 1
+          fi
+
   vendor-files:
     name: Vendor files
     runs-on: ubuntu-latest

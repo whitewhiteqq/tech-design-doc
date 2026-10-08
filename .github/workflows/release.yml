@@ -37,9 +37,10 @@ jobs:
           SKILL=$(sed -n 's/^  version: "\(.*\)"$/\1/p' skills/tech-design-doc/SKILL.md)
           PLUGIN=$(python3 -c "import json;print(json.load(open('.claude-plugin/plugin.json'))['version'])")
           MARKET=$(python3 -c "import json;print(json.load(open('.claude-plugin/marketplace.json'))['plugins'][0]['version'])")
-          for V in "$SKILL" "$PLUGIN" "$MARKET"; do
+          CODEBUDDY=$(python3 -c "import json;print(json.load(open('.codebuddy-plugin/marketplace.json'))['plugins'][0]['version'])")
+          for V in "$SKILL" "$PLUGIN" "$MARKET" "$CODEBUDDY"; do
             if [ "v${V}" != "${TAG}" ]; then
-              echo "::error::Tag '${TAG}' does not match versions SKILL.md=${SKILL} plugin.json=${PLUGIN} marketplace.json=${MARKET}"
+              echo "::error::Tag '${TAG}' does not match versions SKILL.md=${SKILL} plugin.json=${PLUGIN} marketplace.json=${MARKET} codebuddy marketplace.json=${CODEBUDDY}"
               exit 1
             fi
           done
