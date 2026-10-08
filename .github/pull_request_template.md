@@ -21,6 +21,7 @@
 - [ ] `check_diagrams.py` on `examples/deployment/*.md` prints 0 FAIL
 - [ ] `check_pages.py` on `examples/relay-design.html` prints 0 failures
 - [ ] `claude plugin validate .` passes
+- [ ] The two `marketplace.json` files are identical
 - [ ] Examples regenerated if a script, the kit or a template changed
 
 ## Risk Review

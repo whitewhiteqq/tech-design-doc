@@ -15,9 +15,14 @@ python skills/tech-design-doc/scripts/check_diagrams.py skills/tech-design-doc/e
 # Page check on the HTML example; must print 0 failures
 python skills/tech-design-doc/kit/tools/check_pages.py skills/tech-design-doc/examples/relay-design.html
 
-# Plugin manifests
+# Plugin manifests (Claude Code, then CodeBuddy)
 claude plugin validate .
+npx -y @tencent-ai/codebuddy-code plugin validate .
+cmp .claude-plugin/marketplace.json .codebuddy-plugin/marketplace.json
 ```
+
+`.codebuddy-plugin/marketplace.json` is an identical copy of `.claude-plugin/marketplace.json`.
+Change both or neither; CI fails when they differ.
 
 ## Change Workflow
 

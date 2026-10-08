@@ -12,7 +12,15 @@ claude --plugin-dir .
 
 # Validate the plugin manifests
 claude plugin validate .
+
+# Validate for Tencent CodeBuddy (no login needed)
+npx -y @tencent-ai/codebuddy-code plugin validate .
+npx -y @tencent-ai/codebuddy-code plugin validate .claude-plugin/plugin.json
 ```
+
+The two `marketplace.json` files must stay identical: `.claude-plugin/` is
+read by Claude Code, `.codebuddy-plugin/` by CodeBuddy. CodeBuddy reads
+`plugin.json` from `.claude-plugin/`, so there is only one `plugin.json`.
 
 The scripts use the Python standard library only. The diagram check needs
 Chrome, Chromium or Edge (set `CHROME=<path>` if the scripts cannot find it).
@@ -38,6 +46,9 @@ python skills/tech-design-doc/scripts/check_diagrams.py skills/tech-design-doc/e
 # Page check on the shipped HTML example; must print 0 failures
 python skills/tech-design-doc/kit/tools/check_pages.py skills/tech-design-doc/examples/relay-design.html
 
+# The two marketplace.json files are identical
+cmp .claude-plugin/marketplace.json .codebuddy-plugin/marketplace.json && echo ok
+
 # No vendor pack and no generated icon file in the index
 git ls-files | grep -E '\.zip$|\.index\.json$|kit/icons\.js$' && echo "REMOVE THESE" || echo "ok"
 ```
@@ -60,6 +71,7 @@ When you change `cloud_diagram.py`, regenerate each example in
 tech-design-doc/
 ├── CLAUDE.md                        # Agent instructions (Claude Code / Copilot)
 ├── .claude-plugin/                  # plugin.json and marketplace.json
+├── .codebuddy-plugin/               # marketplace.json for CodeBuddy (identical copy)
 └── skills/tech-design-doc/
     ├── SKILL.md                     # The skill entry point
     ├── reference/                   # Loaded on demand by the agent
@@ -217,8 +229,8 @@ Guidelines:
 
 ## Version Policy
 
-Bump `metadata.version` in `SKILL.md` and `version` in both files under
-`.claude-plugin/` together, following [Semantic Versioning](https://semver.org/):
+Bump `metadata.version` in `SKILL.md`, `version` in `.claude-plugin/plugin.json`,
+and the plugin `version` in both `marketplace.json` files together, following [Semantic Versioning](https://semver.org/):
 
 - **patch** (0.1.x): a fix to a script, a template or a rule
 - **minor** (0.x.0): a new figure type, diagram type, vendor pack or output
@@ -232,7 +244,7 @@ Docs-only and CI-only changes need no bump.
 - Enable `Rebase and merge` (preferred) and `Squash and merge` (fallback). Disable `Create a merge commit`.
 - Configure `develop` to require linear history and the CI checks `Syntax`, `Vendor files`, and `Secrets`.
 - Configure `main` so only maintainers can update it, with no force pushes or deletions.
-- Never publish a Release for a tag that is not on `main`, or whose version differs from `SKILL.md` and `.claude-plugin/`: the release workflow fails and attaches nothing.
+- Never publish a Release for a tag that is not on `main`, or whose version differs from `SKILL.md`, `plugin.json` or either `marketplace.json`: the release workflow fails and attaches nothing.
 - After each fast-forward of `main`, tag and release:
   ```bash
   git tag -a v<VERSION> -m "v<VERSION>: <one-line theme>
