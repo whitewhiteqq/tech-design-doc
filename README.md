@@ -2,7 +2,7 @@
 
 An agent skill that writes technical design documents with diagrams that are checked before delivery.
 
-Works with **Claude Code**, **GitHub Copilot** and **OpenAI Codex**.
+Works with **Claude Code**, **Tencent CodeBuddy**, **GitHub Copilot** and **OpenAI Codex**.
 
 ![AWS VPC web deployment, drawn by the skill](skills/tech-design-doc/examples/deployment/aws-vpc-web.png)
 
@@ -33,18 +33,29 @@ claude plugin marketplace add whitewhiteqq/tech-design-doc
 claude plugin install tech-design-doc@tech-design-doc
 ```
 
-### Option 2: `npx skills add`
+### Option 2: Tencent CodeBuddy plugin
 
 ```bash
-npx skills add whitewhiteqq/tech-design-doc        # into the current project
-npx skills add whitewhiteqq/tech-design-doc -g     # globally
+codebuddy plugin marketplace add whitewhiteqq/tech-design-doc
+codebuddy plugin install tech-design-doc@tech-design-doc
 ```
 
-### Option 3: Manual copy
+Inside a CodeBuddy session, the same commands work as `/plugin marketplace add whitewhiteqq/tech-design-doc` and `/plugin install tech-design-doc@tech-design-doc`.
+
+### Option 3: `npx skills add`
+
+```bash
+npx skills add whitewhiteqq/tech-design-doc                 # into the current project, every detected agent
+npx skills add whitewhiteqq/tech-design-doc -g              # globally
+npx skills add whitewhiteqq/tech-design-doc -a codebuddy    # CodeBuddy only (.codebuddy/skills/)
+```
+
+### Option 4: Manual copy
 
 ```bash
 git clone https://github.com/whitewhiteqq/tech-design-doc.git
 cp -r tech-design-doc/skills/tech-design-doc ~/.claude/skills/      # Claude Code
+cp -r tech-design-doc/skills/tech-design-doc ~/.codebuddy/skills/   # Tencent CodeBuddy
 cp -r tech-design-doc/skills/tech-design-doc .github/skills/        # GitHub Copilot
 ```
 
@@ -79,7 +90,8 @@ The skill asks one question when the output format is unclear: Markdown, HTML or
 
 ```
 tech-design-doc/
-├── .claude-plugin/              # Claude Code plugin and marketplace manifests
+├── .claude-plugin/              # Plugin and marketplace manifests (Claude Code; CodeBuddy reads plugin.json here)
+├── .codebuddy-plugin/           # Marketplace manifest for CodeBuddy (a copy of .claude-plugin/marketplace.json)
 └── skills/tech-design-doc/
     ├── SKILL.md                 # The skill: what the agent reads first
     ├── reference/               # Doc skeletons, diagram types, cloud diagram spec, fixes
