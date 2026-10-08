@@ -1,0 +1,3 @@
+# Local copies of vendor packs and their generated index. Never commit or redistribute.
+*.zip
+.index.json

@@ -1,0 +1,28 @@
+{
+  "title": "Event pipeline: Google Cloud deployment",
+  "nodes": [
+    {"id": "client", "label": "Partner system", "sub": "Sends events", "at": [0, 0]},
+    {"id": "apigee", "icon": "gcp/apigee",        "label": "Apigee", "sub": "API proxy", "at": [1, 0]},
+    {"id": "run",    "icon": "gcp/cloud-run",     "label": "Cloud Run", "sub": "Ingest service", "at": [2, 0]},
+    {"id": "pubsub", "icon": "gcp/pubsub",        "sub": "events topic", "at": [3, 0]},
+    {"id": "df",     "icon": "gcp/dataflow",      "sub": "Streaming job", "at": [4, 0]},
+    {"id": "bq",     "icon": "gcp/bigquery",      "label": "BigQuery", "sub": "Analytics", "at": [5, 0]},
+    {"id": "gcs",    "icon": "gcp/cloud-storage", "label": "Cloud Storage", "sub": "Raw archive", "at": [4, 1]},
+    {"id": "sm",     "icon": "gcp/secret-manager","sub": "API keys", "at": [2, 1]},
+    {"id": "mon",    "icon": "gcp/cloud-monitoring", "sub": "Dashboards, alerts", "at": [3, 1]}
+  ],
+  "groups": [
+    {"id": "proj", "style": "gcp-project", "label": "Project: events-prod", "contains": ["region"]},
+    {"id": "region", "style": "gcp-region", "label": "asia-east2", "contains": ["apigee", "run", "pubsub", "df", "bq", "gcs", "sm", "mon"]}
+  ],
+  "edges": [
+    {"from": "client", "to": "apigee", "step": 1},
+    {"from": "apigee", "to": "run", "step": 2},
+    {"from": "run", "to": "pubsub", "step": 3, "label": "publish"},
+    {"from": "pubsub", "to": "df", "step": 4, "kind": "async"},
+    {"from": "df", "to": "bq", "step": 5},
+    {"from": "df", "to": "gcs", "kind": "async"},
+    {"from": "run", "to": "sm", "kind": "monitor"},
+    {"from": "run", "to": "mon", "kind": "monitor"}
+  ]
+}

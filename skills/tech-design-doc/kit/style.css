@@ -1,0 +1,433 @@
+/* ═══════════════════════════════════════════════════════════════════════════════════════════════
+   tech-design-doc · style.css · the one style sheet of every page
+   ───────────────────────────────────────────────────────────────────────────────────────────────
+   build.py puts this file, inside one <style>, where a shell holds the STYLE mark. It also loads it
+   into the figure harness, so a figure measures its text with the same fonts as the page.
+
+   Visual system: report template R01 ("main column + rail"), colour preset
+   PORCELAIN. One palette for the page and every figure: no colour value outside the tokens below.
+   Solid fills, no shadow, no gradient, no rounded card. Lightness is importance.
+
+   Nothing is fetched. The font stacks name local fonts only, and the page needs no network to
+   render, print or open from file://. Never add @import, a web font, or url() other than data:.
+
+   Two page types, one sheet:
+     body.design   the full design page: main column + 300 px rail (about card, sticky contents)
+     body.brief    the brief: one column, each figure beside its note, three closing tables
+   The design page is the base. The last block, BRIEF ONLY, holds every rule that only the brief
+   needs, and every selector in it starts with .brief. Why one file and not a <style> in the brief
+   shell: the two pages share the tokens, the type scale and the print rules, so a change lands in
+   one place, and a shell holds content only. The brief block costs the design page about 5 KB.
+   A project that needs one more rule adds it in an extra <style> block in its own shell.
+   The kit ships no brief shell; the BRIEF ONLY block serves a one-page brief that a project writes.
+
+   Blocks, in order:
+     1  tokens            11  code and pre
+     2  base and type     12  lists
+     3  the sheet         13  the callout (traits)
+     4  the summary band  14  the rail: about card
+     5  part bands        15  the rail: sticky contents
+     6  section headings  16  motion
+     7  vertical rhythm   17  narrow screens
+     8  the figure slot   18  print
+     9  tables            19  BRIEF ONLY
+    10  table twins
+   ═══════════════════════════════════════════════════════════════════════════════════════════════ */
+
+
+/* ── 1 · tokens: PORCELAIN roles (color-presets.js) ───────────────────────────────────────────── */
+:root{
+  --bg:#F7F2EB;                 /* the page */
+  --txt:#081F5C;                /* titles, strong text, the summary rules */
+  --lab:rgba(8,31,92,.72);      /* running text: body, table cells, legends (6.0:1 on --bg) */
+  --mut:rgba(8,31,92,.60);      /* labels only: kicks, table heads, contents numbers */
+  --faint:rgba(8,31,92,.32);    /* the rule under a table head */
+  --quiet:rgba(8,31,92,.15);    /* a closing rule */
+  --track:rgba(8,31,92,.12);    /* the pre background */
+  --grid:rgba(8,31,92,.16);     /* table row rules */
+  --data:#334EAC;               /* links, numbers, the summary band rule */
+  --data2:#7096D1;              /* link underlines */
+  --hero:#081F5C;
+  --faintdata:#BAD6EB;
+  --railbg:#334EAC;             /* the about card */
+  --raildark:#081F5C;           /* the part bands */
+  --tint:color-mix(in srgb,var(--data) 6%,var(--bg));   /* the summary band: derived, not new */
+
+  /* local stacks: Inter and Source Serif 4 when installed, else the system fonts */
+  --sans:'Inter','Inter Variable',system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,
+         'Microsoft JhengHei','PingFang TC','Noto Sans CJK TC',sans-serif;
+  --serifs:'Source Serif 4','Source Serif Pro',Georgia,Cambria,'Times New Roman',serif;
+  --mono:ui-monospace,'Cascadia Mono','Cascadia Code',Consolas,'SFMono-Regular',Menlo,
+         'DejaVu Sans Mono',monospace;
+
+  --figw:106mm;                 /* print, brief: the width of the figure column (block 19) */
+}
+
+
+/* ── 2 · base and type ────────────────────────────────────────────────────────────────────────── */
+*{margin:0;padding:0;box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{background:var(--bg);color:var(--txt);font-family:var(--sans);
+  -webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums lining-nums;
+  display:flex;justify-content:center;padding:28px 24px 48px}
+.serif{font-family:var(--serifs)}
+.nw{white-space:nowrap}
+
+h1{font-family:var(--serifs);font-size:52px;font-weight:400;letter-spacing:-.01em;
+  line-height:1.03;text-wrap:balance}
+h1 b{font-weight:700}
+/* the dek: one or two lines under the title that say what the page covers */
+.dek{font-family:var(--serifs);font-size:19px;font-weight:400;line-height:1.3;margin-top:10px;
+  max-width:760px;text-wrap:balance}
+/* the kick: a small ALL-CAPS label over a block; .n is its number or arrow */
+.kick{font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--mut);margin-bottom:14px}
+.kick .n{color:var(--data)}
+/* the claim: one conclusion sentence, never the name of a chart type */
+.claim{font-size:13.5px;font-weight:700;letter-spacing:-.01em;line-height:1.35;margin:34px 0 4px;
+  text-wrap:balance}
+/* body text: a 520 px measure; tables, figures and pre take the full column */
+.body{font-size:12.5px;line-height:1.7;color:var(--lab);max-width:520px;margin-top:8px;
+  text-wrap:pretty}
+.body b,.body strong{color:var(--txt)}
+.body u{text-decoration-color:var(--data2);text-underline-offset:3px}
+/* the legend under a figure: decodes every mark, ALL-CAPS, separated by " · " */
+.srcline{font-size:9px;font-weight:600;letter-spacing:.11em;text-transform:uppercase;
+  color:var(--lab);margin-top:10px;line-height:1.6}
+th code,.kick code,.lbl code,.srcline code{text-transform:none;letter-spacing:0}
+
+.main a{color:var(--data);text-decoration-color:var(--data2);text-underline-offset:2px}
+.main a:hover{text-decoration-color:currentColor}
+a[href^="#"]{white-space:nowrap}
+:focus-visible{outline:2px solid var(--data);outline-offset:2px}
+[id]{scroll-margin-top:24px}
+
+
+/* ── 3 · the sheet: main column + rail. 1080 px wide, centred; one column under 1128 px ────────── */
+.sheet{width:1080px;max-width:100%;background:var(--bg);
+  display:grid;grid-template-columns:minmax(0,1fr) 300px}
+.main{padding:34px 48px 44px 8px;min-width:0}
+.rail{display:flex;flex-direction:column;min-width:0}
+
+
+/* ── 4 · the summary band: the whole design on the first 1280 x 900 screen ───────────────────────
+      The most readable block on the page. A tinted band, ruled in --data, that runs to the edges of
+      the main column. Its tables are tighter than a reference table, and its notes sit in three
+      short columns: cost, start here, how to read. It must fit one screen with the title above it,
+      so keep each table row to one or two lines. */
+.onepage{margin:20px -48px 0 -8px;padding:15px 24px 16px 8px;
+  border-top:2px solid var(--data);background:var(--tint)}
+.onepage .kick{margin-bottom:7px}
+.onepage .lead{font-family:var(--serifs);font-size:15.5px;line-height:1.4;color:var(--txt);
+  max-width:700px;text-wrap:pretty}
+.onepage .claim{margin:12px 0 0}
+.onepage table{margin-top:4px;line-height:1.45}
+.onepage th{padding-bottom:4px}
+.onepage td{padding-top:4px;padding-bottom:4px}
+.onepage .notes{display:grid;grid-template-columns:1fr 1fr 1fr;gap:22px;margin-top:13px;
+  border-top:1px solid var(--txt);padding-top:11px}
+.onepage .notes p{font-size:11px;line-height:1.45;color:var(--lab);margin:0;text-wrap:pretty}
+.onepage .notes>div>p+p{margin-top:8px}       /* a column may hold two short paragraphs */
+.onepage .notes b{color:var(--txt)}
+/* table column widths for the band: the index column, the owner column, the link column */
+th.idx{width:18px}
+th.who{width:124px}
+th.where{width:76px}
+
+
+/* ── 5 · part bands: one per reader (Decide / Build / Ship) ────────────────────────────────────────
+      Louder than a section heading, because it reverses the sheet: the navy of the rail as the
+      ground and the page colour as the text, full width of the main column, 40 px serif. */
+.part{margin:72px -48px 0 -8px;padding:30px 24px 26px 8px;background:var(--raildark);color:var(--bg)}
+.parth{font-family:var(--serifs);font-size:40px;font-weight:400;letter-spacing:-.015em;
+  line-height:1.05;text-wrap:balance}
+.parth .pn{opacity:.52}
+.partwho{font-family:var(--serifs);font-style:italic;font-size:15.5px;line-height:1.4;opacity:.9;
+  margin-top:12px;max-width:560px}
+
+
+/* ── 6 · section headings. Anchor every section by name (id="checks"), never by number ─────────── */
+.qhead{font-family:var(--serifs);font-size:26px;font-weight:400;line-height:1.25;margin-top:60px;
+  max-width:620px;text-wrap:balance}
+.qhead .n{color:var(--data)}
+/* the band already opens the part, so the first heading under it sits closer */
+.part+section .qhead{margin-top:36px}
+/* a minor heading inside a section, and a numbered subsection kick that carries an anchor */
+.minor{font-size:12.5px;font-weight:700;line-height:1.5;color:var(--txt);margin-top:22px;max-width:520px}
+.kick.subsec{margin-top:40px}
+
+
+/* ── 7 · vertical rhythm: the space between blocks comes from here, never from style="" ─────────── */
+.qhead+*{margin-top:18px}
+.qhead+.slot,.qhead+.subsec{margin-top:26px}
+.minor+.body{margin-top:6px}
+table+.body,pre+.body,.minor+table{margin-top:14px}
+.slot+.body,.twin+.body,.callout+.body,.slot+table,.twin+table{margin-top:24px}
+.subsec+.body,.subsec+table,.subsec+pre{margin-top:0}
+
+
+/* ── 8 · the figure slot: kick · claim · figure · legend ───────────────────────────────────────────
+      <figure class="slot" id="name">
+        <div class="kick">…</div>  <div class="claim">…</div>
+        <div class="fig"><svg id="fig-NAME"></svg></div>
+        <figcaption class="srcline">…</figcaption>
+      </figure>
+      The svg carries role="img" and an aria-label that states the finding; build.py bakes both.
+      A figure that carries data gets a table twin right after the slot (block 10). */
+.slot{margin-top:36px}
+.fig{margin-top:14px}
+.fig svg{width:100%;height:auto;display:block}
+/* a generated cloud diagram keeps its own size (12 px labels) and scrolls sideways in the column */
+.fig.wide{overflow-x:auto}
+.fig.wide svg{width:auto;max-width:none;min-width:100%}
+@media print{.fig.wide svg{width:100%;min-width:0}}
+svg text{font-family:var(--sans)}
+
+
+/* ── 9 · tables ───────────────────────────────────────────────────────────────────────────────── */
+table{width:100%;border-collapse:collapse;margin-top:14px;font-size:11.5px;line-height:1.55;
+  color:var(--lab)}
+th{font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--mut);
+  text-align:left;vertical-align:bottom;padding:0 12px 7px 0;border-bottom:1px solid var(--faint)}
+td{padding:7px 12px 7px 0;border-bottom:1px solid var(--grid);vertical-align:top;
+  overflow-wrap:anywhere}
+th:last-child,td:last-child{padding-right:0}
+td b,td strong{color:var(--txt)}
+/* table.counts: every column after the first holds a number, right-aligned */
+table.counts th:not(:first-child),table.counts td:not(:first-child),th.num,td.num{text-align:right}
+table.counts tr.total td{border-top:1px solid var(--faint);color:var(--txt);font-weight:600}
+
+
+/* ── 10 · table twins: the table view of a figure, closed on screen, open in print ──────────────── */
+details.twin{margin-top:14px}
+details.twin>summary{cursor:pointer;width:max-content;max-width:100%;margin-bottom:0}
+details.twin[open]>summary{margin-bottom:2px}
+
+
+/* ── 11 · code and pre ────────────────────────────────────────────────────────────────────────── */
+code{font-family:var(--mono);font-size:.92em;overflow-wrap:anywhere}
+pre{background:var(--track);color:var(--txt);font-family:var(--mono);font-size:11px;line-height:1.55;
+  padding:12px 14px;margin-top:14px;overflow-x:auto;max-width:100%;tab-size:2}
+pre code{font-size:inherit;overflow-wrap:normal}
+
+
+/* ── 12 · lists ───────────────────────────────────────────────────────────────────────────────── */
+.list{padding-left:18px}
+.list li+li{margin-top:6px}
+.list li::marker{color:var(--mut)}
+.list ul,.list ol{padding-left:16px;margin-top:4px}
+.list li li+li{margin-top:3px}
+.list .more{display:block;margin-top:6px}
+
+
+/* ── 13 · the callout: three numbers in type, no figure ───────────────────────────────────────────
+      <div class="callout"><div class="kick">…</div><div class="traits">
+        <div class="t"><div class="big">…</div><div class="nm">…</div><div class="ds">…</div></div>
+      ×3 </div></div> */
+.callout{margin-top:52px}
+.traits{display:grid;grid-template-columns:repeat(3,1fr);gap:26px;border-top:1px solid var(--txt);
+  padding-top:24px}
+.traits .big{font-size:30px;font-weight:800;letter-spacing:-.03em;line-height:1.1;color:var(--data)}
+.traits .nm{font-size:10.5px;font-weight:700;margin-top:8px}
+.traits .ds{font-size:10.5px;line-height:1.55;color:var(--lab);margin-top:5px;text-wrap:pretty}
+
+
+/* ── 14 · the rail: a short about card, nothing more. Long sections stay in the main column ────── */
+.rail .top{background:var(--railbg);color:var(--bg);padding:56px 30px 46px}
+.rail .lbl{font-size:9px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;opacity:.62;
+  margin-bottom:12px}
+.rail .ttl{font-size:16px;font-weight:700;letter-spacing:-.01em;line-height:1.3;margin-bottom:16px;
+  text-wrap:balance}
+.rail p{font-size:11.5px;line-height:1.7;opacity:.9}
+.rail p+p{margin-top:10px}
+.rail a{color:inherit;text-decoration:underline;text-underline-offset:3px}
+.rail code{font-size:.9em}
+
+
+/* ── 15 · the rail: the sticky contents list, grouped by part ─────────────────────────────────────
+      It sticks under the top of the screen for the whole page. On a short screen it scrolls inside
+      itself, so no line is ever out of reach. */
+.toc{position:sticky;top:24px;max-height:calc(100vh - 48px);overflow:hidden auto;
+  padding:30px 30px 24px;color:var(--txt)}
+.toc .lbl{color:var(--mut);opacity:1}
+.toc ol{list-style:none;font-size:11.5px;line-height:1.55}
+.toc li+li{margin-top:3px}
+.toc a{display:block;padding-left:22px;text-indent:-22px;color:var(--txt);text-decoration:none;opacity:.88}
+.toc a:hover{text-decoration:underline;text-underline-offset:3px;opacity:1}
+.toc .n{display:inline-block;width:22px;text-indent:0;color:var(--mut)}
+.toc .sub{font-size:11.5px;font-weight:700;margin:17px 0 5px}
+.toc .sub a{padding-left:0;text-indent:0;opacity:1}
+
+
+/* ── 16 · motion (mono-tokens MOTION.css). The finished figure is the default state ────────────────
+      A figure animates only on screen, only with motion allowed, and only after runtime.js adds
+      .play to it. So print, reduced motion and a page without scripts show the finished figure.
+      Never put .draw on a dashed line: the dash pattern of the animation replaces the dashes. */
+@keyframes pop{from{transform:scale(0)}to{transform:none}}
+@keyframes fade{from{opacity:0}}
+@keyframes draw{to{stroke-dashoffset:0}}
+@media screen and (prefers-reduced-motion:no-preference){
+  .play .pop{transform-box:fill-box;transform-origin:center;animation:pop .5s cubic-bezier(.2,.7,.3,1.3) both}
+  .play .fade{animation:fade .9s ease both}
+  .play .draw{stroke-dasharray:1;stroke-dashoffset:1;animation:draw 1s cubic-bezier(.4,0,.2,1) both}
+}
+
+
+/* ── 17 · narrow screens: one column, the rail after the main column, no zoom ──────────────────── */
+@media screen and (max-width:1127px){
+  body{padding:32px 16px 44px}
+  .sheet{grid-template-columns:minmax(0,1fr);width:100%;max-width:780px}
+  .main{padding:40px 24px 44px}
+  .onepage{margin:20px 0 0;padding:15px 18px 16px}
+  .onepage .notes{grid-template-columns:1fr;gap:12px}
+  .part{margin:56px 0 0;padding:26px 18px 22px}
+  .parth{font-size:34px}
+  /* the rail follows the main column, and lines up with its bands and its text */
+  .rail .top{margin:0 24px;padding:40px 18px 36px}
+  .toc{position:static;max-height:none;overflow:visible;padding:30px 24px 0}
+}
+@media screen and (max-width:640px){
+  body{padding:16px 6px 32px}
+  .main{padding:28px 12px 36px}
+  .rail .top{margin:0 12px}
+  .toc{padding:30px 12px 0}
+  h1{font-size:38px}
+  .qhead{font-size:22px}
+  .parth{font-size:30px}
+  .traits{grid-template-columns:1fr;gap:18px}
+  .onepage th.who{width:96px}
+}
+
+
+/* ── 18 · print: A4, nothing moves, nothing splits ────────────────────────────────────────────────
+      Every figure is already drawn. runtime.js opens every table twin before the print. A slot, a
+      table, a twin, a pre, a list, the callout and the about card never split across pages; a
+      table taller than a page splits between rows and repeats its head. Each part starts a new
+      page, so each reader gets their own pages. The rail follows the main column. */
+@media print{
+  @page{size:A4;margin:14mm}
+  body{display:block;padding:0;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .sheet{display:block;width:auto;max-width:none}
+  .main{padding:0 10px 32px}
+  .rail{display:block}
+  /* the about card and the contents never split, and line up with the part bands */
+  .rail .top{margin:0 10px;padding:26px 14px;break-inside:avoid}
+  .toc{position:static;max-height:none;overflow:visible;padding:24px 10px 0;break-inside:avoid}
+  .onepage{margin:16px 0 0;padding:12px 14px 14px}
+  .onepage .notes{break-inside:avoid}
+  .part{margin:0;padding:22px 14px 18px;break-before:page;break-inside:avoid;break-after:avoid}
+  .parth{font-size:32px}
+  .slot,table,details.twin,pre,.callout,.traits{break-inside:avoid}
+  .list{break-inside:avoid}        /* a list holds 5 items at most, so it fits on one page */
+  .fig svg{max-height:195mm}
+  h1,.qhead,.minor,.kick,.claim{break-after:avoid}
+  .body:has(+ .list),.body:has(+ pre),.body:has(+ table){break-after:avoid}
+  .rail .lbl,.toc .sub{break-after:avoid}
+  tr{break-inside:avoid}
+  thead{display:table-header-group}
+  pre{white-space:pre-wrap;font-size:8.5px}
+  details.twin>summary{list-style:none}
+  details.twin>summary::-webkit-details-marker{display:none}
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════════════════════════
+   19 · BRIEF ONLY · body.brief
+   The brief is a standalone page for a manager: no rail, no contents, no section numbers, no link
+   out. Each figure leads its block and its note sits beside it. It ends on three tables, and it
+   prints on at most 3 A4 pages.
+   ═══════════════════════════════════════════════════════════════════════════════════════════════ */
+.brief .sheet{width:1120px;display:block}
+.brief .main{padding:28px 36px 36px}
+.brief h1{font-size:46px;line-height:1.04}
+.brief .dek{max-width:none}                                  /* the brief dek is one line */
+.brief .kick{margin-bottom:9px}
+.brief .claim{margin:0;line-height:1.3;text-wrap:pretty}     /* a 290 px column: no balance */
+.brief .body{font-size:12px;line-height:1.6;max-width:none}
+
+/* the opening band: why the obvious approach fails, then the approach, side by side */
+.brief .onepage{margin:18px -36px 0;padding:15px 36px 16px}
+.brief .onepage .lead{font-size:16px;max-width:none}
+.brief .pair{display:grid;grid-template-columns:1fr 1fr;gap:30px;align-items:start}
+/* one quiet line under the band: the in-page nav, then the status */
+.brief .navline{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;
+  gap:4px 24px;margin-top:10px}
+.brief .foot{font-size:10.5px;line-height:1.5;color:var(--lab);margin-top:8px}
+.brief .navline .foot{margin-top:0}
+.brief .navline .st{white-space:nowrap}
+
+/* one figure block: the figure on the left; kick, claim and note on the right; the legend under
+   the figure. The markup keeps the order of the slot (kick, claim, note, fig, legend), so one
+   column on a narrow screen reads in the right order with no rule at all */
+.brief .slot{display:grid;grid-template-columns:minmax(0,1fr) 290px;column-gap:30px;
+  grid-template-rows:auto auto 1fr auto;margin-top:30px;
+  grid-template-areas:"fig kick" "fig claim" "fig note" "leg note"}
+.brief .slot>.kick{grid-area:kick}
+.brief .slot>.claim{grid-area:claim}
+.brief .slot>.note{grid-area:note}
+.brief .slot>.fig{grid-area:fig;margin-top:0;align-self:start}
+.brief .slot>.srcline{grid-area:leg;align-self:start}
+.brief .slot>.note .body{margin-top:8px}
+.brief .slot>.note .body+.body{margin-top:6px}
+
+/* the closing tables: three side by side, tighter than the reference tables of the design page */
+.brief table{margin-top:9px}
+.brief th{padding-bottom:6px}
+.brief td{padding:5px 12px 5px 0}
+.brief .trio{display:grid;grid-template-columns:1.25fr 1fr 1.1fr;gap:30px;margin-top:34px;
+  align-items:start;padding-bottom:22px;border-bottom:1px solid var(--quiet)}
+
+@media screen and (max-width:1180px){
+  .brief .sheet{width:100%;max-width:820px}
+  .brief .main{padding:28px 22px 32px}
+  .brief .onepage{margin:18px 0 0;padding:15px 18px 16px}
+  .brief .pair{grid-template-columns:1fr;gap:16px}
+  .brief .navline{display:block}
+  .brief .navline .foot+.foot{margin-top:4px}
+  .brief .slot{display:block}
+  .brief .slot>.fig{margin-top:14px}
+  .brief .trio{grid-template-columns:1fr;gap:26px}
+}
+@media screen and (max-width:640px){
+  .brief h1{font-size:36px}
+}
+
+/* print: at most 3 A4 pages. With figures 300 to 480 units tall, page 1 holds the opening and the
+   first two figures, page 2 the next three, page 3 the tables; shorter figures fit on 2 pages. A
+   slot never splits, and the three tables stay together. --figw sets the figure column in mm,
+   and that width sets the size of every figure label on paper: at 106 mm a 6.5-unit label
+   prints at about 4.9 pt. Raise it and page 1 overflows; lower it and the labels stop reading.
+   A tall figure can take its own width: <figure class="slot" style="--figw:96mm">. The brief
+   uses a named page for its 8 mm margins, so the design page keeps its 14 mm. */
+@media print{
+  @page brief{size:A4;margin:8mm}
+  .brief{page:brief}
+  .brief .sheet{width:auto;max-width:none}
+  .brief .main{padding:0 3mm}                  /* keeps every line off the edge of the sheet */
+  .brief h1{font-size:20px;margin-bottom:2px}
+  .brief .dek{font-size:10px;margin-top:3px;max-width:none}
+  .brief .onepage{margin:6px 0 0;padding:6px 7px 7px;break-inside:avoid}
+  .brief .onepage .kick{font-size:8.5px;margin-bottom:4px}
+  .brief .onepage .lead{font-size:10px;line-height:1.3}
+  .brief .pair{gap:7mm}
+  .brief .navline{margin-top:5px;gap:2px 7mm}
+  .brief .foot{font-size:9px}
+  .brief .slot{grid-template-columns:var(--figw) minmax(0,1fr);column-gap:5mm;margin-top:9px;
+    grid-template-rows:auto auto auto 1fr;break-inside:avoid;
+    grid-template-areas:"fig kick" "fig claim" "fig note" "fig leg"}
+  .brief .slot>.kick{font-size:9px;margin-bottom:5px}
+  .brief .slot>.claim{font-size:10px}
+  .brief .slot>.note .body{font-size:8.5px;line-height:1.45;margin-top:5px}
+  .brief .slot>.note .body+.body{margin-top:4px}
+  .brief .slot>.srcline{font-size:6.5px;line-height:1.45;letter-spacing:.08em;margin-top:6px}
+  .brief .fig svg{max-height:none}
+  /* the last page has room, so the tables take two wide columns instead of three narrow ones,
+     and the three stay together on one page */
+  .brief .trio{grid-template-columns:1fr 1fr;gap:7mm 10mm;margin-top:11px;padding-bottom:4mm;
+    break-inside:avoid}
+  .brief .trio>div{break-inside:avoid}
+  .brief .trio .kick{font-size:9px;margin-bottom:4px}
+  .brief table{font-size:10px;margin-top:7px}
+  .brief th{font-size:8px;padding-bottom:5px}
+  .brief td{padding:4px 8px 4px 0}
+}

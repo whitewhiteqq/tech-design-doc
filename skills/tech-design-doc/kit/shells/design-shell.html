@@ -1,0 +1,488 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta name="color-scheme" content="light" />
+<title>Where Relay decides · design</title>
+<!--
+  ═══ DESIGN SHELL · tech-design-doc ════════════════════════════════════════════════════════════
+  The full design page. This file is a template: keep the structure, replace the Relay prose.
+  The Markdown of the design is the source of truth. This shell restates it for the screen.
+
+  The page, top to bottom:
+    title + dek             one or two lines each
+    the summary band        the whole design on the first 1280 x 900 screen
+    Part 1 · Decide         the reader who approves: decisions, the access model, open questions
+    Part 2 · Build          the reader who writes the code: facts from the code, checks, tests
+    Part 3 · Ship           the reader who deploys and runs it: request path, services, limits, rollout
+    the rail                an about card and the sticky contents list, nothing more
+
+  Rules:
+  1. Never edit the built page. Edit this shell or a figure script, then run python build.py.
+  2. A figure placeholder stays EMPTY, with no attributes: svg id="fig-NAME". build.py draws
+     figures/NAME.js once and bakes the same markup into every page that names it.
+  3. Anchor every section, slot and part by a name (id="checks"), never by a number. The numbers
+     in the headings, the slot kicks and the contents list are display only: renumber all three
+     after a reorder. In running text, link by name ("see support access"), not by number.
+  4. A figure is a four-part slot: kick, claim, figure, legend. The claim is a conclusion, never a
+     chart type. A figure that carries data gets a table twin built from the same model object,
+     and a checker compares the figure tooltips with the twin.
+  5. The first screen holds the title, the dek and the whole summary band. Keep each to two lines,
+     and keep each summary row to two lines.
+  6. Space comes from style.css, never from style="". The only inline style is a th width.
+  7. Nothing fetched: no src=, no link element, no web font, no second script element.
+  8. Controlled English: one word one meaning, active voice, simple tenses, 25 words a sentence.
+  ═══════════════════════════════════════════════════════════════════════════════════════════════
+-->
+<!--@@STYLE@@-->
+</head>
+<body class="design">
+<div class="sheet">
+
+  <!-- ══ the main column ══ -->
+  <main class="main">
+    <h1>Where Relay <b>decides</b></h1>
+    <p class="dek">The send path, the plans and the support access of Relay, a notification platform.</p>
+
+    <!-- ── THE SUMMARY BAND. HOLDS: one lead (what the system does, what this design decides), the
+         decisions table, the "waits for" table, and three notes: cost, start here, how to read. The
+         "Where" column links to a section by its name. ── -->
+    <section id="summary" class="onepage">
+      <div class="kick"><span class="n">→</span> The design in one page</div>
+      <p class="lead">Relay sends e-mail, SMS and push notifications for its tenants, the companies whose apps call it. This design decides where Relay checks each message, and what each plan and each support engineer sees.</p>
+
+      <div class="claim">Five decisions</div>
+      <table>
+        <thead><tr><th class="idx">#</th><th style="width:46%">The decision</th><th>Why</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>Relay API checks every message before it queues it</td><td>A client app sees only its own calls, never the limits or the opt-outs of its tenant</td></tr>
+          <tr><td>2</td><td>The plan of a tenant decides which dashboard tiers it sees</td><td>Three tiers and three add-ons replace a grant for each block of the dashboard</td></tr>
+          <tr><td>3</td><td>The cluster of a support engineer decides which tenants they open</td><td>A tenant outside every cluster gets <code>404</code>, the reply of an absent tenant</td></tr>
+          <tr><td>4</td><td>A scheduled message carries its job id as the idempotency key</td><td>A retried step then never sends a second message</td></tr>
+          <tr><td>5</td><td>The tests read the response bytes, not the intent of the code</td><td>A marker in every field of a test tenant must not reach a withheld block</td></tr>
+        </tbody>
+      </table>
+
+      <div class="claim">Three answers this design waits for</div>
+      <table>
+        <thead><tr><th class="who">Who</th><th>The question</th><th class="where">Where</th></tr></thead>
+        <tbody>
+          <tr><td>The product owner</td><td>Does each plan see the right tiers and add-ons?</td><td><a href="#plans">plans</a></td></tr>
+          <tr><td>The security team</td><td>May an engineer open a tenant outside their clusters during an incident?</td><td><a href="#support">support</a></td></tr>
+          <tr><td>The legal team</td><td>May the subject-line model learn from message bodies?</td><td><a href="#lineage">data feeds</a></td></tr>
+        </tbody>
+      </table>
+
+      <div class="notes">
+        <p><b>Cost.</b> Phase 1 builds the checks and their tests in 4–5 developer days. It waits for no answer above. <a href="#rollout">The rollout</a> holds all four phases: 10–14 developer days.</p>
+        <p><b>Start here.</b> The engineers start phase 1 today. The product owner reads <a href="#plans">plans</a>, which takes five minutes.</p>
+        <p><b>How to read.</b> The reference below has three parts. <b>Decide</b> holds the decisions and the questions. <b>Build</b> holds the checks, the data and the tests. <b>Ship</b> holds the scheduled path, the services, the limits and the plan.</p>
+      </div>
+    </section>
+
+    <!-- ══ PART 1 · DECIDE. A part band opens the part of one reader. HOLDS: the part name, and one
+         italic line that names the reader and what they do with this part. ══ -->
+    <div class="part" id="decide">
+      <h2 class="parth"><span class="pn">Part 1 ·</span> Decide</h2>
+      <p class="partwho">Read this to approve the design: the product owner and the security team.</p>
+    </div>
+
+    <!-- ── HOLDS: each decision as one bold sentence an owner can approve, then its reason. Lead
+         with the constraint that rules out the obvious approach, not with the code. Then the
+         system figure, where the one control point is the HERO mark. ── -->
+    <section id="decision">
+      <h3 class="qhead"><span class="n">1</span> The decision</h3>
+      <h4 class="minor">What decides a message</h4>
+      <ul class="body list">
+        <li><b>Relay API checks every message before it queues it.</b> A client app sees only its own calls. So no app can count the rate of its whole tenant, or apply an opt-out that a recipient made in another app.</li>
+        <li><b>The gateway checks the token and nothing else.</b> It answers <code>401</code> before Relay API runs. Every other decision belongs to Relay API.</li>
+        <li><b>One versioned file holds the plans and the clusters.</b> A new plan or a moved region changes the file, not the code. Every change needs a pull request that passes the <a href="#tests">tests</a>.</li>
+      </ul>
+      <p class="body"><b>Two rules decide what a reader sees.</b> The plan of a tenant decides which dashboard tiers it sees (<a href="#plans">plans</a>). The cluster of a support engineer decides which tenants they open (<a href="#support">support access</a>).</p>
+
+      <figure class="slot" id="send-path">
+        <div class="kick"><span class="n">§1</span> · The send path</div>
+        <div class="claim">Client apps only ask, the gateway only checks the token, and Relay API decides every message</div>
+        <div class="fig"><svg id="fig-system"></svg></div>
+        <figcaption class="srcline">Component flow · numbers = time order · dashed box = where it runs · solid arrow = call · dashed arrow = reply or callback · thin arrow = a call with no step · dark card = Relay API, the one place that decides · proposed, not deployed</figcaption>
+      </figure>
+    </section>
+
+    <!-- ── HOLDS: the unit an owner grants (here: tiers and add-ons), the stack figure and its
+         table twin, the table of tiers, then the silhouettes figure. The stack figure and its
+         twin read one model object, so they cannot drift apart. ── -->
+    <section id="plans">
+      <h3 class="qhead"><span class="n">2</span> Plans: what a tenant sees</h3>
+      <p class="body"><b>A plan buys tiers, not screens.</b> The dashboard has eight blocks. A grant for each block and each plan leaves the product owner 40 cells to answer. So the blocks sit in three ordered tiers and three add-ons.</p>
+
+      <figure class="slot" id="plan-stack">
+        <div class="kick"><span class="n">§2</span> · The plan stack</div>
+        <div class="claim">Each plan buys one whole stack of tiers, and an add-on never rides along with a tier</div>
+        <div class="fig"><svg id="fig-stack"></svg></div>
+        <figcaption class="srcline">Stacked tiers · one column per plan · each tier includes the one below · darker tier = more access · detached circle = an add-on · filled = included · half ring = limited · hairline dots = not included · top row = region access</figcaption>
+      </figure>
+      <details class="twin"><summary class="kick">Table view</summary>
+        <table>
+          <thead><tr><th style="width:16%">Plan</th><th style="width:30%">Tiers</th><th style="width:32%">Add-ons</th><th>Region access</th></tr></thead>
+          <tbody>
+            <tr><td>Free</td><td>Basic</td><td>none</td><td>own region</td></tr>
+            <tr><td>Team</td><td>Basic, Analytics</td><td>none</td><td>own region</td></tr>
+            <tr><td>Business</td><td>Basic, Analytics</td><td>SSO, Audit export (last 30 days)</td><td>own region</td></tr>
+            <tr><td>Enterprise</td><td>Basic, Analytics, Raw logs</td><td>SSO, Audit export, Dedicated IP</td><td>all regions</td></tr>
+            <tr><td>Partner</td><td>Basic, Analytics, Raw logs</td><td>SSO, Dedicated IP</td><td>all regions</td></tr>
+          </tbody>
+        </table>
+      </details>
+
+      <p class="body"><b>Each tier includes the tier below it,</b> so a plan names one tier, never a list. The tiers follow what a reader can do with the data:</p>
+      <table>
+        <thead><tr><th style="width:16%">Tier</th><th style="width:38%">What it holds</th><th>What a reader can do with it</th></tr></thead>
+        <tbody>
+          <tr><td>1 · Basic</td><td>the send API, the template editor, the status of each message</td><td>Send a message and see that it left.</td></tr>
+          <tr><td>2 · Analytics</td><td>delivery, bounce and click rates, with CSV export</td><td>Judge a campaign. Every value is a rate, never one recipient.</td></tr>
+          <tr><td>3 · Raw logs</td><td>every API request and provider reply, kept 30 days</td><td>Trace one message. One export rebuilds the contact history of a tenant.</td></tr>
+        </tbody>
+      </table>
+      <p class="body">An add-on is a separate purchase that no tier carries: SSO, Audit export or Dedicated IP. Business gets the audit export for the last 30 days only.</p>
+
+      <figure class="slot" id="plan-views">
+        <div class="kick"><span class="n">§2</span> · One dashboard, four plans</div>
+        <div class="claim">Enterprise sees all eight blocks, and Free sees three: the header, the send stats and the template list</div>
+        <div class="fig"><svg id="fig-silhouettes"></svg></div>
+        <figcaption class="srcline">Dashboard silhouettes · one column per plan · block order = the order of the dashboard · solid = shown · half = limited · dotted line = withheld · dark column = Enterprise · Partner is not drawn</figcaption>
+      </figure>
+      <p class="body">A withheld block leaves no heading and no empty state, such as "No clicks yet". The dashboard looks the same whether the withheld data exists or not.</p>
+    </section>
+
+    <!-- ── HOLDS: the scope rule in one sentence, the mapping figure, where each entity lives,
+         and the rules at the edges: no value, an absent record, a change. ── -->
+    <section id="support">
+      <h3 class="qhead"><span class="n">3</span> Support access: which tenants an engineer opens</h3>
+      <p class="body"><b>The rule.</b> A tenant carries one region: <code>eu</code>, <code>us</code> or <code>apac</code>. Each region sits in one support cluster. An engineer opens a tenant when one of their clusters holds its region.</p>
+      <p class="body"><b>No filter on messages.</b> Scope is a property of the tenant, not of its messages. An engineer who opens a tenant sees all of its messages.</p>
+
+      <figure class="slot" id="support-map">
+        <div class="kick"><span class="n">§3</span> · Which tenants an engineer opens</div>
+        <div class="claim">The region belongs to the tenant, so an engineer opens only the tenants of their own clusters</div>
+        <div class="fig"><svg id="fig-mapping"></svg></div>
+        <figcaption class="srcline">Example tenants, not real data · tick = one message, which the rule never reads · capsule = the region, in the tone of its cluster · curve = the cluster opens the tenant · box = one support cluster, its role and its regions · outlined capsule = a region in no cluster of the engineer · dotted line = no tenant · <code>404</code> = the same reply for both</figcaption>
+      </figure>
+
+      <table>
+        <thead><tr><th style="width:16%">Entity</th><th style="width:46%">What it is</th><th>Where it lives</th></tr></thead>
+        <tbody>
+          <tr><td>Region</td><td>the region of one tenant: <code>eu</code>, <code>us</code> or <code>apac</code></td><td>the tenant record</td></tr>
+          <tr><td>Cluster</td><td>the regions that one support team covers: Atlantic holds <code>eu</code> and <code>us</code>, Pacific holds <code>apac</code></td><td>the policy file, as <code>clusters</code></td></tr>
+          <tr><td>Role</td><td><code class="nw">support.&lt;cluster&gt;</code>, one per cluster, plus <code class="nw">support.all</code></td><td>the identity provider</td></tr>
+        </tbody>
+      </table>
+      <h4 class="minor">Three rules at the edges</h4>
+      <ul class="body list">
+        <li><b>A tenant with no region opens to nobody,</b> except an engineer who holds <code class="nw">support.all</code>.</li>
+        <li><b>An absent tenant and a tenant out of scope get the same <code>404</code> body.</b> So a reply never tells an engineer which tenants exist.</li>
+        <li><b>A moved region takes effect on the next request.</b> The policy file changes, and no engineer signs in again.</li>
+      </ul>
+    </section>
+
+    <!-- ── HOLDS: every open question, numbered, grouped by owner. Each one says what a "yes" or
+         a "no" changes, so an owner can answer in one line. ── -->
+    <section id="owner-decisions">
+      <h3 class="qhead"><span class="n">4</span> Decisions the owners make</h3>
+      <h4 class="minor">The product owner</h4>
+      <ol class="body list">
+        <li><b>The plans.</b> Does each plan in <a href="#plans">plans</a> see the right tiers and add-ons? A change edits the policy file, not the code.</li>
+      </ol>
+      <h4 class="minor">The security team</h4>
+      <ol class="body list" start="2">
+        <li><b>Access in an incident.</b> May an engineer open a tenant outside their clusters during an incident? A "yes" adds one role, <code class="nw">support.incident</code>, and one audit alert per use.</li>
+      </ol>
+      <h4 class="minor">The legal team</h4>
+      <ol class="body list" start="3">
+        <li><b>Message bodies and the model.</b> May the subject-line model learn from message bodies? A "no" cuts a third feed in the <a href="#lineage">data feeds</a>.</li>
+      </ol>
+    </section>
+
+    <!-- ── HOLDS: each rejected option, then the choice this design makes instead, then the
+         reason. The reason names the constraint that rules the option out. ── -->
+    <section id="alternatives">
+      <h3 class="qhead"><span class="n">5</span> Alternatives this design rejects</h3>
+      <ol class="body list">
+        <li>Checks in each client app<br>→ <b>Checks in Relay API.</b><br>Reason: an app sees only its own calls, so it cannot apply a limit or an opt-out across its tenant.</li>
+        <li>Hide screens by plan in the dashboard<br>→ <b>Withhold the data before the dashboard renders.</b><br>Reason: one field shows on up to five screens (<a href="#exposure">what the dashboard shows</a>).</li>
+        <li>A permission service from the start<br>→ <b>A policy file in the repository.</b><br>Reason: five plans and two clusters fit in one reviewed file, and the tests cover all of it.</li>
+      </ol>
+    </section>
+
+    <!-- ══ PART 2 · BUILD ══ -->
+    <div class="part" id="build">
+      <h2 class="parth"><span class="pn">Part 2 ·</span> Build</h2>
+      <p class="partwho">Read this to write the code: the engineers.</p>
+    </div>
+
+    <!-- ── HOLDS: the facts from the code that break the simple approach. This figure counts what
+         the table twin also states, so both come from one model object. ── -->
+    <section id="exposure">
+      <h3 class="qhead"><span class="n">6</span> What the dashboard shows today</h3>
+      <p class="body">A place is one spot on a screen where a field shows. The figure counts the places of each field on each screen of the dashboard.</p>
+
+      <figure class="slot" id="field-places">
+        <div class="kick"><span class="n">§6</span> · Where each field shows</div>
+        <div class="claim">Withhold the Logs screen, and most copies of each field stay on the other screens</div>
+        <div class="fig"><svg id="fig-matrix"></svg></div>
+        <figcaption class="srcline">Arc matrix · bubble area = places of the field on that screen · pale dot = none · number at the right = all places of the field · dark row = the recipient address · capsule = the screen a simple design would withhold · read from the console templates</figcaption>
+      </figure>
+      <details class="twin"><summary class="kick">Table view</summary>
+        <table class="counts">
+          <thead><tr><th style="width:28%">Field</th><th>Inbox</th><th>Analytics</th><th>Logs</th><th>Billing</th><th>API</th><th>Total</th></tr></thead>
+          <tbody>
+            <tr><td>Recipient address</td><td>2</td><td>0</td><td>2</td><td>0</td><td>1</td><td>5</td></tr>
+            <tr><td>Message body</td><td>2</td><td>0</td><td>1</td><td>0</td><td>0</td><td>3</td></tr>
+            <tr><td>Delivery status</td><td>1</td><td>3</td><td>1</td><td>1</td><td>1</td><td>7</td></tr>
+            <tr><td>Click events</td><td>0</td><td>2</td><td>1</td><td>0</td><td>0</td><td>3</td></tr>
+            <tr><td>Opt-out flag</td><td>1</td><td>1</td><td>1</td><td>0</td><td>0</td><td>3</td></tr>
+            <tr><td>API key</td><td>0</td><td>0</td><td>1</td><td>0</td><td>2</td><td>3</td></tr>
+            <tr class="total"><td>All fields</td><td>6</td><td>6</td><td>7</td><td>1</td><td>4</td><td>24</td></tr>
+          </tbody>
+        </table>
+      </details>
+      <h4 class="minor">Three facts that break the simple approach</h4>
+      <ul class="body list">
+        <li><b>A withheld screen leaks.</b> Withhold Logs, and the recipient address still shows in 3 of its 5 places, on Inbox and API. 17 of the 24 copies stay.</li>
+        <li><b>An empty block leaks a fact.</b> "No clicks yet" tells a Free tenant that Relay counts its clicks. So the dashboard removes a withheld block and shows no empty state.</li>
+        <li><b>The API is a screen too.</b> The recipient address, the delivery status and the API key reach it. So the same checks gate the JSON and the HTML.</li>
+      </ul>
+    </section>
+
+    <!-- ── HOLDS: the order of the checks and what each exit returns. Exact names for engineers:
+         routes, headers, status codes. One pre block shows a real request and its reply. ── -->
+    <section id="checks">
+      <h3 class="qhead"><span class="n">7</span> The checks in Relay API</h3>
+      <p class="body">Two entries reach the same checks: the API send, <code>POST /v1/messages</code>, and the scheduled send. The checks run in a fixed order, and the first failure decides the reply.</p>
+
+      <figure class="slot" id="check-order">
+        <div class="kick"><span class="n">§7</span> · Two entries, one order of checks</div>
+        <div class="claim">Each failed check ends in its own status code, and no entry skips the opt-out check</div>
+        <div class="fig"><svg id="fig-checks"></svg></div>
+        <figcaption class="srcline">Flowchart · ring = an entry · diamond = a check · down = the request passes · right = it stops, on the answer over the arrow · outlined chip = an error · pale chip = a stop without an error · filled chip = success · dotted line = the audit line · dashed box = where it runs · dark diamond = the opt-out check</figcaption>
+      </figure>
+
+      <table>
+        <thead><tr><th style="width:12%">Status</th><th style="width:52%">When</th><th>Who answers</th></tr></thead>
+        <tbody>
+          <tr><td><code>401</code></td><td>the token is absent, expired or signed by another key</td><td>the gateway, before Relay API runs</td></tr>
+          <tr><td><code>403</code></td><td>the tenant is suspended</td><td>Relay API</td></tr>
+          <tr><td><code>404</code></td><td>the template does not exist</td><td>Relay API</td></tr>
+          <tr><td><code>429</code></td><td>the tenant is over its rate limit</td><td>Relay API, with <code class="nw">Retry-After</code></td></tr>
+          <tr><td><code>204</code></td><td>the recipient opted out: Relay API logs the message and sends nothing</td><td>Relay API</td></tr>
+          <tr><td><code>503</code></td><td>the provider of the channel is down: the app retries later</td><td>Relay API, with <code class="nw">Retry-After</code></td></tr>
+        </tbody>
+      </table>
+
+      <div class="kick subsec" id="send-request"><span class="n">§7.1</span> · The send request</div>
+      <p class="body">A client app sends one message per call. The <code class="nw">Idempotency-Key</code> header makes a retry safe: Relay API answers a repeated key with the first reply.</p>
+<pre><code>POST /v1/messages HTTP/1.1
+Authorization: Bearer &lt;token&gt;
+Idempotency-Key: 6f1c2a9e-3b7d-4c55-9a1e-0d2f7b8c4e11
+Content-Type: application/json
+
+{"template": "order-shipped", "channel": "email",
+ "to": "ana@example.com", "data": {"order": "A-1042"}}
+
+HTTP/1.1 202 Accepted
+{"message_id": "msg_7Hq2Lw", "status": "queued"}</code></pre>
+      <p class="body"><code>202</code> means queued, not delivered. The delivery webhook reports the outcome later.</p>
+    </section>
+
+    <!-- ── HOLDS: the rule that decides every feed, the lineage figure and its twin, and one
+         numbered note per cut feed: what it cuts, and why. ── -->
+    <section id="lineage">
+      <h3 class="qhead"><span class="n">8</span> Derived data and its feeds</h3>
+      <p class="body">An output can reveal a source without quoting it. So one rule decides every feed: <b>a source feeds an output only if every reader of that output may see the source.</b></p>
+      <p class="body">Each source carries a data class: Internal, Confidential or Personal. Each output carries the highest class that its readers may see. A feed whose source ranks above its output is cut.</p>
+
+      <figure class="slot" id="data-feeds">
+        <div class="kick"><span class="n">§8</span> · What feeds each output</div>
+        <div class="claim">Two feeds carry data into an output that must not hold it</div>
+        <div class="fig"><svg id="fig-lineage"></svg></div>
+        <figcaption class="srcline">Flow diagram · one line = one feed · solid = stays · dashed = cut by the rule above · chip = the data class, darker = more sensitive · disc = a cut feed · ring = a feed checked and kept · numbers = the notes below · today’s feeds, proposed rule</figcaption>
+      </figure>
+      <details class="twin"><summary class="kick">Table view</summary>
+        <table>
+          <thead><tr><th style="width:19%">Source</th><th style="width:26%">Output</th><th style="width:13%">Stays or cut</th><th>Why</th></tr></thead>
+          <tbody>
+            <tr><td>Delivery receipts</td><td>Delivery analytics</td><td>stays</td><td>delivery rate and bounce rate per template</td></tr>
+            <tr><td>Click events</td><td>Delivery analytics</td><td>stays</td><td>click rate per link and per template</td></tr>
+            <tr><td>Message bodies</td><td>Delivery analytics</td><td><b>cut</b> (2)</td><td>today the dashboard quotes the first line of each message; analytics needs counts, not bodies</td></tr>
+            <tr><td>Message bodies</td><td>AI subject-line suggestions</td><td>stays</td><td>the past subject lines of the same tenant</td></tr>
+            <tr><td>Click events</td><td>AI subject-line suggestions</td><td>stays</td><td>which past subject lines drew clicks</td></tr>
+            <tr><td>Opt-out list</td><td>AI subject-line suggestions</td><td><b>cut</b> (1)</td><td>the model must not learn from people who opted out</td></tr>
+            <tr><td>Delivery analytics</td><td>AI subject-line suggestions</td><td>stays (3)</td><td>the open rate of each past subject line: counts only, never an address</td></tr>
+            <tr><td>Contact list</td><td>Invoices</td><td>stays</td><td>the count of stored contacts sets the price tier</td></tr>
+            <tr><td>Delivery receipts</td><td>Invoices</td><td>stays</td><td>the delivered count is the billed count</td></tr>
+            <tr><td>Billing records</td><td>Invoices</td><td>stays</td><td>the plan, the price and the usage</td></tr>
+          </tbody>
+        </table>
+      </details>
+      <ol class="body list">
+        <li><b>Opt-out list → AI subject-line suggestions: cut.</b> The model must not learn from people who opted out. The training job drops every opted-out recipient before it reads a message.</li>
+        <li><b>Message bodies → delivery analytics: cut.</b> Analytics needs counts, not bodies. The analytics job reads the message metadata only.</li>
+        <li><b>Delivery analytics → AI subject-line suggestions: kept.</b> The analytics hold counts only, so the model may read them.</li>
+      </ol>
+    </section>
+
+    <!-- ── HOLDS: the tests that prove the design on the output, numbered, so the rollout can name
+         them. Say what each test feeds in and what must not come out. ── -->
+    <section id="tests">
+      <h3 class="qhead"><span class="n">9</span> Tests that prove it</h3>
+      <p class="body">Every test runs on synthetic tenants, with a stub provider and no network.</p>
+      <ol class="body list">
+        <li><b>Canary test.</b> Put a unique marker in every field of a test tenant. Render the dashboard for each plan. No marker of a withheld block may reach the HTML or the JSON.</li>
+        <li><b>Same <code>404</code>.</b> An absent tenant and a tenant out of scope get byte-identical <code>404</code> bodies.</li>
+        <li><b>One message per key.</b> Send one request twice with the same <code class="nw">Idempotency-Key</code>. The stub provider receives one message.</li>
+        <li><b>Policy snapshot.</b> The repository holds the resolved grants of each plan, so a policy change shows as a diff in review.</li>
+      </ol>
+    </section>
+
+    <!-- ══ PART 3 · SHIP ══ -->
+    <div class="part" id="ship">
+      <h2 class="parth"><span class="pn">Part 3 ·</span> Ship</h2>
+      <p class="partwho">Read this to deploy and run it: the platform team.</p>
+    </div>
+
+    <!-- ── HOLDS: the path that runs later, with the sequence figure, and the residual risk in
+         plain words: what can still go wrong, and what to check. ── -->
+    <section id="scheduled">
+      <h3 class="qhead"><span class="n">10</span> Scheduled sends</h3>
+      <p class="body">A scheduled message waits in the scheduler until its <code>send_at</code> time. Then a worker sends it, and the provider reports the delivery back to Relay API.</p>
+
+      <figure class="slot" id="schedule-steps">
+        <div class="kick"><span class="n">§10</span> · A scheduled send, step by step</div>
+        <div class="claim">The job id travels as the idempotency key, so a retried step never sends a second message</div>
+        <div class="fig"><svg id="fig-sequence"></svg></div>
+        <figcaption class="srcline">Sequence diagram · time runs down · solid = call · dashed = reply · loop = work inside one party · disc = step number · capsule = the party is busy · thick dark arrow = the step that carries the key · bracket = exactly once</figcaption>
+      </figure>
+      <p class="body"><b>Residual risk.</b> A provider that ignores the key can still deliver a message twice after a timeout. Check each provider before you rely on the key.</p>
+    </section>
+
+    <!-- ── HOLDS: what runs, where, and who bills it: the services figure in the vendors' own marks
+         (figures/services.js, with "icons" in doc.json), then one table of the services and what
+         each one bills for. This view answers "what do we run, and who bills us" for the reader who
+         deploys and pays. It never retells a flow: the send path figure does that. The table names
+         the same services as the figure, so change both. ── -->
+    <section id="services">
+      <h3 class="qhead"><span class="n">11</span> What Relay runs</h3>
+      <p class="body">Relay runs no server. Seven managed services in one AWS account run all of it. The client apps of each tenant stay outside that account, and off the Relay bill.</p>
+
+      <figure class="slot" id="service-map">
+        <div class="kick"><span class="n">§11</span> · The services, in the vendor’s marks</div>
+        <div class="claim">Seven managed services in one AWS account run Relay, and one Lambda function, the Relay API, decides every message</div>
+        <div class="fig"><svg id="fig-services"></svg></div>
+        <figcaption class="srcline">Deployment view · mark = the vendor’s own icon, unmodified · plain card = a thing Relay does not run · dashed box = a boundary, where billing or trust changes · numbers = the send path, in time order · arrow = the direction of the call, so the workers poll the queue · thin arrow = a call with no step · dark card = the Relay API, the one place that decides</figcaption>
+      </figure>
+
+      <table>
+        <thead><tr><th style="width:24%">Service</th><th style="width:38%">The part it plays</th><th>It bills for</th></tr></thead>
+        <tbody>
+          <tr><td>Amazon API Gateway</td><td>the entry point: checks the token</td><td>each request</td></tr>
+          <tr><td>AWS Lambda</td><td>two functions: the Relay API and the delivery workers</td><td>each request and the compute time</td></tr>
+          <tr><td>Amazon SQS</td><td>the send queue: one job per message</td><td>each request</td></tr>
+          <tr><td>Amazon SES</td><td>the e-mail sender</td><td>each e-mail sent</td></tr>
+          <tr><td>Amazon SNS</td><td>the SMS sender</td><td>each SMS sent, at a price for each country</td></tr>
+          <tr><td>Amazon S3</td><td>the template store</td><td>the storage and each request</td></tr>
+          <tr><td>Amazon CloudWatch</td><td>the audit log: one line per request</td><td>the log data it takes in and keeps</td></tr>
+        </tbody>
+      </table>
+      <p class="body"><b>So the bill grows with the messages, not with the tenants.</b> An idle tenant costs Relay almost nothing, and SMS is the most expensive channel.</p>
+    </section>
+
+    <!-- ── HOLDS: what the system logs and never logs, then the callout: three numbers that limit
+         the system, each with what it means for the reader. ── -->
+    <section id="operations">
+      <h3 class="qhead"><span class="n">12</span> Limits and operations</h3>
+      <p class="body">Relay API writes one audit line per request: the tenant, the outcome and the check that decided it. It never logs a message body or a recipient address.</p>
+
+      <div class="callout">
+        <div class="kick">Three numbers that limit the send path</div>
+        <div class="traits">
+          <div class="t"><div class="big">202</div><div class="nm">Accepted, not delivered</div>
+            <div class="ds">Relay API answers when it queues the message. The delivery webhook reports the outcome later.</div></div>
+          <div class="t"><div class="big">6,000/min</div><div class="nm">Default rate limit per tenant</div>
+            <div class="ds">A tenant over its limit in one minute gets <code>429</code> with <code class="nw">Retry-After</code>. The Enterprise plan can raise the limit.</div></div>
+          <div class="t"><div class="big">24 h</div><div class="nm">Life of an idempotency key</div>
+            <div class="ds">A repeated key within 24 hours gets the first reply. After that, the same key starts a new message.</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── HOLDS: the phases, each with its effort in developer days and what it waits for, then
+         one next action. The brief copies this cost table: change both. ── -->
+    <section id="rollout">
+      <h3 class="qhead"><span class="n">13</span> Rollout</h3>
+      <ol class="body list">
+        <li><b>Checks and tests</b> · 4–5 developer days.<br>The checks in Relay API, the status codes, and tests 1–3.</li>
+        <li><b>Plans and dashboards</b> · 3–4 developer days.<br>The policy file, the tier gates in the dashboard, and test 4.</li>
+        <li><b>Support access</b> · 2–3 developer days, plus the wait for the security team.<br>The cluster map and the support roles.</li>
+        <li><b>Data feeds</b> · 1–2 developer days.<br>The two cuts in the <a href="#lineage">data feeds</a>: the opt-out list from the AI suggestions, the message bodies from analytics.</li>
+      </ol>
+      <p class="body">Every phase builds and tests against synthetic tenants.</p>
+      <p class="body"><b>Next action for the engineers:</b> write the checks of phase 1 against the stub provider. Phase 1 needs no answer from any owner.</p>
+    </section>
+
+    <!-- ── HOLDS: the sources a reader can check. Link out here, never in the brief. ── -->
+    <section id="references">
+      <h3 class="qhead"><span class="n">14</span> References</h3>
+      <ul class="body list">
+        <li><a href="https://www.rfc-editor.org/rfc/rfc9110">RFC 9110, HTTP Semantics</a>: the <code>202</code>, <code>204</code>, <code>404</code> and <code>503</code> status codes, and <code class="nw">Retry-After</code>.</li>
+        <li><a href="https://www.rfc-editor.org/rfc/rfc6585">RFC 6585</a>: the <code>429</code> status code.</li>
+        <li><a href="https://datatracker.ietf.org/doc/draft-ietf-httpapi-idempotency-key-header/">The Idempotency-Key HTTP header field</a>, an IETF draft.</li>
+      </ul>
+    </section>
+  </main>
+
+  <!-- ══ THE RAIL. HOLDS: a short about card (scope, status, owner, sources) and the sticky
+       contents list, grouped by part. Nothing else: long sections stay in the main column. ══ -->
+  <aside class="rail">
+    <div class="top">
+      <div class="lbl">About this design</div>
+      <p class="ttl">Where Relay checks a message, and what each plan and each support engineer sees</p>
+      <p><b>Status:</b> Proposed · 2026-10-07</p>
+      <p><b>Owner:</b> the Relay platform team</p>
+      <p><b>Sources:</b> the Relay API code and the provider limits, checked on 2026-10-07</p>
+    </div>
+
+    <nav class="toc" aria-label="Contents">
+      <div class="lbl">Contents</div>
+      <ol>
+        <li><a href="#summary"><span class="n">→</span>The design in one page</a></li>
+      </ol>
+      <div class="sub"><a href="#decide">Part 1 · Decide</a></div>
+      <ol>
+        <li><a href="#decision"><span class="n">1</span>The decision</a></li>
+        <li><a href="#plans"><span class="n">2</span>Plans: what a tenant sees</a></li>
+        <li><a href="#support"><span class="n">3</span>Support access</a></li>
+        <li><a href="#owner-decisions"><span class="n">4</span>Decisions the owners make</a></li>
+        <li><a href="#alternatives"><span class="n">5</span>Alternatives rejected</a></li>
+      </ol>
+      <div class="sub"><a href="#build">Part 2 · Build</a></div>
+      <ol>
+        <li><a href="#exposure"><span class="n">6</span>What the dashboard shows today</a></li>
+        <li><a href="#checks"><span class="n">7</span>The checks in Relay API</a></li>
+        <li><a href="#lineage"><span class="n">8</span>Derived data and its feeds</a></li>
+        <li><a href="#tests"><span class="n">9</span>Tests that prove it</a></li>
+      </ol>
+      <div class="sub"><a href="#ship">Part 3 · Ship</a></div>
+      <ol>
+        <li><a href="#scheduled"><span class="n">10</span>Scheduled sends</a></li>
+        <li><a href="#services"><span class="n">11</span>What Relay runs</a></li>
+        <li><a href="#operations"><span class="n">12</span>Limits and operations</a></li>
+        <li><a href="#rollout"><span class="n">13</span>Rollout</a></li>
+        <li><a href="#references"><span class="n">14</span>References</a></li>
+      </ol>
+    </nav>
+  </aside>
+</div>
+
+<!--@@SCRIPT@@-->
+</body>
+</html>

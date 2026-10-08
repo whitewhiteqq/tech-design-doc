@@ -1,0 +1,10 @@
+{
+  "figures": "figures",
+  "prelude": "prelude.js",
+  "icons": "icons.js",
+  "runtime": "runtime.js",
+  "style": "style.css",
+  "pages": [
+    {"shell": "shells/design-shell.html", "out": "../examples/relay-design.html"}
+  ]
+}

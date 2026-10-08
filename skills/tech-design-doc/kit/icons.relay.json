@@ -1,0 +1,16 @@
+{
+  "apigw": {"pack": "aws-icons.zip", "match": "Arch_Amazon-API-Gateway_64.svg",
+            "label": "Amazon API Gateway", "credit": "AWS Architecture Icons, release 07312026"},
+  "lambda": {"pack": "aws-icons.zip", "match": "Arch_AWS-Lambda_64.svg",
+             "label": "AWS Lambda", "credit": "AWS Architecture Icons, release 07312026"},
+  "sqs": {"pack": "aws-icons.zip", "match": "Arch_Amazon-Simple-Queue-Service_64.svg",
+          "label": "Amazon SQS", "credit": "AWS Architecture Icons, release 07312026"},
+  "ses": {"pack": "aws-icons.zip", "match": "Arch_Amazon-Simple-Email-Service_64.svg",
+          "label": "Amazon SES", "credit": "AWS Architecture Icons, release 07312026"},
+  "sns": {"pack": "aws-icons.zip", "match": "Arch_Amazon-Simple-Notification-Service_64.svg",
+          "label": "Amazon SNS", "credit": "AWS Architecture Icons, release 07312026"},
+  "s3": {"pack": "aws-icons.zip", "match": "Arch_Amazon-Simple-Storage-Service_64.svg",
+         "label": "Amazon S3", "credit": "AWS Architecture Icons, release 07312026"},
+  "cloudwatch": {"pack": "aws-icons.zip", "match": "Arch_Amazon-CloudWatch_64.svg",
+                 "label": "Amazon CloudWatch", "credit": "AWS Architecture Icons, release 07312026"}
+}
