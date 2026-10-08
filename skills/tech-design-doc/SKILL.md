@@ -3,7 +3,7 @@ name: tech-design-doc
 license: Apache-2.0
 metadata:
   author: whitewhiteqq
-  version: "0.1.0"
+  version: "0.2.0"
 description: This skill should be used when creating or rewriting technical design documents, architecture diagrams, cloud deployment diagrams (AWS, Azure, Google Cloud, with the official vendor icons), HTML visual design pages, or Confluence-ready Markdown documentation.
 ---
 
