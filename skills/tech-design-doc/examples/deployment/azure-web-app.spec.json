@@ -1,0 +1,154 @@
+{
+  "title": "Order portal: Azure deployment",
+  "nodes": [
+    {
+      "id": "user",
+      "icon": "azure/users",
+      "label": "Customers",
+      "sub": "Browser",
+      "at": [
+        0,
+        0
+      ]
+    },
+    {
+      "id": "fd",
+      "icon": "azure/front-door-and-cdn-profiles",
+      "label": "Azure Front Door",
+      "sub": "WAF + TLS",
+      "at": [
+        1,
+        0
+      ]
+    },
+    {
+      "id": "app",
+      "icon": "azure/app-services",
+      "label": "Azure App Service",
+      "sub": "Order API",
+      "at": [
+        2,
+        0
+      ]
+    },
+    {
+      "id": "sql",
+      "icon": "azure/sql-database",
+      "label": "Azure SQL Database",
+      "sub": "Orders",
+      "at": [
+        3,
+        0
+      ]
+    },
+    {
+      "id": "bus",
+      "icon": "azure/azure-service-bus",
+      "label": "Azure Service Bus",
+      "sub": "order-events topic",
+      "at": [
+        2,
+        1
+      ]
+    },
+    {
+      "id": "func",
+      "icon": "azure/function-apps",
+      "label": "Azure Functions",
+      "sub": "Fulfilment worker",
+      "at": [
+        3,
+        1
+      ]
+    },
+    {
+      "id": "kv",
+      "icon": "azure/key-vaults",
+      "label": "Azure Key Vault",
+      "sub": "Secrets",
+      "at": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "ai",
+      "icon": "azure/application-insights",
+      "label": "Application Insights",
+      "sub": "Traces, alerts",
+      "at": [
+        4,
+        1
+      ]
+    }
+  ],
+  "groups": [
+    {
+      "id": "sub",
+      "style": "azure-subscription",
+      "label": "Subscription: prod",
+      "contains": [
+        "rg"
+      ]
+    },
+    {
+      "id": "rg",
+      "style": "azure-rg",
+      "label": "rg-orders-prod (East Asia)",
+      "contains": [
+        "fd",
+        "app",
+        "sql",
+        "bus",
+        "func",
+        "kv",
+        "ai"
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "from": "user",
+      "to": "fd",
+      "step": 1,
+      "label": "HTTPS"
+    },
+    {
+      "from": "fd",
+      "to": "app",
+      "step": 2
+    },
+    {
+      "from": "app",
+      "to": "sql",
+      "step": 3
+    },
+    {
+      "from": "app",
+      "to": "bus",
+      "kind": "async",
+      "label": "publish"
+    },
+    {
+      "from": "bus",
+      "to": "func",
+      "kind": "async"
+    },
+    {
+      "from": "func",
+      "to": "sql",
+      "kind": "async"
+    },
+    {
+      "from": "app",
+      "to": "kv",
+      "kind": "monitor",
+      "label": "read secrets"
+    },
+    {
+      "from": "func",
+      "to": "ai",
+      "kind": "monitor"
+    }
+  ]
+}

@@ -32,3 +32,6 @@ Thumbs.db
 .env
 .env.*
 !.env.example
+
+# Generated from the local icon packs by kit/tools/make_icons.py. It holds raw vendor marks.
+skills/tech-design-doc/kit/icons.js

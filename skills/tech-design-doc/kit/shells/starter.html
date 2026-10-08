@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta name="color-scheme" content="light" />
+<title>TOPIC NAME · design</title>
+<!--
+  STARTER SHELL · tech-design-doc. Copy it next to your doc.json, then replace every UPPERCASE
+  placeholder. The Markdown doc is the source of truth; this page restates it for the screen.
+  Each pattern appears once: repeat a section, a slot or a table as often as you need.
+  Build:  python <skill>/kit/build.py doc.json      (doc.json: {"pages": [{"shell": "...", "out": "..."}]})
+  - A figure placeholder stays EMPTY: <svg id="fig-NAME"></svg> draws figures/NAME.json.
+  - A cloud deployment diagram: <!- -@@INCLUDE PATH.svg@@- -> (no spaces in the dashes) inlines
+    the .svg that scripts/cloud_diagram.py wrote.
+  - Anchor sections by name (id="rollout"). Renumber headings and the contents list together.
+  - No src=, no <link>, no second <script>: the build checks it.
+-->
+<!--@@STYLE@@-->
+</head>
+<body class="design">
+<div class="sheet">
+
+  <main class="main">
+    <h1>TOPIC NAME, E.G. DISTRIBUTED TRANSACTION</h1>
+    <p class="dek">ONE LINE: WHAT THIS DESIGN COVERS.</p>
+
+    <section id="summary" class="onepage">
+      <div class="kick"><span class="n">→</span> The design in one page</div>
+      <p class="lead">WHAT THE SYSTEM DOES, AND WHAT THIS DESIGN DECIDES, IN TWO SENTENCES.</p>
+
+      <div class="claim">N decisions</div>
+      <table>
+        <thead><tr><th class="idx">#</th><th style="width:46%">The decision</th><th>Why</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>DECISION AS ONE APPROVABLE SENTENCE</td><td>THE CONSTRAINT THAT FORCES IT</td></tr>
+        </tbody>
+      </table>
+
+      <div class="claim">Open questions</div>
+      <table>
+        <thead><tr><th class="who">Who</th><th>The question</th><th class="where">Where</th></tr></thead>
+        <tbody>
+          <tr><td>OWNER</td><td>QUESTION?</td><td><a href="#deployment">deployment</a></td></tr>
+        </tbody>
+      </table>
+
+      <div class="notes">
+        <p><b>Cost.</b> EFFORT IN DAYS, AND WHAT IT WAITS FOR.</p>
+        <p><b>Start here.</b> WHO DOES WHAT FIRST.</p>
+      </div>
+    </section>
+
+    <div class="part" id="decide">
+      <h2 class="parth"><span class="pn">Part 1 ·</span> Decide</h2>
+      <p class="partwho">Read this to approve the design: READERS.</p>
+    </div>
+
+    <section id="decision">
+      <h3 class="qhead"><span class="n">1</span> The decision</h3>
+      <ul class="body list">
+        <li><b>DECISION.</b> REASON, THEN THE ALTERNATIVE IT BEATS.</li>
+      </ul>
+
+      <figure class="slot" id="arch-slot">
+        <div class="kick"><span class="n">§1</span> · FIGURE NAME</div>
+        <div class="claim">THE CONCLUSION THIS FIGURE PROVES, NOT ITS CHART TYPE</div>
+        <div class="fig"><svg id="fig-arch"></svg></div>
+        <figcaption class="srcline">Component flow · numbers = time order · solid arrow = call · dashed arrow = reply</figcaption>
+      </figure>
+    </section>
+
+    <div class="part" id="ship">
+      <h2 class="parth"><span class="pn">Part 2 ·</span> Ship</h2>
+      <p class="partwho">Read this to deploy and run it: READERS.</p>
+    </div>
+
+    <section id="deployment">
+      <h3 class="qhead"><span class="n">2</span> Deployment</h3>
+      <p class="body"><b>ONE-SENTENCE CLAIM ABOUT WHERE IT RUNS.</b> SUPPORTING FACT.</p>
+      <figure class="slot" id="deploy-slot">
+        <div class="kick"><span class="n">§2</span> · Cloud deployment</div>
+        <div class="claim">THE CONCLUSION: E.G. ONE ACCOUNT, ONE REGION, THE MAIN PATH NEVER WAITS ON RECOVERY</div>
+        <div class="fig wide"><!--@@INCLUDE img/deploy.svg@@--></div>
+        <figcaption class="srcline">Cloud deployment · solid = request path · dashed = event or failure path · dotted = monitoring · official vendor icons</figcaption>
+      </figure>
+      <table>
+        <thead><tr><th style="width:24%">Service</th><th>Role</th><th style="width:22%">Limit or setting</th></tr></thead>
+        <tbody>
+          <tr><td>SERVICE</td><td>ROLE</td><td>VALUE</td></tr>
+        </tbody>
+      </table>
+    </section>
+  </main>
+
+  <aside class="rail">
+    <div class="top">
+      <div class="lbl">About this design</div>
+      <p class="ttl">ONE-LINE SCOPE</p>
+      <p><b>Status:</b> Proposed · DATE</p>
+      <p><b>Owner:</b> TEAM</p>
+    </div>
+    <nav class="toc" aria-label="Contents">
+      <div class="lbl">Contents</div>
+      <ol>
+        <li><a href="#summary"><span class="n">→</span>The design in one page</a></li>
+      </ol>
+      <div class="sub"><a href="#decide">Part 1 · Decide</a></div>
+      <ol>
+        <li><a href="#decision"><span class="n">1</span>The decision</a></li>
+      </ol>
+      <div class="sub"><a href="#ship">Part 2 · Ship</a></div>
+      <ol>
+        <li><a href="#deployment"><span class="n">2</span>Deployment</a></li>
+      </ol>
+    </nav>
+  </aside>
+</div>
+
+<!--@@SCRIPT@@-->
+</body>
+</html>

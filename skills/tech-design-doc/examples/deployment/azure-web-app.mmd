@@ -1,0 +1,21 @@
+flowchart LR
+  n_user["Customers<br/><small>Browser</small>"]
+  subgraph n_sub["Subscription: prod"]
+    subgraph n_rg["rg-orders-prod (East Asia)"]
+      n_fd["Azure Front Door<br/><small>WAF + TLS</small>"]
+      n_app["Azure App Service<br/><small>Order API</small>"]
+      n_sql["Azure SQL Database<br/><small>Orders</small>"]
+      n_bus["Azure Service Bus<br/><small>order-events topic</small>"]
+      n_func["Azure Functions<br/><small>Fulfilment worker</small>"]
+      n_kv["Azure Key Vault<br/><small>Secrets</small>"]
+      n_ai["Application Insights<br/><small>Traces, alerts</small>"]
+    end
+  end
+  n_user -->|"1. HTTPS"| n_fd
+  n_fd -->|"2"| n_app
+  n_app -->|"3"| n_sql
+  n_app -.->|"publish"| n_bus
+  n_bus -.-> n_func
+  n_func -.-> n_sql
+  n_app -.->|"read secrets"| n_kv
+  n_func -.-> n_ai

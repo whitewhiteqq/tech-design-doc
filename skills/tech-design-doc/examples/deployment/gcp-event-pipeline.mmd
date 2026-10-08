@@ -1,0 +1,22 @@
+flowchart LR
+  n_client(["Partner system<br/><small>Sends events</small>"])
+  subgraph n_proj["Project: events-prod"]
+    subgraph n_region["asia-east2"]
+      n_apigee["Apigee<br/><small>API proxy</small>"]
+      n_run["Cloud Run<br/><small>Ingest service</small>"]
+      n_pubsub["Pub/Sub<br/><small>events topic</small>"]
+      n_df["Dataflow<br/><small>Streaming job</small>"]
+      n_bq["BigQuery<br/><small>Analytics</small>"]
+      n_gcs["Cloud Storage<br/><small>Raw archive</small>"]
+      n_sm["Secret Manager<br/><small>API keys</small>"]
+      n_mon["Cloud Monitoring<br/><small>Dashboards, alerts</small>"]
+    end
+  end
+  n_client -->|"1"| n_apigee
+  n_apigee -->|"2"| n_run
+  n_run -->|"3. publish"| n_pubsub
+  n_pubsub -.->|"4"| n_df
+  n_df -->|"5"| n_bq
+  n_df -.-> n_gcs
+  n_run -.-> n_sm
+  n_run -.-> n_mon

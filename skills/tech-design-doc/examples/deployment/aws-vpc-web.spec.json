@@ -1,0 +1,29 @@
+{
+  "title": "Web tier: AWS VPC deployment",
+  "nodes": [
+    {"id": "users", "icon": "aws-general/users", "label": "Users", "at": [0, 1]},
+    {"id": "r53",   "icon": "aws/route53",       "label": "Amazon Route 53", "at": [1, 0]},
+    {"id": "cf",    "icon": "aws/cloudfront",    "label": "Amazon CloudFront", "sub": "CDN + WAF", "at": [1, 1]},
+    {"id": "alb",   "icon": "aws/alb",           "label": "Application Load Balancer", "at": [2, 1]},
+    {"id": "ecs",   "icon": "aws/ecs",           "label": "Amazon ECS", "sub": "Fargate tasks", "at": [3, 1]},
+    {"id": "rds",   "icon": "aws/aurora",        "label": "Amazon Aurora", "sub": "PostgreSQL", "at": [4, 1]},
+    {"id": "s3",    "icon": "aws/s3",            "label": "Amazon S3", "sub": "Static assets", "at": [1, 2]},
+    {"id": "sm",    "icon": "aws/secrets-manager", "label": "AWS Secrets Manager", "at": [3, 2]}
+  ],
+  "groups": [
+    {"id": "cloud", "style": "aws-cloud", "label": "AWS Cloud", "contains": ["r53", "cf", "s3", "region"]},
+    {"id": "region", "style": "region", "label": "ap-east-1", "contains": ["vpc", "sm"]},
+    {"id": "vpc", "style": "vpc", "label": "VPC", "contains": ["pub", "priv"]},
+    {"id": "pub", "style": "public-subnet", "label": "Public subnet", "contains": ["alb"]},
+    {"id": "priv", "style": "private-subnet", "label": "Private subnet", "contains": ["ecs", "rds"]}
+  ],
+  "edges": [
+    {"from": "users", "to": "cf", "step": 1},
+    {"from": "users", "to": "r53", "kind": "async", "label": "DNS"},
+    {"from": "cf", "to": "alb", "step": 2},
+    {"from": "cf", "to": "s3", "kind": "async"},
+    {"from": "alb", "to": "ecs", "step": 3},
+    {"from": "ecs", "to": "rds", "step": 4},
+    {"from": "ecs", "to": "sm", "kind": "monitor"}
+  ]
+}
