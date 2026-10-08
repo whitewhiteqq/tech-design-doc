@@ -47,7 +47,7 @@ feature/fix branch  ->  develop  ->  main  ->  annotated tag  ->  GitHub Release
 
 - **Never push directly to `main` or `develop`.**
 - Open a pull request targeting `develop`.
-- Release promotion: a pull request from `develop` into `main`, merged with `Squash and merge`.
+- Release promotion: maintainer fast-forwards `main` with `git push origin develop:main`. Never squash or rebase `develop` into `main`.
 - Publishing a GitHub Release starts `.github/workflows/release.yml`, which builds, attests and attaches `tech-design-doc-<tag>.zip`.
 
 ## Commit Message Style
