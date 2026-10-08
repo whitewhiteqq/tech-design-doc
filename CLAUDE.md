@@ -47,7 +47,7 @@ feature/fix branch  ->  develop  ->  main  ->  annotated tag  ->  GitHub Release
 
 - **Never push directly to `main` or `develop`.**
 - Open a pull request targeting `develop`.
-- Release promotion: maintainer runs `git merge --ff-only develop` from `main` locally, then pushes.
+- Release promotion: a pull request from `develop` into `main`, merged with `Squash and merge`.
 - Publishing a GitHub Release starts `.github/workflows/release.yml`, which builds, attests and attaches `tech-design-doc-<tag>.zip`.
 
 ## Commit Message Style
