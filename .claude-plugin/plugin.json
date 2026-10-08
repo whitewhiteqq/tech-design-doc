@@ -1,7 +1,7 @@
 {
   "name": "tech-design-doc",
   "description": "Write decision-led technical design documents in Markdown or HTML, with cloud deployment diagrams drawn from the official AWS, Azure and Google Cloud icons, and a headless-Chrome check of every diagram.",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "author": {
     "name": "whitewhiteqq"
   },
