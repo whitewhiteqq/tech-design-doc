@@ -1,0 +1,767 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>How to organise an architecture design doc</title>
+<link rel="icon" href="data:,">
+<!-- Companion to diagram-types.html. Self-contained: no font, no CDN, no external request.
+     One small inline script (no library) opens a diagram badge as a preview. It fetches only
+     diagram-types.html from this same site; when that fails, the badge is a plain link.
+     Diagram names follow UML 2.5, C4, ArchiMate and the DFD convention; diagram-types.html cards each one. -->
+<style>
+  :root{
+    --bg:#F7F2EB; --card:#FFFDFA; --txt:#081F5C; --data:#334EAC; --data2:#7096D1;
+    --mut:rgba(8,31,92,.62); --faint:rgba(8,31,92,.34); --grid:rgba(8,31,92,.16);
+    --ok:#3E7A4E; --no:#B3453A;
+    --sans:"Segoe UI",system-ui,-apple-system,"Helvetica Neue",sans-serif;
+    --mono:ui-monospace,"Cascadia Mono",Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{background:var(--bg);color:var(--txt);margin:0;font:15px/1.6 var(--sans);padding:34px 28px 60px}
+  .wrap{max-width:1240px;margin:0 auto}
+  h1{font-size:26px;line-height:1.22;margin:0 0 6px;letter-spacing:-.015em}
+  .lede{font-size:15px;color:var(--mut);margin:0;max-width:68ch}
+  h2{font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;font-weight:700;color:var(--mut);
+     margin:46px 0 4px;padding-bottom:7px;border-bottom:1px solid var(--grid)}
+  h2 .cnt{float:right;letter-spacing:.04em;color:var(--faint);text-transform:none;font-weight:600}
+  .note{font-size:13.5px;color:var(--mut);margin:10px 0 16px;max-width:80ch}
+  .rule{background:var(--card);border:1px solid var(--grid);border-left:4px solid var(--data);
+        border-radius:8px;padding:16px 20px;margin:24px 0 0}
+  .rule b{font-size:17px}
+  .rule p{margin:8px 0 0;color:var(--mut);font-size:14px}
+  table{border-collapse:collapse;width:100%;font-size:14px}
+  th{text-align:left;font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--mut);
+     font-weight:700;padding:0 14px 8px 0;border-bottom:1px solid var(--grid)}
+  td{padding:9px 14px 9px 0;border-bottom:1px solid var(--grid);vertical-align:top}
+  tr:last-child td{border-bottom:none}
+  code{font:12.8px/1.4 var(--mono);background:rgba(8,31,92,.06);padding:1px 5px;border-radius:4px}
+  .hero{background:var(--card);border:1px solid var(--grid);border-radius:10px;padding:16px 18px;margin-top:20px}
+  .hero svg{display:block;width:100%;height:auto}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(388px,100%),1fr));gap:16px}
+  .skel{background:var(--card);border:1px solid var(--grid);border-radius:10px;padding:15px 17px 16px;
+        break-inside:avoid;display:flex;flex-direction:column}
+  .skel h3{margin:0 0 1px;font-size:16.5px;letter-spacing:-.01em}
+  .skel .meta{font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--faint);
+              font-weight:700;margin:0 0 12px}
+  ol.sec{list-style:none;counter-reset:s;margin:0 0 12px;padding:0}
+  /* two text rows (title, question) share column 2; the chip spans both rows in column 3 */
+  ol.sec li{counter-increment:s;display:grid;grid-template-columns:20px 1fr 76px;
+            grid-template-areas:"n t d" "n q d";gap:0 9px;
+            padding:6px 0;border-bottom:1px solid rgba(8,31,92,.07);font-size:13.4px}
+  ol.sec li:last-child{border-bottom:none}
+  ol.sec li:before{content:counter(s);grid-area:n;font-size:10.5px;font-weight:700;
+                   color:var(--faint);text-align:right;line-height:1.55;font-variant-numeric:tabular-nums}
+  ol.sec b{grid-area:t;font-weight:650;line-height:1.35}
+  ol.sec span.q{grid-area:q;color:var(--mut);font-size:12.3px;line-height:1.35}
+  ol.sec li.hinge{background:rgba(51,78,172,.07);margin:0 -8px;padding:6px 8px;border-radius:4px}
+  .dg{grid-area:d;align-self:center;font:9.5px/1.6 var(--sans);font-weight:700;color:#FFFDFA;
+      background:var(--data);border-radius:4px;padding:1px 0;text-align:center;letter-spacing:.02em}
+  .dg.n{background:none;color:var(--faint);font-weight:600}
+  .dg.t{background:var(--data2)}
+  a.dg{text-decoration:none;cursor:pointer;transition:background-color .12s}
+  a.dg:hover,a.dg:focus-visible{background:var(--txt)}
+  a.dg:focus-visible{outline:2px solid var(--data2);outline-offset:2px}
+  a.chip,a.key{cursor:pointer}
+  a.chip:hover rect,a.chip:focus-visible rect{fill:#081F5C}
+  a.chip:focus-visible,a.key:focus-visible{outline:2px solid var(--data2);outline-offset:1px}
+  a.key:hover text,a.key:focus-visible text{fill:#081F5C;text-decoration:underline}
+  a.key:hover g>*,a.key:focus-visible g>*{opacity:.75}
+  .topnav{display:flex;flex-wrap:wrap;gap:6px 20px;font-size:13px;font-weight:600;margin:0 0 22px}
+  .topnav a{color:var(--mut);text-decoration:none;padding-bottom:2px;border-bottom:2px solid transparent}
+  .topnav a:hover,.topnav a:focus-visible{color:var(--txt);border-bottom-color:var(--grid)}
+  .topnav a[aria-current="page"]{color:var(--txt);border-bottom-color:var(--data)}
+  .hint{font-size:13.5px;color:var(--mut);margin:8px 0 0}
+  /* badge preview: a card cloned from diagram-types.html, shown in a modal dialog */
+  #pv{border:none;border-radius:12px;padding:0;width:min(460px,calc(100vw - 32px));max-height:calc(100vh - 40px);
+      background:var(--card);color:var(--txt);font:15px/1.6 var(--sans);box-shadow:0 18px 50px rgba(8,31,92,.28)}
+  #pv::backdrop{background:rgba(8,31,92,.38)}
+  #pv .pv-in{padding:12px 18px 16px}
+  #pv .pv-bar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:0 0 6px;
+              font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;font-weight:700;color:var(--faint)}
+  #pv .pv-x{border:1px solid var(--grid);background:none;color:var(--txt);border-radius:6px;width:30px;height:30px;
+            font:18px/1 var(--sans);cursor:pointer}
+  #pv .pv-x:hover,#pv .pv-x:focus-visible{background:rgba(8,31,92,.06);outline:2px solid var(--data2);outline-offset:1px}
+  #pv .pv-go{margin:12px 0 0;padding-top:10px;border-top:1px solid var(--grid);font-size:13.5px;font-weight:600}
+  #pv .pv-go a{color:var(--data)}
+  #pv .card{display:flex;flex-direction:column}
+  #pv .card h3{margin:0;font-size:16.5px;letter-spacing:-.01em}
+  #pv .hd{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+  #pv .alt{font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--faint);font-weight:700;margin:1px 0 11px}
+  #pv .freq{font-size:10px;letter-spacing:.1em;white-space:nowrap;color:var(--faint);font-weight:700}
+  #pv .freq i{font-style:normal;color:var(--data)}
+  #pv .card svg{display:block;width:100%;height:auto;margin:2px 0 13px}
+  #pv .kv{display:grid;grid-template-columns:76px 1fr;gap:3px 10px;font-size:13.2px;margin:0 0 11px}
+  #pv .kv dt{color:var(--mut);font-weight:600}
+  #pv .kv dd{margin:0}
+  #pv .io{font-size:13.2px;margin:0 0 8px;padding-left:18px;position:relative}
+  #pv .io:before{position:absolute;left:0;top:0;font-weight:700}
+  #pv .inc:before{content:"+";color:var(--ok)} #pv .exc:before{content:"\2212";color:var(--no)}
+  #pv .when{border-top:1px solid var(--grid);margin-top:4px;padding-top:10px;font-size:13.2px}
+  #pv .when p{margin:0 0 6px} #pv .when p:last-child{margin:0}
+  #pv .yes b{color:var(--ok)} #pv .no b{color:var(--no)}
+  #pv .ex{font-size:11.5px;color:var(--faint);margin:9px 0 0}
+  #pv code{font:12.8px/1.4 var(--mono);background:rgba(8,31,92,.06);padding:1px 5px;border-radius:4px}
+  .tail{border-top:1px solid var(--grid);margin-top:auto;padding-top:10px;font-size:13.2px}
+  .tail p{margin:0 0 6px} .tail p:last-child{margin:0}
+  .tail .k b{color:var(--ok)} .tail .x b{color:var(--no)}
+  ol.mist{margin:0;padding-left:22px} ol.mist li{margin-bottom:10px} ol.mist b{display:block}
+  .foot{margin-top:40px;padding-top:16px;border-top:1px solid var(--grid);font-size:13px;color:var(--mut)}
+  @media print{
+    #pv,.topnav,.hint{display:none}
+    body{background:#fff;padding:0;font-size:9.6pt}
+    .grid{grid-template-columns:1fr 1fr;gap:9px}
+    .skel,.rule,.hero{background:#fff;break-inside:avoid} h2{margin-top:18px}
+  }
+</style></head><body><div class="wrap">
+
+<nav class="topnav" aria-label="Site"><a href="index.html" aria-current="page">Doc structure</a><a href="diagram-types.html">Diagram catalogue</a><a href="https://github.com/whitewhiteqq/tech-design-doc">GitHub</a></nav>
+
+<h1>How to organise an architecture design doc</h1>
+<p class="lede">Which diagram comes first, which comes last, and why. Then eight skeletons — one per
+kind of document — showing the section order and what diagram belongs in each. Every diagram is named
+the way other people name it — “sequence”, “container”, “DFD” — and
+the <a href="diagram-types.html">diagram catalogue</a> has a card for each one.</p>
+<p class="hint" hidden>Click a diagram badge to preview that diagram type.</p>
+
+<div class="rule">
+  <b>A design doc is an argument, not an inventory.</b>
+  <p>Sections go in the order the reader’s questions arise, and each diagram answers a question the
+  previous section raised. If a diagram answers nothing anyone asked yet, it is too early. That one
+  test settles almost every ordering argument.</p>
+</div>
+
+<!-- ══════════════ the arc ══════════════ -->
+<h2>The usual order</h2>
+<p class="note">Six phases. This ordering is common practice, not a named standard — the closest published template is <b>arc42</b>. Every doc below is a subset of this order, never a reshuffle of it. The
+movement is <b>wide to narrow</b>: a reader must meet a box before they can follow an arrow into it.</p>
+<div class="hero">
+<svg viewBox="0 0 720 168" role="group" aria-label="Six phases left to right: why, who, what, how, where, what if. Each names the question it answers and the diagram types that belong in it. An arrow underneath reads widest first.">
+  <g font-size="10.5" font-weight="800" fill="#F7F2EB" text-anchor="middle" letter-spacing=".06em">
+    <rect x="8" y="18" width="108" height="30" rx="5" fill="#081F5C"/><text x="62" y="38">WHY</text>
+    <rect x="124" y="18" width="108" height="30" rx="5" fill="#334EAC"/><text x="178" y="38">WHO</text>
+    <rect x="240" y="18" width="108" height="30" rx="5" fill="#334EAC"/><text x="294" y="38">WHAT</text>
+    <rect x="356" y="18" width="108" height="30" rx="5" fill="#334EAC"/><text x="410" y="38">HOW</text>
+    <rect x="472" y="18" width="108" height="30" rx="5" fill="#334EAC"/><text x="526" y="38">WHERE</text>
+    <rect x="588" y="18" width="124" height="30" rx="5" fill="#081F5C"/><text x="650" y="38">WHAT IF</text></g>
+  <g font-size="9" fill="rgba(8,31,92,.62)" text-anchor="middle">
+    <text x="62" y="62">the problem,</text><text x="62" y="73">and the decision</text>
+    <text x="178" y="62">who uses it, and</text><text x="178" y="73">what it talks to</text>
+    <text x="294" y="62">the parts, and</text><text x="294" y="73">what is inside one</text>
+    <text x="410" y="62">the flow, the logic,</text><text x="410" y="73">the data</text>
+    <text x="526" y="62">infrastructure</text><text x="526" y="73">and environments</text>
+    <text x="650" y="62">failure, rollout,</text><text x="650" y="73">what we rejected</text></g>
+  <g font-size="7.4" font-weight="700" text-anchor="middle">
+    <rect x="30" y="86" width="63" height="15" rx="4" fill="rgba(8,31,92,.34)"/><text x="62" y="97" fill="#FFFDFA">prose only</text>
+    <a class="chip" href="diagram-types.html#a1" data-card="a1" aria-label="Preview: context"><rect x="154" y="86" width="48" height="15" rx="4" fill="#334EAC"/><text x="178" y="97" fill="#FFFDFA">context</text></a>
+    <a class="chip" href="diagram-types.html#a2" data-card="a2" aria-label="Preview: container"><rect x="265" y="86" width="58" height="15" rx="4" fill="#334EAC"/><text x="294" y="97" fill="#FFFDFA">container</text></a>
+    <a class="chip" href="diagram-types.html#a3" data-card="a3" aria-label="Preview: component"><rect x="265" y="103" width="58" height="15" rx="4" fill="#334EAC"/><text x="294" y="114" fill="#FFFDFA">component</text></a>
+    <a class="chip" href="diagram-types.html#c1" data-card="c1" aria-label="Preview: sequence"><rect x="383" y="86" width="53" height="15" rx="4" fill="#334EAC"/><text x="410" y="97" fill="#FFFDFA">sequence</text></a>
+    <a class="chip" href="diagram-types.html#c3" data-card="c3" aria-label="Preview: activity"><rect x="383" y="103" width="53" height="15" rx="4" fill="#334EAC"/><text x="410" y="114" fill="#FFFDFA">activity</text></a>
+    <a class="chip" href="diagram-types.html#d1" data-card="d1" aria-label="Preview: ERD"><rect x="396" y="120" width="29" height="15" rx="4" fill="#334EAC"/><text x="410" y="131" fill="#FFFDFA">ERD</text></a>
+    <a class="chip" href="diagram-types.html#b1" data-card="b1" aria-label="Preview: deployment"><rect x="494" y="86" width="63" height="15" rx="4" fill="#334EAC"/><text x="526" y="97" fill="#FFFDFA">deployment</text></a>
+    <a class="chip" href="diagram-types.html#b3" data-card="b3" aria-label="Preview: environments"><rect x="490" y="103" width="73" height="15" rx="4" fill="#334EAC"/><text x="526" y="114" fill="#FFFDFA">environments</text></a>
+    <a class="chip" href="diagram-types.html#e3" data-card="e3" aria-label="Preview: runbook"><rect x="626" y="86" width="48" height="15" rx="4" fill="#334EAC"/><text x="650" y="97" fill="#FFFDFA">runbook</text></a>
+    <rect x="631" y="103" width="38" height="15" rx="4" fill="rgba(8,31,92,.34)"/><text x="650" y="114" fill="#FFFDFA">prose</text>
+  </g>
+  <path d="M8 146 L706 146" fill="none" stroke="#334EAC" stroke-width="1.4" marker-end="url(#a)"/>
+  <text x="14" y="160" font-size="9" font-weight="700" fill="#334EAC">widest first</text>
+  <text x="706" y="160" font-size="9" fill="rgba(8,31,92,.62)" text-anchor="end">never open on a deployment diagram — it answers “where”, and nobody has asked yet</text>
+</svg>
+</div>
+
+<!-- ══════════════ ordering rules ══════════════ -->
+<h2>Five ordering rules <span class="cnt">why that order</span></h2>
+<table>
+  <tr><th style="width:4%"></th><th style="width:30%">Rule</th><th>Why</th></tr>
+  <tr><td><b>1</b></td><td><b>Widest altitude first.</b> Context → container → component, never the reverse.</td>
+      <td>A reader who meets <code>orders.pricing</code> before they know the system exists has to hold an unexplained name in working memory. Zooming in is free; zooming out mid-document is not.</td></tr>
+  <tr><td><b>2</b></td><td><b>Structure before behaviour.</b> Every structure diagram before any behaviour diagram.</td>
+      <td>A sequence diagram’s participants have to be things the reader already met. Otherwise each lifeline is a new noun arriving at the worst moment.</td></tr>
+  <tr><td><b>3</b></td><td><b>The decision before the design.</b> State what you chose, and what you rejected, before you draw how it works.</td>
+      <td>Reviewers argue with the decision, not the drawing. Burying it on page 7 wastes the first six pages of their attention.</td></tr>
+  <tr><td><b>4</b></td><td><b>Deployment late.</b> The deployment diagram belongs after the behaviour, not before it.</td>
+      <td>“Where does it run” only matters once “what is it” is settled. A doc that opens on a cloud diagram has answered a question nobody asked.</td></tr>
+  <tr><td><b>5</b></td><td><b>One diagram per section, at most.</b></td>
+      <td>Two diagrams in one section means the section has two topics. Split the section, not the figure.</td></tr>
+</table>
+
+<!-- ══════════════ all eight at once ══════════════ -->
+<h2>All eight at once <span class="cnt">23 sections · 8 documents</span></h2>
+<p class="note">Every section any of the eight documents uses, down the side. Every document, across
+the top. A <b>solid block</b> means that document has that section; a <b>dark block</b> marks the one
+section the document exists to deliver; a <b>faint dotted line</b> means it is absent. The block’s
+shape says what fills it — two bars for prose, a grid for a table or matrix, and for a figure, a
+small silhouette of that diagram type, named in the key under the matrix. Read a column to see the shape of one document; read a row to see which documents need that
+section at all.</p>
+<div class="hero">
+<svg viewBox="0 0 882 702" role="group" aria-label="Twenty-three canonical sections down the side, eight document types across the top. A block means the document has that section, a dark block marks the section it exists to deliver, a faint dotted line means it is absent, and the shape of the block is a small silhouette of what fills the section: prose, a table, or one of fourteen diagram types named in the key underneath.">
+<rect x="158" y="8" width="88" height="642" rx="7" fill="rgba(8,31,92,.045)"/>
+<text x="202" y="22" font-size="8.4" font-weight="800" fill="#334EAC" text-anchor="middle" letter-spacing=".05em">NEW SYSTEM</text>
+<text x="202" y="32" font-size="8.4" font-weight="800" fill="#334EAC" text-anchor="middle" letter-spacing=".05em">DESIGN</text>
+<text x="202" y="44" font-size="7" font-weight="600" fill="rgba(8,31,92,.62)" text-anchor="middle" letter-spacing=".06em">14 SECTIONS</text>
+<rect x="248" y="8" width="88" height="642" rx="7" fill="rgba(8,31,92,.045)"/>
+<text x="292" y="22" font-size="8.4" font-weight="800" fill="#334EAC" text-anchor="middle" letter-spacing=".05em">FEATURE /</text>
+<text x="292" y="32" font-size="8.4" font-weight="800" fill="#334EAC" text-anchor="middle" letter-spacing=".05em">CHANGE</text>
+<text x="292" y="44" font-size="7" font-weight="600" fill="rgba(8,31,92,.62)" text-anchor="middle" letter-spacing=".06em">7 SECTIONS</text>
+<rect x="338" y="8" width="88" height="642" rx="7" fill="#FFFDFA" stroke="#081F5C" stroke-width="1.2"/>
+<text x="382" y="22" font-size="8.4" font-weight="800" fill="#081F5C" text-anchor="middle" letter-spacing=".05em">SECURITY /</text>
+<text x="382" y="32" font-size="8.4" font-weight="800" fill="#081F5C" text-anchor="middle" letter-spacing=".05em">ACCESS</text>
+<text x="382" y="44" font-size="7" font-weight="600" fill="rgba(8,31,92,.62)" text-anchor="middle" letter-spacing=".06em">14 SECTIONS</text>
+<rect x="428" y="8" width="88" height="642" rx="7" fill="rgba(8,31,92,.045)"/>
+<text x="472" y="22" font-size="8.4" font-weight="800" fill="#334EAC" text-anchor="middle" letter-spacing=".05em">MIGRATION</text>
+<text x="472" y="44" font-size="7" font-weight="600" fill="rgba(8,31,92,.62)" text-anchor="middle" letter-spacing=".06em">9 SECTIONS</text>
+<rect x="518" y="8" width="88" height="642" rx="7" fill="rgba(8,31,92,.045)"/>
+<text x="562" y="22" font-size="8.4" font-weight="800" fill="#334EAC" text-anchor="middle" letter-spacing=".05em">INTEGRATION</text>
+<text x="562" y="44" font-size="7" font-weight="600" fill="rgba(8,31,92,.62)" text-anchor="middle" letter-spacing=".06em">8 SECTIONS</text>
+<rect x="608" y="8" width="88" height="642" rx="7" fill="rgba(8,31,92,.045)"/>
+<text x="652" y="22" font-size="8.4" font-weight="800" fill="#334EAC" text-anchor="middle" letter-spacing=".05em">DATA</text>
+<text x="652" y="32" font-size="8.4" font-weight="800" fill="#334EAC" text-anchor="middle" letter-spacing=".05em">PLATFORM</text>
+<text x="652" y="44" font-size="7" font-weight="600" fill="rgba(8,31,92,.62)" text-anchor="middle" letter-spacing=".06em">8 SECTIONS</text>
+<rect x="698" y="8" width="88" height="642" rx="7" fill="rgba(8,31,92,.045)"/>
+<text x="742" y="22" font-size="8.4" font-weight="800" fill="#334EAC" text-anchor="middle" letter-spacing=".05em">ADR</text>
+<text x="742" y="44" font-size="7" font-weight="600" fill="rgba(8,31,92,.62)" text-anchor="middle" letter-spacing=".06em">5 SECTIONS</text>
+<rect x="788" y="8" width="88" height="642" rx="7" fill="rgba(8,31,92,.045)"/>
+<text x="832" y="22" font-size="8.4" font-weight="800" fill="#334EAC" text-anchor="middle" letter-spacing=".05em">HANDOVER /</text>
+<text x="832" y="32" font-size="8.4" font-weight="800" fill="#334EAC" text-anchor="middle" letter-spacing=".05em">RUNBOOK</text>
+<text x="832" y="44" font-size="7" font-weight="600" fill="rgba(8,31,92,.62)" text-anchor="middle" letter-spacing=".06em">7 SECTIONS</text>
+<text x="142" y="63.6" font-size="7.2" font-weight="700" fill="rgba(8,31,92,.62)" text-anchor="end" letter-spacing=".07em">SUMMARY</text>
+<rect x="174" y="57.4" width="56" height="3.2" rx="1.6" fill="#334EAC"/><rect x="182" y="63.6" width="40" height="3.2" rx="1.6" fill="#334EAC"/>
+<path d="M265 61 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<rect x="354" y="57.4" width="56" height="3.2" rx="1.6" fill="#334EAC"/><rect x="362" y="63.6" width="40" height="3.2" rx="1.6" fill="#334EAC"/>
+<path d="M445 61 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<path d="M535 61 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<path d="M625 61 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<rect x="714" y="57.4" width="56" height="3.2" rx="1.6" fill="#334EAC"/><rect x="722" y="63.6" width="40" height="3.2" rx="1.6" fill="#334EAC"/>
+<path d="M805 61 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<text x="142" y="89.6" font-size="7.2" font-weight="700" fill="rgba(8,31,92,.62)" text-anchor="end" letter-spacing=".07em">PROBLEM / TRIGGER</text>
+<rect x="174" y="83.4" width="56" height="3.2" rx="1.6" fill="#334EAC"/><rect x="182" y="89.6" width="40" height="3.2" rx="1.6" fill="#334EAC"/>
+<rect x="264" y="83.4" width="56" height="3.2" rx="1.6" fill="#334EAC"/><rect x="272" y="89.6" width="40" height="3.2" rx="1.6" fill="#334EAC"/>
+<path d="M355 87 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<rect x="444" y="83.4" width="56" height="3.2" rx="1.6" fill="#334EAC"/><rect x="452" y="89.6" width="40" height="3.2" rx="1.6" fill="#334EAC"/>
+<rect x="534" y="83.4" width="56" height="3.2" rx="1.6" fill="#334EAC"/><rect x="542" y="89.6" width="40" height="3.2" rx="1.6" fill="#334EAC"/>
+<rect x="624" y="83.4" width="56" height="3.2" rx="1.6" fill="#334EAC"/><rect x="632" y="89.6" width="40" height="3.2" rx="1.6" fill="#334EAC"/>
+<rect x="714" y="83.4" width="56" height="3.2" rx="1.6" fill="#334EAC"/><rect x="722" y="89.6" width="40" height="3.2" rx="1.6" fill="#334EAC"/>
+<rect x="804" y="83.4" width="56" height="3.2" rx="1.6" fill="#334EAC"/><rect x="812" y="89.6" width="40" height="3.2" rx="1.6" fill="#334EAC"/>
+<text x="142" y="115.6" font-size="7.2" font-weight="700" fill="rgba(8,31,92,.62)" text-anchor="end" letter-spacing=".07em">CONSTRAINTS</text>
+<rect x="174" y="109.4" width="56" height="3.2" rx="1.6" fill="#334EAC"/><rect x="182" y="115.6" width="40" height="3.2" rx="1.6" fill="#334EAC"/>
+<path d="M265 113 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<rect x="354" y="109.4" width="56" height="3.2" rx="1.6" fill="#334EAC"/><rect x="362" y="115.6" width="40" height="3.2" rx="1.6" fill="#334EAC"/>
+<rect x="444" y="109.4" width="56" height="3.2" rx="1.6" fill="#334EAC"/><rect x="452" y="115.6" width="40" height="3.2" rx="1.6" fill="#334EAC"/>
+<path d="M535 113 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<rect x="624" y="109.4" width="56" height="3.2" rx="1.6" fill="#334EAC"/><rect x="632" y="115.6" width="40" height="3.2" rx="1.6" fill="#334EAC"/>
+<rect x="714" y="109.4" width="56" height="3.2" rx="1.6" fill="#334EAC"/><rect x="722" y="115.6" width="40" height="3.2" rx="1.6" fill="#334EAC"/>
+<rect x="804" y="109.4" width="56" height="3.2" rx="1.6" fill="#334EAC"/><rect x="812" y="115.6" width="40" height="3.2" rx="1.6" fill="#334EAC"/>
+<text x="142" y="141.6" font-size="7.2" font-weight="700" fill="rgba(8,31,92,.62)" text-anchor="end" letter-spacing=".07em">THE DECISION</text>
+<rect x="174" y="135.4" width="56" height="3.2" rx="1.6" fill="#081F5C"/><rect x="182" y="141.6" width="40" height="3.2" rx="1.6" fill="#081F5C"/>
+<path d="M265 139 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<rect x="354" y="135.4" width="56" height="3.2" rx="1.6" fill="#334EAC"/><rect x="362" y="141.6" width="40" height="3.2" rx="1.6" fill="#334EAC"/>
+<path d="M445 139 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<path d="M535 139 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<path d="M625 139 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<rect x="714" y="135.4" width="56" height="3.2" rx="1.6" fill="#081F5C"/><rect x="722" y="141.6" width="40" height="3.2" rx="1.6" fill="#081F5C"/>
+<path d="M805 139 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<text x="142" y="167.6" font-size="7.2" font-weight="700" fill="rgba(8,31,92,.62)" text-anchor="end" letter-spacing=".07em">ALTERNATIVES</text>
+<rect x="174" y="161.4" width="56" height="3.2" rx="1.6" fill="#334EAC"/><rect x="182" y="167.6" width="40" height="3.2" rx="1.6" fill="#334EAC"/>
+<path d="M265 165 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<rect x="354" y="161.4" width="56" height="3.2" rx="1.6" fill="#334EAC"/><rect x="362" y="167.6" width="40" height="3.2" rx="1.6" fill="#334EAC"/>
+<path d="M445 165 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<path d="M535 165 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<path d="M625 165 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<rect x="714" y="161.4" width="56" height="3.2" rx="1.6" fill="#334EAC"/><rect x="722" y="167.6" width="40" height="3.2" rx="1.6" fill="#334EAC"/>
+<path d="M805 165 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<text x="142" y="193.6" font-size="7.2" font-weight="700" fill="rgba(8,31,92,.62)" text-anchor="end" letter-spacing=".07em">A MATRIX OR TABLE</text>
+<path d="M175 191 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<path d="M265 191 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<rect x="354" y="186.4" width="17" height="4.2" rx="1.4" fill="#334EAC"/><rect x="373.5" y="186.4" width="17" height="4.2" rx="1.4" fill="#334EAC"/><rect x="393" y="186.4" width="17" height="4.2" rx="1.4" fill="#334EAC"/><rect x="354" y="192.4" width="17" height="4.2" rx="1.4" fill="#334EAC"/><rect x="373.5" y="192.4" width="17" height="4.2" rx="1.4" fill="#334EAC"/><rect x="393" y="192.4" width="17" height="4.2" rx="1.4" fill="#334EAC"/>
+<path d="M445 191 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<rect x="534" y="186.4" width="17" height="4.2" rx="1.4" fill="#334EAC"/><rect x="553.5" y="186.4" width="17" height="4.2" rx="1.4" fill="#334EAC"/><rect x="573" y="186.4" width="17" height="4.2" rx="1.4" fill="#334EAC"/><rect x="534" y="192.4" width="17" height="4.2" rx="1.4" fill="#334EAC"/><rect x="553.5" y="192.4" width="17" height="4.2" rx="1.4" fill="#334EAC"/><rect x="573" y="192.4" width="17" height="4.2" rx="1.4" fill="#334EAC"/>
+<path d="M625 191 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<path d="M715 191 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<path d="M805 191 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<text x="142" y="219.6" font-size="7.2" font-weight="700" fill="rgba(8,31,92,.62)" text-anchor="end" letter-spacing=".07em">CONTEXT</text>
+<rect x="194" y="212" width="16" height="10" rx="2" fill="#334EAC"/><rect x="175" y="213.5" width="11" height="7" rx="3.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><rect x="218" y="213.5" width="11" height="7" rx="1.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M186 217 L191 217" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="194,217 190.6,215.1 190.6,218.9" fill="#334EAC"/><path d="M218 217 L213 217" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="210,217 213.4,215.1 213.4,218.9" fill="#334EAC"/>
+<path d="M265 217 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<path d="M355 217 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<path d="M445 217 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<rect x="554" y="212" width="16" height="10" rx="2" fill="#334EAC"/><rect x="535" y="213.5" width="11" height="7" rx="3.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><rect x="578" y="213.5" width="11" height="7" rx="1.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M546 217 L551 217" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="554,217 550.6,215.1 550.6,218.9" fill="#334EAC"/><path d="M578 217 L573 217" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="570,217 573.4,215.1 573.4,218.9" fill="#334EAC"/>
+<path d="M625 217 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<path d="M715 217 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<path d="M805 217 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<text x="142" y="245.6" font-size="7.2" font-weight="700" fill="rgba(8,31,92,.62)" text-anchor="end" letter-spacing=".07em">CURRENT STATE</text>
+<path d="M175 243 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<rect x="264" y="235.5" width="56" height="15" rx="3" fill="none" stroke="#334EAC" stroke-width="1.1" stroke-dasharray="2 1.6"/><rect x="269" y="240" width="10" height="6" rx="1.5" fill="#334EAC"/><rect x="287" y="240" width="10" height="6" rx="1.5" fill="#334EAC"/><rect x="305" y="240" width="10" height="6" rx="1.5" fill="#334EAC"/><path d="M279 243 L284 243" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="287,243 283.6,241.1 283.6,244.9" fill="#334EAC"/><path d="M297 243 L302 243" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="305,243 301.6,241.1 301.6,244.9" fill="#334EAC"/>
+<path d="M355 243 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<rect x="444" y="239" width="12" height="8" rx="1.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><rect x="463" y="239" width="12" height="8" rx="1.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M485 239.5 v8 a6.5 1.6 0 0 0 13 0 v-8" fill="none" stroke="#334EAC" stroke-width="1.1"/><ellipse cx="491.5" cy="239.5" rx="6.5" ry="1.6" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M456 243 L460 243" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="463,243 459.6,241.1 459.6,244.9" fill="#334EAC"/><path d="M475 243 L482 243" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="485,243 481.6,241.1 481.6,244.9" fill="#334EAC"/>
+<path d="M535 243 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<path d="M625 243 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<path d="M715 243 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<path d="M805 243 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<text x="142" y="271.6" font-size="7.2" font-weight="700" fill="rgba(8,31,92,.62)" text-anchor="end" letter-spacing=".07em">THE PARTS</text>
+<rect x="174" y="265" width="12" height="8" rx="1.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><rect x="193" y="265" width="12" height="8" rx="1.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M215 265.5 v8 a6.5 1.6 0 0 0 13 0 v-8" fill="none" stroke="#334EAC" stroke-width="1.1"/><ellipse cx="221.5" cy="265.5" rx="6.5" ry="1.6" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M186 269 L190 269" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="193,269 189.6,267.1 189.6,270.9" fill="#334EAC"/><path d="M205 269 L212 269" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="215,269 211.6,267.1 211.6,270.9" fill="#334EAC"/>
+<path d="M265 269 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<path d="M355 269 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<rect x="444" y="265" width="12" height="8" rx="1.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><rect x="463" y="265" width="12" height="8" rx="1.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M485 265.5 v8 a6.5 1.6 0 0 0 13 0 v-8" fill="none" stroke="#334EAC" stroke-width="1.1"/><ellipse cx="491.5" cy="265.5" rx="6.5" ry="1.6" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M456 269 L460 269" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="463,269 459.6,267.1 459.6,270.9" fill="#334EAC"/><path d="M475 269 L482 269" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="485,269 481.6,267.1 481.6,270.9" fill="#334EAC"/>
+<path d="M535 269 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<path d="M625 269 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<path d="M715 269 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<path d="M805 269 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<text x="142" y="297.6" font-size="7.2" font-weight="700" fill="rgba(8,31,92,.62)" text-anchor="end" letter-spacing=".07em">INSIDE ONE PART</text>
+<rect x="174" y="287.5" width="56" height="15" rx="3" fill="none" stroke="#334EAC" stroke-width="1.1" stroke-dasharray="2 1.6"/><rect x="179" y="292" width="10" height="6" rx="1.5" fill="#334EAC"/><rect x="197" y="292" width="10" height="6" rx="1.5" fill="#334EAC"/><rect x="215" y="292" width="10" height="6" rx="1.5" fill="#334EAC"/><path d="M189 295 L194 295" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="197,295 193.6,293.1 193.6,296.9" fill="#334EAC"/><path d="M207 295 L212 295" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="215,295 211.6,293.1 211.6,296.9" fill="#334EAC"/>
+<rect x="264" y="287.5" width="56" height="15" rx="3" fill="none" stroke="#081F5C" stroke-width="1.1" stroke-dasharray="2 1.6"/><rect x="269" y="292" width="10" height="6" rx="1.5" fill="#081F5C"/><rect x="287" y="292" width="10" height="6" rx="1.5" fill="#081F5C"/><rect x="305" y="292" width="10" height="6" rx="1.5" fill="#081F5C"/><path d="M279 295 L284 295" fill="none" stroke="#081F5C" stroke-width="1.1"/><polygon points="287,295 283.6,293.1 283.6,296.9" fill="#081F5C"/><path d="M297 295 L302 295" fill="none" stroke="#081F5C" stroke-width="1.1"/><polygon points="305,295 301.6,293.1 301.6,296.9" fill="#081F5C"/>
+<path d="M355 295 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<path d="M445 295 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<path d="M535 295 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<path d="M625 295 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<path d="M715 295 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<path d="M805 295 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<text x="142" y="323.6" font-size="7.2" font-weight="700" fill="rgba(8,31,92,.62)" text-anchor="end" letter-spacing=".07em">THE FLOW</text>
+<rect x="176" y="313" width="10" height="4" rx="1" fill="#334EAC"/><path d="M181 317 L181 329" fill="none" stroke="#334EAC" stroke-width="0.8" stroke-dasharray="1.4 1.4"/><rect x="197" y="313" width="10" height="4" rx="1" fill="#334EAC"/><path d="M202 317 L202 329" fill="none" stroke="#334EAC" stroke-width="0.8" stroke-dasharray="1.4 1.4"/><rect x="218" y="313" width="10" height="4" rx="1" fill="#334EAC"/><path d="M223 317 L223 329" fill="none" stroke="#334EAC" stroke-width="0.8" stroke-dasharray="1.4 1.4"/><path d="M181 321 L199 321" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="202,321 198.6,319.1 198.6,322.9" fill="#334EAC"/><path d="M202 324 L220 324" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="223,324 219.6,322.1 219.6,325.9" fill="#334EAC"/><path d="M223 327.5 L184 327.5" fill="none" stroke="#334EAC" stroke-width="1.1" stroke-dasharray="1.6 1.2"/><polygon points="181,327.5 184.4,325.6 184.4,329.4" fill="#334EAC"/>
+<path d="M265 321 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<rect x="356" y="313" width="10" height="4" rx="1" fill="#334EAC"/><path d="M361 317 L361 329" fill="none" stroke="#334EAC" stroke-width="0.8" stroke-dasharray="1.4 1.4"/><rect x="377" y="313" width="10" height="4" rx="1" fill="#334EAC"/><path d="M382 317 L382 329" fill="none" stroke="#334EAC" stroke-width="0.8" stroke-dasharray="1.4 1.4"/><rect x="398" y="313" width="10" height="4" rx="1" fill="#334EAC"/><path d="M403 317 L403 329" fill="none" stroke="#334EAC" stroke-width="0.8" stroke-dasharray="1.4 1.4"/><path d="M361 321 L379 321" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="382,321 378.6,319.1 378.6,322.9" fill="#334EAC"/><path d="M382 324 L400 324" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="403,324 399.6,322.1 399.6,325.9" fill="#334EAC"/><path d="M403 327.5 L364 327.5" fill="none" stroke="#334EAC" stroke-width="1.1" stroke-dasharray="1.6 1.2"/><polygon points="361,327.5 364.4,325.6 364.4,329.4" fill="#334EAC"/>
+<rect x="446" y="313" width="10" height="4" rx="1" fill="#081F5C"/><path d="M451 317 L451 329" fill="none" stroke="#081F5C" stroke-width="0.8" stroke-dasharray="1.4 1.4"/><rect x="467" y="313" width="10" height="4" rx="1" fill="#081F5C"/><path d="M472 317 L472 329" fill="none" stroke="#081F5C" stroke-width="0.8" stroke-dasharray="1.4 1.4"/><rect x="488" y="313" width="10" height="4" rx="1" fill="#081F5C"/><path d="M493 317 L493 329" fill="none" stroke="#081F5C" stroke-width="0.8" stroke-dasharray="1.4 1.4"/><path d="M451 321 L469 321" fill="none" stroke="#081F5C" stroke-width="1.1"/><polygon points="472,321 468.6,319.1 468.6,322.9" fill="#081F5C"/><path d="M472 324 L490 324" fill="none" stroke="#081F5C" stroke-width="1.1"/><polygon points="493,324 489.6,322.1 489.6,325.9" fill="#081F5C"/><path d="M493 327.5 L454 327.5" fill="none" stroke="#081F5C" stroke-width="1.1" stroke-dasharray="1.6 1.2"/><polygon points="451,327.5 454.4,325.6 454.4,329.4" fill="#081F5C"/>
+<rect x="536" y="313" width="10" height="4" rx="1" fill="#081F5C"/><path d="M541 317 L541 329" fill="none" stroke="#081F5C" stroke-width="0.8" stroke-dasharray="1.4 1.4"/><rect x="557" y="313" width="10" height="4" rx="1" fill="#081F5C"/><path d="M562 317 L562 329" fill="none" stroke="#081F5C" stroke-width="0.8" stroke-dasharray="1.4 1.4"/><rect x="578" y="313" width="10" height="4" rx="1" fill="#081F5C"/><path d="M583 317 L583 329" fill="none" stroke="#081F5C" stroke-width="0.8" stroke-dasharray="1.4 1.4"/><path d="M541 321 L559 321" fill="none" stroke="#081F5C" stroke-width="1.1"/><polygon points="562,321 558.6,319.1 558.6,322.9" fill="#081F5C"/><path d="M562 324 L580 324" fill="none" stroke="#081F5C" stroke-width="1.1"/><polygon points="583,324 579.6,322.1 579.6,325.9" fill="#081F5C"/><path d="M583 327.5 L544 327.5" fill="none" stroke="#081F5C" stroke-width="1.1" stroke-dasharray="1.6 1.2"/><polygon points="541,327.5 544.4,325.6 544.4,329.4" fill="#081F5C"/>
+<path d="M625 321 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<path d="M715 321 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<path d="M805 321 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<text x="142" y="349.6" font-size="7.2" font-weight="700" fill="rgba(8,31,92,.62)" text-anchor="end" letter-spacing=".07em">LOGIC &amp; BRANCHES</text>
+<path d="M175 347 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<rect x="264" y="343.5" width="11" height="7" rx="1.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M275 347 L281 347" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="284,347 280.6,345.1 280.6,348.9" fill="#334EAC"/><polygon points="290,341 296,347 290,353 284,347" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M296 347 L302 347" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M302 342.5 L302 351.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M302 342.5 L305 342.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="308,342.5 304.6,340.6 304.6,344.4" fill="#334EAC"/><path d="M302 351.5 L305 351.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="308,351.5 304.6,349.6 304.6,353.4" fill="#334EAC"/><rect x="308" y="339.5" width="12" height="6" rx="1.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><rect x="308" y="348.5" width="12" height="6" rx="1.5" fill="#334EAC"/>
+<rect x="354" y="343.5" width="11" height="7" rx="1.5" fill="none" stroke="#081F5C" stroke-width="1.1"/><path d="M365 347 L371 347" fill="none" stroke="#081F5C" stroke-width="1.1"/><polygon points="374,347 370.6,345.1 370.6,348.9" fill="#081F5C"/><polygon points="380,341 386,347 380,353 374,347" fill="none" stroke="#081F5C" stroke-width="1.1"/><path d="M386 347 L392 347" fill="none" stroke="#081F5C" stroke-width="1.1"/><path d="M392 342.5 L392 351.5" fill="none" stroke="#081F5C" stroke-width="1.1"/><path d="M392 342.5 L395 342.5" fill="none" stroke="#081F5C" stroke-width="1.1"/><polygon points="398,342.5 394.6,340.6 394.6,344.4" fill="#081F5C"/><path d="M392 351.5 L395 351.5" fill="none" stroke="#081F5C" stroke-width="1.1"/><polygon points="398,351.5 394.6,349.6 394.6,353.4" fill="#081F5C"/><rect x="398" y="339.5" width="12" height="6" rx="1.5" fill="none" stroke="#081F5C" stroke-width="1.1"/><rect x="398" y="348.5" width="12" height="6" rx="1.5" fill="#081F5C"/>
+<path d="M445 347 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<rect x="534" y="343.5" width="11" height="7" rx="1.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M545 347 L551 347" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="554,347 550.6,345.1 550.6,348.9" fill="#334EAC"/><polygon points="560,341 566,347 560,353 554,347" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M566 347 L572 347" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M572 342.5 L572 351.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M572 342.5 L575 342.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="578,342.5 574.6,340.6 574.6,344.4" fill="#334EAC"/><path d="M572 351.5 L575 351.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="578,351.5 574.6,349.6 574.6,353.4" fill="#334EAC"/><rect x="578" y="339.5" width="12" height="6" rx="1.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><rect x="578" y="348.5" width="12" height="6" rx="1.5" fill="#334EAC"/>
+<rect x="624" y="343.5" width="11" height="7" rx="1.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M635 347 L641 347" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="644,347 640.6,345.1 640.6,348.9" fill="#334EAC"/><polygon points="650,341 656,347 650,353 644,347" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M656 347 L662 347" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M662 342.5 L662 351.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M662 342.5 L665 342.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="668,342.5 664.6,340.6 664.6,344.4" fill="#334EAC"/><path d="M662 351.5 L665 351.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="668,351.5 664.6,349.6 664.6,353.4" fill="#334EAC"/><rect x="668" y="339.5" width="12" height="6" rx="1.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><rect x="668" y="348.5" width="12" height="6" rx="1.5" fill="#334EAC"/>
+<path d="M715 347 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<path d="M805 347 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<text x="142" y="375.6" font-size="7.2" font-weight="700" fill="rgba(8,31,92,.62)" text-anchor="end" letter-spacing=".07em">DATA MODEL</text>
+<rect x="176" y="367" width="18" height="12" rx="1" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M176 371 L194 371" fill="none" stroke="#334EAC" stroke-width="1.1"/><rect x="210" y="367" width="18" height="12" rx="1" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M210 371 L228 371" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M194 373 L205 373" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M205 373 L210 370" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M205 373 L210 373" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M205 373 L210 376" fill="none" stroke="#334EAC" stroke-width="1.1"/>
+<path d="M265 373 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<path d="M355 373 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<path d="M445 373 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<path d="M535 373 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<rect x="646" y="369" width="12" height="8" rx="1.5" fill="#081F5C"/><rect x="626" y="370" width="10" height="6" rx="1.5" fill="none" stroke="#081F5C" stroke-width="1.1"/><rect x="668" y="370" width="10" height="6" rx="1.5" fill="none" stroke="#081F5C" stroke-width="1.1"/><rect x="647" y="365" width="10" height="3" rx="1" fill="none" stroke="#081F5C" stroke-width="1.1"/><rect x="647" y="378" width="10" height="3" rx="1" fill="none" stroke="#081F5C" stroke-width="1.1"/><path d="M636 373 L646 373" fill="none" stroke="#081F5C" stroke-width="1.1"/><path d="M658 373 L668 373" fill="none" stroke="#081F5C" stroke-width="1.1"/><path d="M652 368 L652 369" fill="none" stroke="#081F5C" stroke-width="1.1"/><path d="M652 377 L652 378" fill="none" stroke="#081F5C" stroke-width="1.1"/>
+<path d="M715 373 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<path d="M805 373 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<text x="142" y="401.6" font-size="7.2" font-weight="700" fill="rgba(8,31,92,.62)" text-anchor="end" letter-spacing=".07em">PROVENANCE</text>
+<path d="M175 399 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<rect x="310" y="397.4" width="10" height="3.2" rx="1.6" fill="#334EAC"/><rect x="264" y="392" width="10" height="3.2" rx="1.6" fill="#334EAC"/><path d="M274 393.6 L310 399" fill="none" stroke="#334EAC" stroke-width="1.1"/><rect x="264" y="397.4" width="10" height="3.2" rx="1.6" fill="#334EAC"/><path d="M274 399 L310 399" fill="none" stroke="#334EAC" stroke-width="1.1"/><rect x="264" y="402.8" width="10" height="3.2" rx="1.6" fill="#334EAC"/><path d="M274 404.4 L310 399" fill="none" stroke="#334EAC" stroke-width="1.1" stroke-dasharray="1.6 1.2"/>
+<rect x="400" y="397.4" width="10" height="3.2" rx="1.6" fill="#334EAC"/><rect x="354" y="392" width="10" height="3.2" rx="1.6" fill="#334EAC"/><path d="M364 393.6 L400 399" fill="none" stroke="#334EAC" stroke-width="1.1"/><rect x="354" y="397.4" width="10" height="3.2" rx="1.6" fill="#334EAC"/><path d="M364 399 L400 399" fill="none" stroke="#334EAC" stroke-width="1.1"/><rect x="354" y="402.8" width="10" height="3.2" rx="1.6" fill="#334EAC"/><path d="M364 404.4 L400 399" fill="none" stroke="#334EAC" stroke-width="1.1" stroke-dasharray="1.6 1.2"/>
+<path d="M445 399 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<rect x="534" y="395.5" width="11" height="7" rx="1.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M545 399 L553.5 399" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="556.5,399 553.1,397.1 553.1,400.9" fill="#334EAC"/><circle cx="561" cy="399" r="4.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M565.5 399 L575 399" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="578,399 574.6,397.1 574.6,400.9" fill="#334EAC"/><path d="M590 395.5 h-12 v7 h12" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M551 391 L551 407" fill="none" stroke="#334EAC" stroke-width="0.9" stroke-dasharray="1.6 1.4"/>
+<rect x="670" y="397.4" width="10" height="3.2" rx="1.6" fill="#334EAC"/><rect x="624" y="392" width="10" height="3.2" rx="1.6" fill="#334EAC"/><path d="M634 393.6 L670 399" fill="none" stroke="#334EAC" stroke-width="1.1"/><rect x="624" y="397.4" width="10" height="3.2" rx="1.6" fill="#334EAC"/><path d="M634 399 L670 399" fill="none" stroke="#334EAC" stroke-width="1.1"/><rect x="624" y="402.8" width="10" height="3.2" rx="1.6" fill="#334EAC"/><path d="M634 404.4 L670 399" fill="none" stroke="#334EAC" stroke-width="1.1" stroke-dasharray="1.6 1.2"/>
+<path d="M715 399 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<path d="M805 399 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<text x="142" y="427.6" font-size="7.2" font-weight="700" fill="rgba(8,31,92,.62)" text-anchor="end" letter-spacing=".07em">JOBS / SCHEDULE</text>
+<path d="M175 425 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<path d="M265 425 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<path d="M355 425 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<path d="M448 425 L464 420" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M448 425 L464 430" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M464 420 L480 425" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M464 430 L480 425" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M480 425 L496 425" fill="none" stroke="#334EAC" stroke-width="1.1"/><circle cx="448" cy="425" r="2.8" fill="#FFFDFA" stroke="#334EAC" stroke-width="1.1"/><circle cx="464" cy="420" r="2.8" fill="#FFFDFA" stroke="#334EAC" stroke-width="1.1"/><circle cx="464" cy="430" r="2.8" fill="#FFFDFA" stroke="#334EAC" stroke-width="1.1"/><circle cx="480" cy="425" r="2.8" fill="#FFFDFA" stroke="#334EAC" stroke-width="1.1"/><circle cx="496" cy="425" r="2.8" fill="#FFFDFA" stroke="#334EAC" stroke-width="1.1"/>
+<path d="M535 425 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<path d="M628 425 L644 420" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M628 425 L644 430" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M644 420 L660 425" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M644 430 L660 425" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M660 425 L676 425" fill="none" stroke="#334EAC" stroke-width="1.1"/><circle cx="628" cy="425" r="2.8" fill="#FFFDFA" stroke="#334EAC" stroke-width="1.1"/><circle cx="644" cy="420" r="2.8" fill="#FFFDFA" stroke="#334EAC" stroke-width="1.1"/><circle cx="644" cy="430" r="2.8" fill="#FFFDFA" stroke="#334EAC" stroke-width="1.1"/><circle cx="660" cy="425" r="2.8" fill="#FFFDFA" stroke="#334EAC" stroke-width="1.1"/><circle cx="676" cy="425" r="2.8" fill="#FFFDFA" stroke="#334EAC" stroke-width="1.1"/>
+<path d="M715 425 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<path d="M805 425 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<text x="142" y="453.6" font-size="7.2" font-weight="700" fill="rgba(8,31,92,.62)" text-anchor="end" letter-spacing=".07em">WHERE IT RUNS</text>
+<rect x="174" y="443" width="25" height="16" rx="3" fill="none" stroke="#334EAC" stroke-width="1.1" stroke-dasharray="2 1.6"/><rect x="205" y="443" width="25" height="16" rx="3" fill="none" stroke="#334EAC" stroke-width="1.1" stroke-dasharray="2 1.6"/><rect x="177" y="447.5" width="7" height="7" rx="1.5" fill="#334EAC"/><rect x="187" y="447.5" width="7" height="7" rx="1.5" fill="#334EAC"/><rect x="211" y="447.5" width="7" height="7" rx="1.5" fill="#334EAC"/><rect x="221" y="447.5" width="7" height="7" rx="1.5" fill="#334EAC"/><path d="M194 451 L208 451" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="211,451 207.6,449.1 207.6,452.9" fill="#334EAC"/>
+<path d="M265 451 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<rect x="354" y="443" width="25" height="16" rx="3" fill="none" stroke="#334EAC" stroke-width="1.1" stroke-dasharray="2 1.6"/><rect x="385" y="443" width="25" height="16" rx="3" fill="none" stroke="#334EAC" stroke-width="1.1" stroke-dasharray="2 1.6"/><rect x="357" y="447.5" width="7" height="7" rx="1.5" fill="#334EAC"/><rect x="367" y="447.5" width="7" height="7" rx="1.5" fill="#334EAC"/><rect x="391" y="447.5" width="7" height="7" rx="1.5" fill="#334EAC"/><rect x="401" y="447.5" width="7" height="7" rx="1.5" fill="#334EAC"/><path d="M374 451 L388 451" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="391,451 387.6,449.1 387.6,452.9" fill="#334EAC"/>
+<path d="M445 451 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<path d="M535 451 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<rect x="624" y="443" width="25" height="16" rx="3" fill="none" stroke="#334EAC" stroke-width="1.1" stroke-dasharray="2 1.6"/><rect x="655" y="443" width="25" height="16" rx="3" fill="none" stroke="#334EAC" stroke-width="1.1" stroke-dasharray="2 1.6"/><rect x="627" y="447.5" width="7" height="7" rx="1.5" fill="#334EAC"/><rect x="637" y="447.5" width="7" height="7" rx="1.5" fill="#334EAC"/><rect x="661" y="447.5" width="7" height="7" rx="1.5" fill="#334EAC"/><rect x="671" y="447.5" width="7" height="7" rx="1.5" fill="#334EAC"/><path d="M644 451 L658 451" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="661,451 657.6,449.1 657.6,452.9" fill="#334EAC"/>
+<path d="M715 451 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<rect x="804" y="443" width="25" height="16" rx="3" fill="none" stroke="#334EAC" stroke-width="1.1" stroke-dasharray="2 1.6"/><rect x="835" y="443" width="25" height="16" rx="3" fill="none" stroke="#334EAC" stroke-width="1.1" stroke-dasharray="2 1.6"/><rect x="807" y="447.5" width="7" height="7" rx="1.5" fill="#334EAC"/><rect x="817" y="447.5" width="7" height="7" rx="1.5" fill="#334EAC"/><rect x="841" y="447.5" width="7" height="7" rx="1.5" fill="#334EAC"/><rect x="851" y="447.5" width="7" height="7" rx="1.5" fill="#334EAC"/><path d="M824 451 L838 451" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="841,451 837.6,449.1 837.6,452.9" fill="#334EAC"/>
+<text x="142" y="479.6" font-size="7.2" font-weight="700" fill="rgba(8,31,92,.62)" text-anchor="end" letter-spacing=".07em">ENVIRONMENTS</text>
+<path d="M175 477 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<path d="M265 477 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<path d="M355 477 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<polygon points="444,472 457,472 461,477 457,482 444,482 448,477" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="463.5,472 476.5,472 480.5,477 476.5,482 463.5,482 467.5,477" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="483,472 496,472 500,477 496,482 483,482 487,477" fill="#334EAC"/>
+<path d="M535 477 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<path d="M625 477 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<path d="M715 477 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<path d="M805 477 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<text x="142" y="505.6" font-size="7.2" font-weight="700" fill="rgba(8,31,92,.62)" text-anchor="end" letter-spacing=".07em">FAILURE &amp; ON-CALL</text>
+<circle cx="179" cy="503" r="3.6" fill="#334EAC"/><path d="M182.6 503 L188 503" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="191,503 187.6,501.1 187.6,504.9" fill="#334EAC"/><polygon points="197,497 203,503 197,509 191,503" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M203 503 L210 503" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M210 498.5 L210 507.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M210 498.5 L213 498.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="216,498.5 212.6,496.6 212.6,500.4" fill="#334EAC"/><path d="M210 507.5 L213 507.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="216,507.5 212.6,505.6 212.6,509.4" fill="#334EAC"/><rect x="216" y="495.5" width="14" height="6" rx="1.5" fill="#334EAC"/><rect x="216" y="504.5" width="14" height="6" rx="1.5" fill="none" stroke="#334EAC" stroke-width="1.1" stroke-dasharray="1.6 1.2"/>
+<path d="M265 503 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<rect x="354" y="499.4" width="56" height="3.2" rx="1.6" fill="#334EAC"/><rect x="362" y="505.6" width="40" height="3.2" rx="1.6" fill="#334EAC"/>
+<path d="M445 503 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<path d="M535 503 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<path d="M625 503 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<path d="M715 503 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<circle cx="809" cy="503" r="3.6" fill="#081F5C"/><path d="M812.6 503 L818 503" fill="none" stroke="#081F5C" stroke-width="1.1"/><polygon points="821,503 817.6,501.1 817.6,504.9" fill="#081F5C"/><polygon points="827,497 833,503 827,509 821,503" fill="none" stroke="#081F5C" stroke-width="1.1"/><path d="M833 503 L840 503" fill="none" stroke="#081F5C" stroke-width="1.1"/><path d="M840 498.5 L840 507.5" fill="none" stroke="#081F5C" stroke-width="1.1"/><path d="M840 498.5 L843 498.5" fill="none" stroke="#081F5C" stroke-width="1.1"/><polygon points="846,498.5 842.6,496.6 842.6,500.4" fill="#081F5C"/><path d="M840 507.5 L843 507.5" fill="none" stroke="#081F5C" stroke-width="1.1"/><polygon points="846,507.5 842.6,505.6 842.6,509.4" fill="#081F5C"/><rect x="846" y="495.5" width="14" height="6" rx="1.5" fill="#081F5C"/><rect x="846" y="504.5" width="14" height="6" rx="1.5" fill="none" stroke="#081F5C" stroke-width="1.1" stroke-dasharray="1.6 1.2"/>
+<text x="142" y="531.6" font-size="7.2" font-weight="700" fill="rgba(8,31,92,.62)" text-anchor="end" letter-spacing=".07em">ACCESS &amp; CREDENTIALS</text>
+<path d="M175 529 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<path d="M265 529 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<path d="M355 529 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<path d="M445 529 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<rect x="534" y="525.4" width="56" height="3.2" rx="1.6" fill="#334EAC"/><rect x="542" y="531.6" width="40" height="3.2" rx="1.6" fill="#334EAC"/>
+<path d="M625 529 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<path d="M715 529 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<rect x="804" y="525.4" width="56" height="3.2" rx="1.6" fill="#334EAC"/><rect x="812" y="531.6" width="40" height="3.2" rx="1.6" fill="#334EAC"/>
+<text x="142" y="557.6" font-size="7.2" font-weight="700" fill="rgba(8,31,92,.62)" text-anchor="end" letter-spacing=".07em">TESTS</text>
+<path d="M175 555 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<rect x="264" y="551.4" width="56" height="3.2" rx="1.6" fill="#334EAC"/><rect x="272" y="557.6" width="40" height="3.2" rx="1.6" fill="#334EAC"/>
+<rect x="354" y="551.4" width="56" height="3.2" rx="1.6" fill="#334EAC"/><rect x="362" y="557.6" width="40" height="3.2" rx="1.6" fill="#334EAC"/>
+<path d="M445 555 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<path d="M535 555 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<path d="M625 555 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<path d="M715 555 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<path d="M805 555 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<text x="142" y="583.6" font-size="7.2" font-weight="700" fill="rgba(8,31,92,.62)" text-anchor="end" letter-spacing=".07em">ROLLOUT / ROLLBACK</text>
+<rect x="174" y="577.4" width="56" height="3.2" rx="1.6" fill="#334EAC"/><rect x="182" y="583.6" width="40" height="3.2" rx="1.6" fill="#334EAC"/>
+<rect x="264" y="577.4" width="56" height="3.2" rx="1.6" fill="#334EAC"/><rect x="272" y="583.6" width="40" height="3.2" rx="1.6" fill="#334EAC"/>
+<rect x="354" y="577.4" width="56" height="3.2" rx="1.6" fill="#334EAC"/><rect x="362" y="583.6" width="40" height="3.2" rx="1.6" fill="#334EAC"/>
+<rect x="444" y="577.5" width="11" height="7" rx="1.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M455 581 L461 581" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="464,581 460.6,579.1 460.6,582.9" fill="#334EAC"/><polygon points="470,575 476,581 470,587 464,581" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M476 581 L482 581" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M482 576.5 L482 585.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M482 576.5 L485 576.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="488,576.5 484.6,574.6 484.6,578.4" fill="#334EAC"/><path d="M482 585.5 L485 585.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="488,585.5 484.6,583.6 484.6,587.4" fill="#334EAC"/><rect x="488" y="573.5" width="12" height="6" rx="1.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><rect x="488" y="582.5" width="12" height="6" rx="1.5" fill="#334EAC"/>
+<path d="M535 581 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<rect x="624" y="577.4" width="56" height="3.2" rx="1.6" fill="#334EAC"/><rect x="632" y="583.6" width="40" height="3.2" rx="1.6" fill="#334EAC"/>
+<path d="M715 581 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<rect x="804" y="574.5" width="9.5" height="8" rx="2" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="819.5,578.5 816.1,576.6 816.1,580.4" fill="#334EAC"/><path d="M813.5 578.5 L816.5 578.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><rect x="819.5" y="574.5" width="9.5" height="8" rx="2" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="835,578.5 831.6,576.6 831.6,580.4" fill="#334EAC"/><path d="M829 578.5 L832 578.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><rect x="835" y="574.5" width="9.5" height="8" rx="2" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="850.5,578.5 847.1,576.6 847.1,580.4" fill="#334EAC"/><path d="M844.5 578.5 L847.5 578.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><rect x="850.5" y="574.5" width="9.5" height="8" rx="2" fill="#334EAC"/><path d="M855 582.5 v3.5 h-46 v-2" fill="none" stroke="#334EAC" stroke-width="0.9" stroke-dasharray="1.6 1.2"/><polygon points="809,582.5 807.1,585.9 810.9,585.9" fill="#334EAC"/>
+<text x="142" y="609.6" font-size="7.2" font-weight="700" fill="rgba(8,31,92,.62)" text-anchor="end" letter-spacing=".07em">COST</text>
+<path d="M175 607 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<path d="M265 607 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<path d="M355 607 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<path d="M445 607 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<rect x="534" y="603.4" width="56" height="3.2" rx="1.6" fill="#334EAC"/><rect x="542" y="609.6" width="40" height="3.2" rx="1.6" fill="#334EAC"/>
+<path d="M625 607 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<path d="M715 607 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<path d="M805 607 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<text x="142" y="635.6" font-size="7.2" font-weight="700" fill="rgba(8,31,92,.62)" text-anchor="end" letter-spacing=".07em">OPEN QUESTIONS</text>
+<rect x="174" y="629.4" width="56" height="3.2" rx="1.6" fill="#334EAC"/><rect x="182" y="635.6" width="40" height="3.2" rx="1.6" fill="#334EAC"/>
+<path d="M265 633 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<path d="M355 633 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<path d="M445 633 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<path d="M535 633 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<path d="M625 633 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<path d="M715 633 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<path d="M805 633 h54" stroke="rgba(8,31,92,.30)" stroke-width="1" stroke-dasharray="1.5 3"/>
+<path d="M153 4 v646" stroke="rgba(8,31,92,.14)" stroke-width="1"/>
+<path d="M8 658 h866" stroke="rgba(8,31,92,.14)" stroke-width="1"/>
+<g transform="translate(11 668) scale(.86)"><rect x="0" y="4.4" width="56" height="3.2" rx="1.6" fill="#334EAC"/><rect x="8" y="10.6" width="40" height="3.2" rx="1.6" fill="#334EAC"/></g>
+<text x="35.1" y="694" font-size="6.1" font-weight="700" fill="rgba(8,31,92,.62)" text-anchor="middle" letter-spacing=".02em">PROSE</text>
+<a class="key" href="diagram-types.html#matrix" data-card="matrix" aria-label="Preview: table / matrix"><rect x="63.1" y="664" width="52" height="34" fill="transparent"/><g transform="translate(65.1 668) scale(.86)"><rect x="0" y="3.4" width="17" height="4.2" rx="1.4" fill="#334EAC"/><rect x="19.5" y="3.4" width="17" height="4.2" rx="1.4" fill="#334EAC"/><rect x="39" y="3.4" width="17" height="4.2" rx="1.4" fill="#334EAC"/><rect x="0" y="9.4" width="17" height="4.2" rx="1.4" fill="#334EAC"/><rect x="19.5" y="9.4" width="17" height="4.2" rx="1.4" fill="#334EAC"/><rect x="39" y="9.4" width="17" height="4.2" rx="1.4" fill="#334EAC"/></g>
+<text x="89.2" y="694" font-size="6.1" font-weight="700" fill="rgba(8,31,92,.62)" text-anchor="middle" letter-spacing=".02em">TABLE / MATRIX</text></a>
+<a class="key" href="diagram-types.html#a1" data-card="a1" aria-label="Preview: context"><rect x="117.2" y="664" width="52" height="34" fill="transparent"/><g transform="translate(119.2 668) scale(.86)"><rect x="20" y="3" width="16" height="10" rx="2" fill="#334EAC"/><rect x="1" y="4.5" width="11" height="7" rx="3.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><rect x="44" y="4.5" width="11" height="7" rx="1.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M12 8 L17 8" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="20,8 16.6,6.1 16.6,9.9" fill="#334EAC"/><path d="M44 8 L39 8" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="36,8 39.4,6.1 39.4,9.9" fill="#334EAC"/></g>
+<text x="143.3" y="694" font-size="6.1" font-weight="700" fill="rgba(8,31,92,.62)" text-anchor="middle" letter-spacing=".02em">CONTEXT</text></a>
+<a class="key" href="diagram-types.html#a2" data-card="a2" aria-label="Preview: container"><rect x="171.4" y="664" width="52" height="34" fill="transparent"/><g transform="translate(173.4 668) scale(.86)"><rect x="0" y="4" width="12" height="8" rx="1.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><rect x="19" y="4" width="12" height="8" rx="1.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M41 4.5 v8 a6.5 1.6 0 0 0 13 0 v-8" fill="none" stroke="#334EAC" stroke-width="1.1"/><ellipse cx="47.5" cy="4.5" rx="6.5" ry="1.6" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M12 8 L16 8" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="19,8 15.6,6.1 15.6,9.9" fill="#334EAC"/><path d="M31 8 L38 8" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="41,8 37.6,6.1 37.6,9.9" fill="#334EAC"/></g>
+<text x="197.4" y="694" font-size="6.1" font-weight="700" fill="rgba(8,31,92,.62)" text-anchor="middle" letter-spacing=".02em">CONTAINER</text></a>
+<a class="key" href="diagram-types.html#a3" data-card="a3" aria-label="Preview: component"><rect x="225.5" y="664" width="52" height="34" fill="transparent"/><g transform="translate(227.5 668) scale(.86)"><rect x="0" y="0.5" width="56" height="15" rx="3" fill="none" stroke="#334EAC" stroke-width="1.1" stroke-dasharray="2 1.6"/><rect x="5" y="5" width="10" height="6" rx="1.5" fill="#334EAC"/><rect x="23" y="5" width="10" height="6" rx="1.5" fill="#334EAC"/><rect x="41" y="5" width="10" height="6" rx="1.5" fill="#334EAC"/><path d="M15 8 L20 8" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="23,8 19.6,6.1 19.6,9.9" fill="#334EAC"/><path d="M33 8 L38 8" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="41,8 37.6,6.1 37.6,9.9" fill="#334EAC"/></g>
+<text x="251.6" y="694" font-size="6.1" font-weight="700" fill="rgba(8,31,92,.62)" text-anchor="middle" letter-spacing=".02em">COMPONENT</text></a>
+<a class="key" href="diagram-types.html#c1" data-card="c1" aria-label="Preview: sequence"><rect x="279.6" y="664" width="52" height="34" fill="transparent"/><g transform="translate(281.6 668) scale(.86)"><rect x="2" y="0" width="10" height="4" rx="1" fill="#334EAC"/><path d="M7 4 L7 16" fill="none" stroke="#334EAC" stroke-width="0.8" stroke-dasharray="1.4 1.4"/><rect x="23" y="0" width="10" height="4" rx="1" fill="#334EAC"/><path d="M28 4 L28 16" fill="none" stroke="#334EAC" stroke-width="0.8" stroke-dasharray="1.4 1.4"/><rect x="44" y="0" width="10" height="4" rx="1" fill="#334EAC"/><path d="M49 4 L49 16" fill="none" stroke="#334EAC" stroke-width="0.8" stroke-dasharray="1.4 1.4"/><path d="M7 8 L25 8" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="28,8 24.6,6.1 24.6,9.9" fill="#334EAC"/><path d="M28 11 L46 11" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="49,11 45.6,9.1 45.6,12.9" fill="#334EAC"/><path d="M49 14.5 L10 14.5" fill="none" stroke="#334EAC" stroke-width="1.1" stroke-dasharray="1.6 1.2"/><polygon points="7,14.5 10.4,12.6 10.4,16.4" fill="#334EAC"/></g>
+<text x="305.7" y="694" font-size="6.1" font-weight="700" fill="rgba(8,31,92,.62)" text-anchor="middle" letter-spacing=".02em">SEQUENCE</text></a>
+<a class="key" href="diagram-types.html#c3" data-card="c3" aria-label="Preview: flowchart"><rect x="333.7" y="664" width="52" height="34" fill="transparent"/><g transform="translate(335.7 668) scale(.86)"><rect x="0" y="4.5" width="11" height="7" rx="1.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M11 8 L17 8" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="20,8 16.6,6.1 16.6,9.9" fill="#334EAC"/><polygon points="26,2 32,8 26,14 20,8" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M32 8 L38 8" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M38 3.5 L38 12.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M38 3.5 L41 3.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="44,3.5 40.6,1.6 40.6,5.4" fill="#334EAC"/><path d="M38 12.5 L41 12.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="44,12.5 40.6,10.6 40.6,14.4" fill="#334EAC"/><rect x="44" y="0.5" width="12" height="6" rx="1.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><rect x="44" y="9.5" width="12" height="6" rx="1.5" fill="#334EAC"/></g>
+<text x="359.8" y="694" font-size="6.1" font-weight="700" fill="rgba(8,31,92,.62)" text-anchor="middle" letter-spacing=".02em">FLOWCHART</text></a>
+<a class="key" href="diagram-types.html#d1" data-card="d1" aria-label="Preview: erd"><rect x="387.9" y="664" width="52" height="34" fill="transparent"/><g transform="translate(389.9 668) scale(.86)"><rect x="2" y="2" width="18" height="12" rx="1" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M2 6 L20 6" fill="none" stroke="#334EAC" stroke-width="1.1"/><rect x="36" y="2" width="18" height="12" rx="1" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M36 6 L54 6" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M20 8 L31 8" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M31 8 L36 5" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M31 8 L36 8" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M31 8 L36 11" fill="none" stroke="#334EAC" stroke-width="1.1"/></g>
+<text x="413.9" y="694" font-size="6.1" font-weight="700" fill="rgba(8,31,92,.62)" text-anchor="middle" letter-spacing=".02em">ERD</text></a>
+<a class="key" href="diagram-types.html#d2" data-card="d2" aria-label="Preview: star schema"><rect x="442.0" y="664" width="52" height="34" fill="transparent"/><g transform="translate(444 668) scale(.86)"><rect x="22" y="4" width="12" height="8" rx="1.5" fill="#334EAC"/><rect x="2" y="5" width="10" height="6" rx="1.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><rect x="44" y="5" width="10" height="6" rx="1.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><rect x="23" y="0" width="10" height="3" rx="1" fill="none" stroke="#334EAC" stroke-width="1.1"/><rect x="23" y="13" width="10" height="3" rx="1" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M12 8 L22 8" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M34 8 L44 8" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M28 3 L28 4" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M28 12 L28 13" fill="none" stroke="#334EAC" stroke-width="1.1"/></g>
+<text x="468.1" y="694" font-size="6.1" font-weight="700" fill="rgba(8,31,92,.62)" text-anchor="middle" letter-spacing=".02em">STAR SCHEMA</text></a>
+<a class="key" href="diagram-types.html#d4" data-card="d4" aria-label="Preview: lineage"><rect x="496.1" y="664" width="52" height="34" fill="transparent"/><g transform="translate(498.1 668) scale(.86)"><rect x="46" y="6.4" width="10" height="3.2" rx="1.6" fill="#334EAC"/><rect x="0" y="1" width="10" height="3.2" rx="1.6" fill="#334EAC"/><path d="M10 2.6 L46 8" fill="none" stroke="#334EAC" stroke-width="1.1"/><rect x="0" y="6.4" width="10" height="3.2" rx="1.6" fill="#334EAC"/><path d="M10 8 L46 8" fill="none" stroke="#334EAC" stroke-width="1.1"/><rect x="0" y="11.8" width="10" height="3.2" rx="1.6" fill="#334EAC"/><path d="M10 13.4 L46 8" fill="none" stroke="#334EAC" stroke-width="1.1" stroke-dasharray="1.6 1.2"/></g>
+<text x="522.2" y="694" font-size="6.1" font-weight="700" fill="rgba(8,31,92,.62)" text-anchor="middle" letter-spacing=".02em">LINEAGE</text></a>
+<a class="key" href="diagram-types.html#d3" data-card="d3" aria-label="Preview: data flow"><rect x="550.2" y="664" width="52" height="34" fill="transparent"/><g transform="translate(552.2 668) scale(.86)"><rect x="0" y="4.5" width="11" height="7" rx="1.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M11 8 L19.5 8" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="22.5,8 19.1,6.1 19.1,9.9" fill="#334EAC"/><circle cx="27" cy="8" r="4.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M31.5 8 L41 8" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="44,8 40.6,6.1 40.6,9.9" fill="#334EAC"/><path d="M56 4.5 h-12 v7 h12" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M17 0 L17 16" fill="none" stroke="#334EAC" stroke-width="0.9" stroke-dasharray="1.6 1.4"/></g>
+<text x="576.3" y="694" font-size="6.1" font-weight="700" fill="rgba(8,31,92,.62)" text-anchor="middle" letter-spacing=".02em">DATA FLOW</text></a>
+<a class="key" href="diagram-types.html#d5" data-card="d5" aria-label="Preview: dag"><rect x="604.4" y="664" width="52" height="34" fill="transparent"/><g transform="translate(606.4 668) scale(.86)"><path d="M4 8 L20 3" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M4 8 L20 13" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M20 3 L36 8" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M20 13 L36 8" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M36 8 L52 8" fill="none" stroke="#334EAC" stroke-width="1.1"/><circle cx="4" cy="8" r="2.8" fill="#FFFDFA" stroke="#334EAC" stroke-width="1.1"/><circle cx="20" cy="3" r="2.8" fill="#FFFDFA" stroke="#334EAC" stroke-width="1.1"/><circle cx="20" cy="13" r="2.8" fill="#FFFDFA" stroke="#334EAC" stroke-width="1.1"/><circle cx="36" cy="8" r="2.8" fill="#FFFDFA" stroke="#334EAC" stroke-width="1.1"/><circle cx="52" cy="8" r="2.8" fill="#FFFDFA" stroke="#334EAC" stroke-width="1.1"/></g>
+<text x="630.4" y="694" font-size="6.1" font-weight="700" fill="rgba(8,31,92,.62)" text-anchor="middle" letter-spacing=".02em">DAG</text></a>
+<a class="key" href="diagram-types.html#b1" data-card="b1" aria-label="Preview: deployment"><rect x="658.5" y="664" width="52" height="34" fill="transparent"/><g transform="translate(660.5 668) scale(.86)"><rect x="0" y="0" width="25" height="16" rx="3" fill="none" stroke="#334EAC" stroke-width="1.1" stroke-dasharray="2 1.6"/><rect x="31" y="0" width="25" height="16" rx="3" fill="none" stroke="#334EAC" stroke-width="1.1" stroke-dasharray="2 1.6"/><rect x="3" y="4.5" width="7" height="7" rx="1.5" fill="#334EAC"/><rect x="13" y="4.5" width="7" height="7" rx="1.5" fill="#334EAC"/><rect x="37" y="4.5" width="7" height="7" rx="1.5" fill="#334EAC"/><rect x="47" y="4.5" width="7" height="7" rx="1.5" fill="#334EAC"/><path d="M20 8 L34 8" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="37,8 33.6,6.1 33.6,9.9" fill="#334EAC"/></g>
+<text x="684.6" y="694" font-size="6.1" font-weight="700" fill="rgba(8,31,92,.62)" text-anchor="middle" letter-spacing=".02em">DEPLOYMENT</text></a>
+<a class="key" href="diagram-types.html#b3" data-card="b3" aria-label="Preview: environments"><rect x="712.6" y="664" width="52" height="34" fill="transparent"/><g transform="translate(714.6 668) scale(.86)"><polygon points="0,3 13,3 17,8 13,13 0,13 4,8" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="19.5,3 32.5,3 36.5,8 32.5,13 19.5,13 23.5,8" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="39,3 52,3 56,8 52,13 39,13 43,8" fill="#334EAC"/></g>
+<text x="738.7" y="694" font-size="6.1" font-weight="700" fill="rgba(8,31,92,.62)" text-anchor="middle" letter-spacing=".02em">ENVIRONMENTS</text></a>
+<a class="key" href="diagram-types.html#e3" data-card="e3" aria-label="Preview: runbook"><rect x="766.7" y="664" width="52" height="34" fill="transparent"/><g transform="translate(768.7 668) scale(.86)"><circle cx="5" cy="8" r="3.6" fill="#334EAC"/><path d="M8.6 8 L14 8" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="17,8 13.6,6.1 13.6,9.9" fill="#334EAC"/><polygon points="23,2 29,8 23,14 17,8" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M29 8 L36 8" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M36 3.5 L36 12.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M36 3.5 L39 3.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="42,3.5 38.6,1.6 38.6,5.4" fill="#334EAC"/><path d="M36 12.5 L39 12.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="42,12.5 38.6,10.6 38.6,14.4" fill="#334EAC"/><rect x="42" y="0.5" width="14" height="6" rx="1.5" fill="#334EAC"/><rect x="42" y="9.5" width="14" height="6" rx="1.5" fill="none" stroke="#334EAC" stroke-width="1.1" stroke-dasharray="1.6 1.2"/></g>
+<text x="792.8" y="694" font-size="6.1" font-weight="700" fill="rgba(8,31,92,.62)" text-anchor="middle" letter-spacing=".02em">RUNBOOK</text></a>
+<a class="key" href="diagram-types.html#e1" data-card="e1" aria-label="Preview: pipeline"><rect x="820.9" y="664" width="52" height="34" fill="transparent"/><g transform="translate(822.9 668) scale(.86)"><rect x="0" y="1.5" width="9.5" height="8" rx="2" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="15.5,5.5 12.1,3.6 12.1,7.4" fill="#334EAC"/><path d="M9.5 5.5 L12.5 5.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><rect x="15.5" y="1.5" width="9.5" height="8" rx="2" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="31,5.5 27.6,3.6 27.6,7.4" fill="#334EAC"/><path d="M25 5.5 L28 5.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><rect x="31" y="1.5" width="9.5" height="8" rx="2" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="46.5,5.5 43.1,3.6 43.1,7.4" fill="#334EAC"/><path d="M40.5 5.5 L43.5 5.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><rect x="46.5" y="1.5" width="9.5" height="8" rx="2" fill="#334EAC"/><path d="M51 9.5 v3.5 h-46 v-2" fill="none" stroke="#334EAC" stroke-width="0.9" stroke-dasharray="1.6 1.2"/><polygon points="5,9.5 3.1,12.9 6.9,12.9" fill="#334EAC"/></g>
+<text x="846.9" y="694" font-size="6.1" font-weight="700" fill="rgba(8,31,92,.62)" text-anchor="middle" letter-spacing=".02em">PIPELINE</text></a>
+</svg>
+<p style="font-size:12px;color:var(--mut);margin:12px 0 0">Section names are canonical, not verbatim:
+a few are merged onto one row where two documents call the same thing by different names. The
+highlighted column, security / access control, shows the decide-build-ship order most clearly. The decision and its
+table come before any diagram, the diagrams follow, and rollout comes last: decide, then build,
+then ship.</p>
+</div>
+
+<!-- ══════════════ skeletons ══════════════ -->
+<h2>Eight skeletons, by use case <span class="cnt">pick the nearest, then cut</span></h2>
+<p class="note">Each row is a section. The chip on the right names the diagram that belongs there, or
+<code>—</code> for prose and tables only. The <span style="background:rgba(51,78,172,.07);padding:1px 6px;border-radius:3px">shaded row</span>
+is the section the whole document exists to deliver. If a reader reads one section, make
+it that one.</p>
+<div class="grid">
+
+<!-- 1 -->
+<div class="skel">
+  <h3>1 · New system design</h3>
+  <p class="meta">greenfield · 6–12 pages · eng + reviewers</p>
+  <ol class="sec">
+    <li><b>The design in one page</b><span class="q">the whole argument, standalone</span><span class="dg n">—</span></li>
+    <li><b>Problem and why now</b><span class="q">what breaks if we do nothing</span><span class="dg n">—</span></li>
+    <li><b>Who is involved</b><span class="q">users and systems around it</span><a class="dg" href="diagram-types.html#a1" data-card="a1">context</a></li>
+    <li><b>Constraints</b><span class="q">budget, latency, compliance, team</span><span class="dg n">—</span></li>
+    <li class="hinge"><b>The decision</b><span class="q">what we will build, in 3 sentences</span><span class="dg n">—</span></li>
+    <li><b>Alternatives rejected</b><span class="q">and the one fact that killed each</span><span class="dg n">—</span></li>
+    <li><b>The parts</b><span class="q">deployables and stores</span><a class="dg" href="diagram-types.html#a2" data-card="a2">container</a></li>
+    <li><b>Inside the main part</b><span class="q">modules and their calls</span><a class="dg" href="diagram-types.html#a3" data-card="a3">component</a></li>
+    <li><b>The main flow</b><span class="q">what happens on a request</span><a class="dg" href="diagram-types.html#c1" data-card="c1">sequence</a></li>
+    <li><b>Data model</b><span class="q">what we store and how it relates</span><a class="dg" href="diagram-types.html#d1" data-card="d1">ERD</a></li>
+    <li><b>Where it runs</b><span class="q">services, boundaries, cost</span><a class="dg" href="diagram-types.html#b1" data-card="b1">deployment</a></li>
+    <li><b>When it breaks</b><span class="q">failure modes and who gets paged</span><a class="dg" href="diagram-types.html#e3" data-card="e3">runbook</a></li>
+    <li><b>Rollout</b><span class="q">phases, flags, the point of no return</span><span class="dg n">—</span></li>
+    <li><b>Open questions</b><span class="q">named owner, named date</span><span class="dg n">—</span></li>
+  </ol>
+  <div class="tail">
+    <p class="k"><b>Works because</b> the reviewer can stop after section 6 and still have reviewed the real decision.</p>
+    <p class="x"><b>Fails when</b> sections 7–11 arrive before 5. Then every page of design is read as a fait accompli.</p>
+  </div>
+</div>
+
+<!-- 2 -->
+<div class="skel">
+  <h3>2 · Feature / change design</h3>
+  <p class="meta">brownfield · 2–4 pages · the team</p>
+  <ol class="sec">
+    <li><b>What changes</b><span class="q">one paragraph, no preamble</span><span class="dg n">—</span></li>
+    <li><b>Today</b><span class="q">the part you are about to touch</span><a class="dg" href="diagram-types.html#a3" data-card="a3">component</a></li>
+    <li class="hinge"><b>After</b><span class="q">the same diagram, changes marked</span><a class="dg t" href="diagram-types.html#a3" data-card="a3">component</a></li>
+    <li><b>The new flow</b><span class="q">only the path that differs</span><a class="dg" href="diagram-types.html#c3" data-card="c3">activity</a></li>
+    <li><b>Data changes</b><span class="q">new fields, backfill, old readers</span><a class="dg" href="diagram-types.html#d4" data-card="d4">lineage</a></li>
+    <li><b>Risk and rollback</b><span class="q">how we undo it, and how fast</span><span class="dg n">—</span></li>
+    <li><b>Tests</b><span class="q">what proves it works</span><span class="dg n">—</span></li>
+  </ol>
+  <div class="tail">
+    <p class="k"><b>The trick:</b> sections 2 and 3 are the <i>same diagram twice</i>, at the same altitude, with the delta highlighted. Nothing else communicates a change so fast.</p>
+    <p class="x"><b>Fails when</b> “today” is redrawn from scratch. Then the reader compares two drawings instead of reading one change.</p>
+  </div>
+</div>
+
+<!-- 3 -->
+<div class="skel">
+  <h3>3 · Security / access control</h3>
+  <p class="meta">10–20 pages · security + business owner</p>
+  <ol class="sec">
+    <li><b>The design in one page</b><span class="q">for the owner who reads nothing else</span><span class="dg n">—</span></li>
+    <li><b>The decision</b><span class="q">where enforcement lives, and why there</span><span class="dg n">—</span></li>
+    <li><b>Who reads what</b><span class="q">roles against fields</span><a class="dg t" href="diagram-types.html#matrix" data-card="matrix">matrix</a></li>
+    <li><b>Which records they reach</b><span class="q">scope, separate from fields</span><a class="dg t" href="diagram-types.html#matrix" data-card="matrix">matrix</a></li>
+    <li><b>Decisions the business owns</b><span class="q">the questions you cannot answer</span><span class="dg n">—</span></li>
+    <li><b>Alternatives rejected</b><span class="q">and why each one leaks</span><span class="dg n">—</span></li>
+    <li><b>What is exposed today</b><span class="q">every field, every surface</span><a class="dg" href="diagram-types.html#d4" data-card="d4">lineage</a></li>
+    <li class="hinge"><b>Enforcement in the code</b><span class="q">the one place that decides</span><a class="dg" href="diagram-types.html#c3" data-card="c3">activity</a></li>
+    <li><b>Trust boundaries</b><span class="q">what crosses, in which direction</span><a class="dg" href="diagram-types.html#d3" data-card="d3">DFD</a></li>
+    <li><b>Tests that prove it</b><span class="q">a leak test, not a unit test</span><span class="dg n">—</span></li>
+    <li><b>The request flow</b><span class="q">login, permission check, response</span><a class="dg" href="diagram-types.html#c1" data-card="c1">sequence</a></li>
+    <li><b>Where it runs</b><span class="q">gateway, compute, stores</span><a class="dg" href="diagram-types.html#b1" data-card="b1">deployment</a></li>
+    <li><b>Audit and operations</b><span class="q">one line per request, metadata only</span><span class="dg n">—</span></li>
+    <li><b>Rollout</b><span class="q">who gets it first, and how you revoke</span><span class="dg n">—</span></li>
+  </ol>
+  <div class="tail">
+    <p class="k"><b>Works because</b> it splits <i>decide</i> (1–6), <i>build</i> (7–10) and <i>ship</i> (11–14). Three audiences, three stopping points.</p>
+    <p class="x"><b>Fails when</b> the field matrix is prose. A reviewer must be able to check one row against one role.</p>  </div>
+</div>
+
+<!-- 4 -->
+<div class="skel">
+  <h3>4 · Migration / replatform</h3>
+  <p class="meta">5–10 pages · eng + whoever owns the risk</p>
+  <ol class="sec">
+    <li><b>Why move</b><span class="q">the cost of staying, in numbers</span><span class="dg n">—</span></li>
+    <li><b>Today</b><span class="q">the system as it is now</span><a class="dg" href="diagram-types.html#a2" data-card="a2">container</a></li>
+    <li><b>Target</b><span class="q">same altitude, same layout, new parts</span><a class="dg t" href="diagram-types.html#a2" data-card="a2">container</a></li>
+    <li><b>Gap</b><span class="q">row per capability: keep, port, drop</span><span class="dg n">—</span></li>
+    <li class="hinge"><b>Cutover</b><span class="q">the exact order of operations</span><a class="dg" href="diagram-types.html#c1" data-card="c1">sequence</a></li>
+    <li><b>Data migration</b><span class="q">backfill, dual-write, reconciliation</span><a class="dg" href="diagram-types.html#d5" data-card="d5">DAG</a></li>
+    <li><b>Rollback</b><span class="q">at each step, and the last reversible one</span><a class="dg" href="diagram-types.html#c3" data-card="c3">activity</a></li>
+    <li><b>Environments</b><span class="q">where you rehearse it</span><a class="dg" href="diagram-types.html#b3" data-card="b3">environments</a></li>
+    <li><b>Phases and dates</b><span class="q">who does what, when</span><span class="dg n">—</span></li>
+  </ol>
+  <div class="tail">
+    <p class="k"><b>The trick:</b> draw “today” and “target” at the <i>same altitude with the same layout</i>, so the eye reads the difference instead of hunting for it.</p>
+    <p class="x"><b>Fails when</b> rollback is one sentence. Name the last reversible step, or the plan is a one-way door nobody noticed.</p>
+  </div>
+</div>
+
+<!-- 5 -->
+<div class="skel">
+  <h3>5 · Third-party integration</h3>
+  <p class="meta">3–6 pages · eng + the vendor’s engineer</p>
+  <ol class="sec">
+    <li><b>What we need from them</b><span class="q">first, because it has the longest lead time</span><span class="dg n">—</span></li>
+    <li><b>Context</b><span class="q">them as one external box</span><a class="dg" href="diagram-types.html#a1" data-card="a1">context</a></li>
+    <li><b>The contract</b><span class="q">endpoints, payloads, limits, errors</span><span class="dg n">—</span></li>
+    <li class="hinge"><b>The handshake</b><span class="q">auth and the first real call</span><a class="dg" href="diagram-types.html#c1" data-card="c1">sequence</a></li>
+    <li><b>Failure modes</b><span class="q">their 500, their timeout, their rate limit</span><a class="dg" href="diagram-types.html#c3" data-card="c3">activity</a></li>
+    <li><b>What crosses the boundary</b><span class="q">which fields leave, and to whom</span><a class="dg" href="diagram-types.html#d3" data-card="d3">DFD</a></li>
+    <li><b>Credentials</b><span class="q">where stored, who rotates, how often</span><span class="dg n">—</span></li>
+    <li><b>Cost per call</b><span class="q">and the ceiling that stops a runaway</span><span class="dg n">—</span></li>
+  </ol>
+  <div class="tail">
+    <p class="k"><b>Works because</b> section 1 is an ask, not a summary. Vendor access takes weeks; start it on day one.</p>
+    <p class="x"><b>Fails when</b> section 6 is missing. Nobody notices which customer fields leave the building until an auditor asks.</p>
+  </div>
+</div>
+
+<!-- 6 -->
+<div class="skel">
+  <h3>6 · Data platform / pipeline</h3>
+  <p class="meta">4–8 pages · data + the consumers</p>
+  <ol class="sec">
+    <li><b>Who consumes this, and for what</b><span class="q">start at the output, not the source</span><span class="dg n">—</span></li>
+    <li><b>Sources</b><span class="q">owner, freshness, volume, trust</span><span class="dg n">—</span></li>
+    <li><b>Where each field comes from</b><span class="q">source to output, field level</span><a class="dg" href="diagram-types.html#d4" data-card="d4">lineage</a></li>
+    <li class="hinge"><b>The model</b><span class="q">grain, facts, dimensions</span><a class="dg" href="diagram-types.html#d2" data-card="d2">star schema</a></li>
+    <li><b>The jobs</b><span class="q">order, parallelism, schedule</span><a class="dg" href="diagram-types.html#d5" data-card="d5">DAG</a></li>
+    <li><b>Quality gates</b><span class="q">what fails the run, what only warns</span><a class="dg" href="diagram-types.html#c3" data-card="c3">activity</a></li>
+    <li><b>Where it runs</b><span class="q">compute, storage, cost per run</span><a class="dg" href="diagram-types.html#b1" data-card="b1">deployment</a></li>
+    <li><b>Backfill and reprocessing</b><span class="q">how you fix a bad day</span><span class="dg n">—</span></li>
+  </ol>
+  <div class="tail">
+    <p class="k"><b>Works because</b> it reads backwards: output first, then source. That is the order the consumer cares about.</p>
+    <p class="x"><b>Fails when</b> it opens on the DAG. A task graph means nothing until the reader knows what the data is for.</p>
+  </div>
+</div>
+
+<!-- 7 -->
+<div class="skel">
+  <h3>7 · ADR — one decision</h3>
+  <p class="meta">1 page · future you · never longer</p>
+  <ol class="sec">
+    <li><b>Title, status, date</b><span class="q">proposed · accepted · superseded by N</span><span class="dg n">—</span></li>
+    <li><b>Context</b><span class="q">the forces that applied <i>at the time</i></span><span class="dg n">—</span></li>
+    <li class="hinge"><b>Decision</b><span class="q">“We will …” — one sentence, active voice</span><span class="dg n">—</span></li>
+    <li><b>Consequences</b><span class="q">good and bad, both stated</span><span class="dg n">—</span></li>
+    <li><b>Alternatives</b><span class="q">one line each, with the disqualifying fact</span><span class="dg n">—</span></li>
+  </ol>
+  <div class="tail">
+    <p class="k"><b>Works because</b> it is immutable. You never edit an ADR; you supersede it. That is what makes the history readable in two years.</p>
+    <p class="x"><b>Fails when</b> it grows a diagram. At most one, and usually none — if you need a figure, you are writing doc type 1.</p>
+  </div>
+</div>
+
+<!-- 8 -->
+<div class="skel">
+  <h3>8 · Handover / runbook</h3>
+  <p class="meta">3–5 pages · whoever is on call at 3 a.m.</p>
+  <ol class="sec">
+    <li><b>What this system does</b><span class="q">two sentences, no jargon</span><span class="dg n">—</span></li>
+    <li><b>What it looks like</b><span class="q">the one picture to orient on</span><a class="dg" href="diagram-types.html#b1" data-card="b1">deployment</a></li>
+    <li><b>Normal</b><span class="q">the numbers that mean “fine”</span><span class="dg n">—</span></li>
+    <li class="hinge"><b>The alerts</b><span class="q">one block each: cause, check, fix</span><a class="dg" href="diagram-types.html#e3" data-card="e3">runbook</a></li>
+    <li><b>How to deploy and roll back</b><span class="q">exact commands, copy-pasteable</span><a class="dg" href="diagram-types.html#e1" data-card="e1">pipeline</a></li>
+    <li><b>Access</b><span class="q">what you need, and who grants it</span><span class="dg n">—</span></li>
+    <li><b>Who to escalate to</b><span class="q">by role, with a fallback</span><span class="dg n">—</span></li>
+  </ol>
+  <div class="tail">
+    <p class="k"><b>Works because</b> every section is actionable at 3 a.m. by someone who did not build it.</p>
+    <p class="x"><b>Fails when</b> it explains architecture. Nobody debugs from a component diagram at 3 a.m. — put that in doc type 1 and link it.</p>
+  </div>
+</div>
+</div>
+
+<!-- ══════════════ first five minutes ══════════════ -->
+<h2>What a reviewer actually reads</h2>
+<p class="note">In order, and usually in under five minutes. Design the document around this, not
+around the order you figured things out in.</p>
+<table>
+  <tr><th style="width:7%">Order</th><th style="width:28%">What they read</th><th>What it means for you</th></tr>
+  <tr><td><b>1</b></td><td>The title</td><td>Make it a claim, not a topic. “Calculate prices on the server, not in the checkout page” beats “Pricing design”.</td></tr>
+  <tr><td><b>2</b></td><td>The one-page summary</td><td>Write it last, and make it survive alone. Many readers read only this.</td></tr>
+  <tr><td><b>3</b></td><td>The first diagram</td><td>Make it the widest one. A reviewer who meets a module name here is already lost.</td></tr>
+  <tr><td><b>4</b></td><td>The decisions and alternatives</td><td>This is where they push back. Put it before the design, or they argue after reading 10 pages of it.</td></tr>
+  <tr><td><b>5</b></td><td>The risks and open questions</td><td>They look for what you are worried about. If nothing is listed, they assume you have not looked.</td></tr>
+  <tr><td><b>6</b></td><td style="color:var(--faint)">Everything else, if at all</td><td>Sections 7 onward exist for the person who implements it, not the person who approves it.</td></tr>
+</table>
+
+<!-- ══════════════ what to write where ══════════════ -->
+<h2>Figure, table or prose?</h2>
+<table>
+  <tr><th style="width:17%">Use</th><th style="width:37%">When</th><th>Because</th></tr>
+  <tr><td><b>A figure</b></td><td>The content is a shape: what contains what, what calls what, what happens in what order.</td><td>A reader takes in a shape in one glance and a paragraph in thirty seconds.</td></tr>
+  <tr><td><b>A table</b></td><td>The content is a set of rows a reviewer must check one at a time — roles, fields, endpoints, costs.</td><td>Precision. Nobody can audit a field list drawn as boxes.</td></tr>
+  <tr><td><b>Prose</b></td><td>The content is a judgement: why you chose this, what you rejected, what worries you.</td><td>Reasoning has no shape. A diagram of an argument is a flowchart nobody asked for.</td></tr>
+  <tr><td><b>Nothing</b></td><td>It is true of every system, or a tool can generate it.</td><td>“We will write tests” and a hand-drawn dependency graph both cost attention and return none.</td></tr>
+</table>
+
+<h2>Five ways the order goes wrong</h2>
+<ol class="mist">
+  <li><b>The doc opens on the deployment diagram.</b> Usually because it was the first thing the author drew. It answers “where”, and the reader has not yet asked. Move it to the WHERE phase and open on the system context diagram.</li>
+  <li><b>The decision is on page 7.</b> Every page before it reads as a presentation of something already settled. Reviewers who disagree have to argue backwards.</li>
+  <li><b>Alternatives are listed without the disqualifying fact.</b> “We considered Kafka” is not a rejection. “Kafka needs a team to run it, and we have two engineers” is.</li>
+  <li><b>Behaviour before structure.</b> A sequence diagram on page 2 whose participants appear on page 5. Every lifeline is an unexplained noun.</li>
+  <li><b>The summary was written first.</b> It then describes the doc you intended, not the one you wrote. Write it last, every time.</li>
+</ol>
+
+<p class="foot"><b>What is standard here, and what is not.</b> The diagram names are standard: they come
+from UML 2.5, C4, ArchiMate and the DFD/STRIDE convention, and
+the <a href="diagram-types.html">diagram catalogue</a> has a card for each. The <i>section orders</i> are
+not a named standard — they follow common practice. Two exceptions: <b>skeleton 7</b> is Michael
+Nygard’s ADR format, and the closest published template to <b>skeleton 1</b> is <b>arc42</b>. Treat the
+rest as a starting shape to cut down, not a specification to follow.</p>
+
+</div>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <marker id="a" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5.4" markerHeight="5.4" orient="auto-start-reverse">
+    <path d="M0 0 L8 4 L0 8 z" fill="#334EAC"/></marker>
+  <marker id="b" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5.4" markerHeight="5.4" orient="auto-start-reverse">
+    <path d="M0 0 L8 4 L0 8 z" fill="#7096D1"/></marker>
+  <marker id="r" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5.4" markerHeight="5.4" orient="auto-start-reverse">
+    <path d="M0 0 L8 4 L0 8 z" fill="#B3453A"/></marker>
+</defs></svg>
+
+<dialog id="pv" aria-label="Diagram type preview">
+  <div class="pv-in">
+    <div class="pv-bar"><span>Diagram catalogue · preview</span><button type="button" class="pv-x" aria-label="Close preview">×</button></div>
+    <div class="pv-body"></div>
+    <p class="pv-go"><a href="diagram-types.html">Open in the catalogue →</a></p>
+  </div>
+</dialog>
+
+<script>
+(function () {
+  var dlg = document.getElementById('pv');
+  if (!dlg || typeof dlg.showModal !== 'function' || !window.fetch || !window.DOMParser) return;
+  if (location.protocol !== 'file:') { var hint = document.querySelector('.hint'); if (hint) hint.hidden = false; }
+  var body = dlg.querySelector('.pv-body');
+  var go = dlg.querySelector('.pv-go a');
+  var closeBtn = dlg.querySelector('.pv-x');
+  var opener = null;
+  var page = null;   // cached promise of the parsed catalogue
+
+  function catalogue() {
+    if (!page) {
+      page = fetch('diagram-types.html')
+        .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
+        .then(function (t) { return new DOMParser().parseFromString(t, 'text/html'); });
+      page.catch(function () { page = null; });   // allow a retry later
+    }
+    return page;
+  }
+
+  function hrefOf(a) {
+    return a.getAttribute('href') || a.getAttribute('xlink:href') || ('diagram-types.html#' + a.getAttribute('data-card'));
+  }
+
+  document.addEventListener('click', function (e) {
+    if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    var a = e.target.closest ? e.target.closest('[data-card]') : null;
+    if (!a || dlg.contains(a)) return;
+    if (location.protocol === 'file:') return;   // fetch cannot read local files: let the link navigate
+    e.preventDefault();
+    var id = a.getAttribute('data-card');
+    catalogue().then(function (doc) {
+      var card = doc.getElementById(id);
+      if (!card) throw new Error('no card ' + id);
+      var clone = document.importNode(card, true);
+      clone.removeAttribute('id');
+      body.replaceChildren(clone);
+      var h = clone.querySelector('h3');
+      dlg.setAttribute('aria-label', 'Preview: ' + (h ? h.textContent : id));
+      go.setAttribute('href', 'diagram-types.html#' + id);
+      opener = a;
+      if (!dlg.open) dlg.showModal();
+      closeBtn.focus();
+    }).catch(function () {
+      location.href = hrefOf(a);   // preview failed: do what the link does
+    });
+  });
+
+  closeBtn.addEventListener('click', function () { dlg.close(); });
+  dlg.addEventListener('click', function (e) { if (e.target === dlg) dlg.close(); });   // backdrop
+  dlg.addEventListener('close', function () {
+    if (opener && typeof opener.focus === 'function') opener.focus();
+    opener = null;
+  });
+})();
+</script>
+</body></html>
