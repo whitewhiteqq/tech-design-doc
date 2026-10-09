@@ -4,8 +4,10 @@
 <title>How to organise an architecture design doc</title>
 <link rel="icon" href="data:,">
 <!-- Companion to diagram-types.html. Self-contained: no font, no CDN, no external request.
-     One small inline script (no library) opens a diagram badge as a preview. It fetches only
-     diagram-types.html from this same site; when that fails, the badge is a plain link.
+     Each diagram badge is a button with a data-card attribute. Hovering, focusing or tapping it shows a
+     small hover box built from <template id="pv-<id>"> at the end of this page. Those templates are
+     generated from diagram-types.html by docs/tools/sync_previews.py; do not edit them by hand.
+     One small inline script (no library) runs the hover box. No badge navigates anywhere.
      Diagram names follow UML 2.5, C4, ArchiMate and the DFD convention; diagram-types.html cards each one. -->
 <style>
   :root{
@@ -36,6 +38,31 @@
   code{font:12.8px/1.4 var(--mono);background:rgba(8,31,92,.06);padding:1px 5px;border-radius:4px}
   .hero{background:var(--card);border:1px solid var(--grid);border-radius:10px;padding:16px 18px;margin-top:20px}
   .hero svg{display:block;width:100%;height:auto}
+  /* phone view of "The usual order": below 600 px the SVG chips shrink to about 19x6 px, so an HTML
+     list with full-size badges replaces the SVG there */
+  .phases{display:none}
+  .phases ol{list-style:none;margin:0;padding:0}
+  .phases li{padding:8px 0;border-bottom:1px solid rgba(8,31,92,.07);font-size:13.4px;line-height:1.35}
+  .phases li:last-child{border-bottom:none}
+  .phases li b{display:block;font-size:11px;letter-spacing:.09em;color:var(--data)}
+  .phases li span.q{display:block;color:var(--mut);font-size:12.3px;margin:1px 0 6px}
+  .phases .chips{display:flex;flex-wrap:wrap;gap:6px}
+  .phases .dg{display:inline-block;width:auto;min-width:44px;min-height:28px;padding:4px 10px;
+              font-size:12px;line-height:20px;border-radius:5px}
+  .phases p{margin:8px 0 0;font-size:12.3px;color:var(--mut)}
+  .phases p b{color:var(--data)}
+  /* phone view of the key under "All eight at once": below 600 px the SVG key badges shrink to about
+     17x11 px with 2 px gaps, under the 24x24 px target. The matrix stays, its key badges stop taking
+     taps and focus, and this list of full-size badges takes their place */
+  .keylist{display:none;margin:10px 0 0;padding:0;list-style:none;flex-wrap:wrap;gap:6px}
+  .keylist .dg{display:inline-block;width:auto;min-width:44px;min-height:28px;padding:4px 10px;
+               font-size:12px;line-height:20px;border-radius:5px}
+  @media screen and (max-width:600px){
+    .hero.arc svg{display:none}
+    .hero.arc .phases{display:block}
+    .keylist{display:flex}
+    g.key{pointer-events:none;cursor:default}
+  }
   .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(388px,100%),1fr));gap:16px}
   .skel{background:var(--card);border:1px solid var(--grid);border-radius:10px;padding:15px 17px 16px;
         break-inside:avoid;display:flex;flex-direction:column}
@@ -57,56 +84,42 @@
       background:var(--data);border-radius:4px;padding:1px 0;text-align:center;letter-spacing:.02em}
   .dg.n{background:none;color:var(--faint);font-weight:600}
   .dg.t{background:var(--data2)}
-  a.dg{text-decoration:none;cursor:pointer;transition:background-color .12s}
-  a.dg:hover,a.dg:focus-visible{background:var(--txt)}
-  a.dg:focus-visible{outline:2px solid var(--data2);outline-offset:2px}
-  a.chip,a.key{cursor:pointer}
-  a.chip:hover rect,a.chip:focus-visible rect{fill:#081F5C}
-  a.chip:focus-visible,a.key:focus-visible{outline:2px solid var(--data2);outline-offset:1px}
-  a.key:hover text,a.key:focus-visible text{fill:#081F5C;text-decoration:underline}
-  a.key:hover g>*,a.key:focus-visible g>*{opacity:.75}
+  /* badges are buttons: reset the browser button look so they match the span badges */
+  button.dg{-webkit-appearance:none;appearance:none;border:0;margin:0;width:100%;display:block;
+            cursor:pointer;transition:background-color .12s}
+  button.dg:hover,button.dg:focus-visible,button.dg.on{background:var(--txt)}
+  button.dg:focus-visible{outline:2px solid var(--data2);outline-offset:2px}
+  g.chip,g.key{cursor:pointer}
+  g.chip:hover rect,g.chip:focus-visible rect,g.chip.on rect{fill:#081F5C}
+  g.chip:focus,g.key:focus{outline:none}
+  g.chip:focus-visible,g.key:focus-visible{outline:2px solid var(--data2);outline-offset:1px}
+  g.key:hover text,g.key:focus-visible text,g.key.on text{fill:#081F5C;text-decoration:underline}
+  g.key:hover g>*,g.key:focus-visible g>*,g.key.on g>*{opacity:.75}
   .topnav{display:flex;flex-wrap:wrap;gap:6px 20px;font-size:13px;font-weight:600;margin:0 0 22px}
   .topnav a{color:var(--mut);text-decoration:none;padding-bottom:2px;border-bottom:2px solid transparent}
   .topnav a:hover,.topnav a:focus-visible{color:var(--txt);border-bottom-color:var(--grid)}
   .topnav a[aria-current="page"]{color:var(--txt);border-bottom-color:var(--data)}
   .hint{font-size:13.5px;color:var(--mut);margin:8px 0 0}
-  /* badge preview: a card cloned from diagram-types.html, shown in a modal dialog */
-  #pv{border:none;border-radius:12px;padding:0;width:min(460px,calc(100vw - 32px));max-height:calc(100vh - 40px);
-      background:var(--card);color:var(--txt);font:15px/1.6 var(--sans);box-shadow:0 18px 50px rgba(8,31,92,.28)}
-  #pv::backdrop{background:rgba(8,31,92,.38)}
-  #pv .pv-in{padding:12px 18px 16px}
-  #pv .pv-bar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:0 0 6px;
-              font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;font-weight:700;color:var(--faint)}
-  #pv .pv-x{border:1px solid var(--grid);background:none;color:var(--txt);border-radius:6px;width:30px;height:30px;
-            font:18px/1 var(--sans);cursor:pointer}
-  #pv .pv-x:hover,#pv .pv-x:focus-visible{background:rgba(8,31,92,.06);outline:2px solid var(--data2);outline-offset:1px}
-  #pv .pv-go{margin:12px 0 0;padding-top:10px;border-top:1px solid var(--grid);font-size:13.5px;font-weight:600}
-  #pv .pv-go a{color:var(--data)}
-  #pv .card{display:flex;flex-direction:column}
-  #pv .card h3{margin:0;font-size:16.5px;letter-spacing:-.01em}
-  #pv .hd{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
-  #pv .alt{font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--faint);font-weight:700;margin:1px 0 11px}
-  #pv .freq{font-size:10px;letter-spacing:.1em;white-space:nowrap;color:var(--faint);font-weight:700}
-  #pv .freq i{font-style:normal;color:var(--data)}
-  #pv .card svg{display:block;width:100%;height:auto;margin:2px 0 13px}
-  #pv .kv{display:grid;grid-template-columns:76px 1fr;gap:3px 10px;font-size:13.2px;margin:0 0 11px}
-  #pv .kv dt{color:var(--mut);font-weight:600}
-  #pv .kv dd{margin:0}
-  #pv .io{font-size:13.2px;margin:0 0 8px;padding-left:18px;position:relative}
-  #pv .io:before{position:absolute;left:0;top:0;font-weight:700}
-  #pv .inc:before{content:"+";color:var(--ok)} #pv .exc:before{content:"\2212";color:var(--no)}
-  #pv .when{border-top:1px solid var(--grid);margin-top:4px;padding-top:10px;font-size:13.2px}
-  #pv .when p{margin:0 0 6px} #pv .when p:last-child{margin:0}
-  #pv .yes b{color:var(--ok)} #pv .no b{color:var(--no)}
-  #pv .ex{font-size:11.5px;color:var(--faint);margin:9px 0 0}
-  #pv code{font:12.8px/1.4 var(--mono);background:rgba(8,31,92,.06);padding:1px 5px;border-radius:4px}
+  /* hover box: one floating card, filled from <template id="pv-<id>"> by the script at the end */
+  #pv-tip{position:fixed;left:0;top:0;z-index:50;width:min(280px,calc(100vw - 16px));
+          max-height:calc(100vh - 16px);overflow:hidden;pointer-events:none;
+          background:var(--card);color:var(--txt);border:1px solid var(--grid);border-radius:10px;
+          box-shadow:0 10px 28px rgba(8,31,92,.22);padding:10px 12px 11px;font:12.5px/1.45 var(--sans)}
+  #pv-tip[hidden]{display:none}
+  #pv-tip .pv-t{margin:0;font-size:14.5px;font-weight:700;letter-spacing:-.01em;line-height:1.3}
+  #pv-tip .alt{margin:1px 0 6px;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;
+               color:var(--faint);font-weight:700}
+  #pv-tip svg{display:block;width:100%;height:auto;margin:0 0 7px}
+  #pv-tip .when{border-top:1px solid var(--grid);padding-top:6px}
+  #pv-tip .when p{margin:0 0 3px} #pv-tip .when p:last-child{margin:0}
+  #pv-tip .yes b{color:var(--ok)} #pv-tip .no b{color:var(--no)}
   .tail{border-top:1px solid var(--grid);margin-top:auto;padding-top:10px;font-size:13.2px}
   .tail p{margin:0 0 6px} .tail p:last-child{margin:0}
   .tail .k b{color:var(--ok)} .tail .x b{color:var(--no)}
   ol.mist{margin:0;padding-left:22px} ol.mist li{margin-bottom:10px} ol.mist b{display:block}
   .foot{margin-top:40px;padding-top:16px;border-top:1px solid var(--grid);font-size:13px;color:var(--mut)}
   @media print{
-    #pv,.topnav,.hint{display:none}
+    #pv-tip,.topnav,.hint{display:none!important}
     body{background:#fff;padding:0;font-size:9.6pt}
     .grid{grid-template-columns:1fr 1fr;gap:9px}
     .skel,.rule,.hero{background:#fff;break-inside:avoid} h2{margin-top:18px}
@@ -120,7 +133,7 @@
 kind of document — showing the section order and what diagram belongs in each. Every diagram is named
 the way other people name it — “sequence”, “container”, “DFD” — and
 the <a href="diagram-types.html">diagram catalogue</a> has a card for each one.</p>
-<p class="hint" hidden>Click a diagram badge to preview that diagram type.</p>
+<p class="hint" hidden>Hover over a diagram badge, or tap it, to see that diagram type.</p>
 
 <div class="rule">
   <b>A design doc is an argument, not an inventory.</b>
@@ -133,7 +146,7 @@ the <a href="diagram-types.html">diagram catalogue</a> has a card for each one.<
 <h2>The usual order</h2>
 <p class="note">Six phases. This ordering is common practice, not a named standard — the closest published template is <b>arc42</b>. Every doc below is a subset of this order, never a reshuffle of it. The
 movement is <b>wide to narrow</b>: a reader must meet a box before they can follow an arrow into it.</p>
-<div class="hero">
+<div class="hero arc">
 <svg viewBox="0 0 720 168" role="group" aria-label="Six phases left to right: why, who, what, how, where, what if. Each names the question it answers and the diagram types that belong in it. An arrow underneath reads widest first.">
   <g font-size="10.5" font-weight="800" fill="#F7F2EB" text-anchor="middle" letter-spacing=".06em">
     <rect x="8" y="18" width="108" height="30" rx="5" fill="#081F5C"/><text x="62" y="38">WHY</text>
@@ -151,21 +164,32 @@ movement is <b>wide to narrow</b>: a reader must meet a box before they can foll
     <text x="650" y="62">failure, rollout,</text><text x="650" y="73">what we rejected</text></g>
   <g font-size="7.4" font-weight="700" text-anchor="middle">
     <rect x="30" y="86" width="63" height="15" rx="4" fill="rgba(8,31,92,.34)"/><text x="62" y="97" fill="#FFFDFA">prose only</text>
-    <a class="chip" href="diagram-types.html#a1" data-card="a1" aria-label="Preview: context"><rect x="154" y="86" width="48" height="15" rx="4" fill="#334EAC"/><text x="178" y="97" fill="#FFFDFA">context</text></a>
-    <a class="chip" href="diagram-types.html#a2" data-card="a2" aria-label="Preview: container"><rect x="265" y="86" width="58" height="15" rx="4" fill="#334EAC"/><text x="294" y="97" fill="#FFFDFA">container</text></a>
-    <a class="chip" href="diagram-types.html#a3" data-card="a3" aria-label="Preview: component"><rect x="265" y="103" width="58" height="15" rx="4" fill="#334EAC"/><text x="294" y="114" fill="#FFFDFA">component</text></a>
-    <a class="chip" href="diagram-types.html#c1" data-card="c1" aria-label="Preview: sequence"><rect x="383" y="86" width="53" height="15" rx="4" fill="#334EAC"/><text x="410" y="97" fill="#FFFDFA">sequence</text></a>
-    <a class="chip" href="diagram-types.html#c3" data-card="c3" aria-label="Preview: activity"><rect x="383" y="103" width="53" height="15" rx="4" fill="#334EAC"/><text x="410" y="114" fill="#FFFDFA">activity</text></a>
-    <a class="chip" href="diagram-types.html#d1" data-card="d1" aria-label="Preview: ERD"><rect x="396" y="120" width="29" height="15" rx="4" fill="#334EAC"/><text x="410" y="131" fill="#FFFDFA">ERD</text></a>
-    <a class="chip" href="diagram-types.html#b1" data-card="b1" aria-label="Preview: deployment"><rect x="494" y="86" width="63" height="15" rx="4" fill="#334EAC"/><text x="526" y="97" fill="#FFFDFA">deployment</text></a>
-    <a class="chip" href="diagram-types.html#b3" data-card="b3" aria-label="Preview: environments"><rect x="490" y="103" width="73" height="15" rx="4" fill="#334EAC"/><text x="526" y="114" fill="#FFFDFA">environments</text></a>
-    <a class="chip" href="diagram-types.html#e3" data-card="e3" aria-label="Preview: runbook"><rect x="626" y="86" width="48" height="15" rx="4" fill="#334EAC"/><text x="650" y="97" fill="#FFFDFA">runbook</text></a>
+    <g class="chip" data-card="a1" tabindex="0" role="button" aria-label="Diagram type: context"><rect x="154" y="86" width="48" height="15" rx="4" fill="#334EAC"/><text x="178" y="97" fill="#FFFDFA">context</text></g>
+    <g class="chip" data-card="a2" tabindex="0" role="button" aria-label="Diagram type: container"><rect x="265" y="86" width="58" height="15" rx="4" fill="#334EAC"/><text x="294" y="97" fill="#FFFDFA">container</text></g>
+    <g class="chip" data-card="a3" tabindex="0" role="button" aria-label="Diagram type: component"><rect x="265" y="103" width="58" height="15" rx="4" fill="#334EAC"/><text x="294" y="114" fill="#FFFDFA">component</text></g>
+    <g class="chip" data-card="c1" tabindex="0" role="button" aria-label="Diagram type: sequence"><rect x="383" y="86" width="53" height="15" rx="4" fill="#334EAC"/><text x="410" y="97" fill="#FFFDFA">sequence</text></g>
+    <g class="chip" data-card="c3" tabindex="0" role="button" aria-label="Diagram type: activity"><rect x="383" y="103" width="53" height="15" rx="4" fill="#334EAC"/><text x="410" y="114" fill="#FFFDFA">activity</text></g>
+    <g class="chip" data-card="d1" tabindex="0" role="button" aria-label="Diagram type: ERD"><rect x="396" y="120" width="29" height="15" rx="4" fill="#334EAC"/><text x="410" y="131" fill="#FFFDFA">ERD</text></g>
+    <g class="chip" data-card="b1" tabindex="0" role="button" aria-label="Diagram type: deployment"><rect x="494" y="86" width="63" height="15" rx="4" fill="#334EAC"/><text x="526" y="97" fill="#FFFDFA">deployment</text></g>
+    <g class="chip" data-card="b3" tabindex="0" role="button" aria-label="Diagram type: environments"><rect x="490" y="103" width="73" height="15" rx="4" fill="#334EAC"/><text x="526" y="114" fill="#FFFDFA">environments</text></g>
+    <g class="chip" data-card="e3" tabindex="0" role="button" aria-label="Diagram type: runbook"><rect x="626" y="86" width="48" height="15" rx="4" fill="#334EAC"/><text x="650" y="97" fill="#FFFDFA">runbook</text></g>
     <rect x="631" y="103" width="38" height="15" rx="4" fill="rgba(8,31,92,.34)"/><text x="650" y="114" fill="#FFFDFA">prose</text>
   </g>
   <path d="M8 146 L706 146" fill="none" stroke="#334EAC" stroke-width="1.4" marker-end="url(#a)"/>
   <text x="14" y="160" font-size="9" font-weight="700" fill="#334EAC">widest first</text>
   <text x="706" y="160" font-size="9" fill="rgba(8,31,92,.62)" text-anchor="end">never open on a deployment diagram — it answers “where”, and nobody has asked yet</text>
 </svg>
+<div class="phases">
+  <ol aria-label="Six phases, in order">
+    <li><b>WHY</b><span class="q">the problem, and the decision</span><span class="chips"><span class="dg n">prose only</span></span></li>
+    <li><b>WHO</b><span class="q">who uses it, and what it talks to</span><span class="chips"><button type="button" class="dg" data-card="a1">context</button></span></li>
+    <li><b>WHAT</b><span class="q">the parts, and what is inside one</span><span class="chips"><button type="button" class="dg" data-card="a2">container</button><button type="button" class="dg" data-card="a3">component</button></span></li>
+    <li><b>HOW</b><span class="q">the flow, the logic, the data</span><span class="chips"><button type="button" class="dg" data-card="c1">sequence</button><button type="button" class="dg" data-card="c3">activity</button><button type="button" class="dg" data-card="d1">ERD</button></span></li>
+    <li><b>WHERE</b><span class="q">infrastructure and environments</span><span class="chips"><button type="button" class="dg" data-card="b1">deployment</button><button type="button" class="dg" data-card="b3">environments</button></span></li>
+    <li><b>WHAT IF</b><span class="q">failure, rollout, what we rejected</span><span class="chips"><button type="button" class="dg" data-card="e3">runbook</button><span class="dg n">prose</span></span></li>
+  </ol>
+  <p><b>Widest first.</b> Never open on a deployment diagram — it answers “where”, and nobody has asked yet.</p>
+</div>
 </div>
 
 <!-- ══════════════ ordering rules ══════════════ -->
@@ -434,37 +458,54 @@ section at all.</p>
 <path d="M8 658 h866" stroke="rgba(8,31,92,.14)" stroke-width="1"/>
 <g transform="translate(11 668) scale(.86)"><rect x="0" y="4.4" width="56" height="3.2" rx="1.6" fill="#334EAC"/><rect x="8" y="10.6" width="40" height="3.2" rx="1.6" fill="#334EAC"/></g>
 <text x="35.1" y="694" font-size="6.1" font-weight="700" fill="rgba(8,31,92,.62)" text-anchor="middle" letter-spacing=".02em">PROSE</text>
-<a class="key" href="diagram-types.html#matrix" data-card="matrix" aria-label="Preview: table / matrix"><rect x="63.1" y="664" width="52" height="34" fill="transparent"/><g transform="translate(65.1 668) scale(.86)"><rect x="0" y="3.4" width="17" height="4.2" rx="1.4" fill="#334EAC"/><rect x="19.5" y="3.4" width="17" height="4.2" rx="1.4" fill="#334EAC"/><rect x="39" y="3.4" width="17" height="4.2" rx="1.4" fill="#334EAC"/><rect x="0" y="9.4" width="17" height="4.2" rx="1.4" fill="#334EAC"/><rect x="19.5" y="9.4" width="17" height="4.2" rx="1.4" fill="#334EAC"/><rect x="39" y="9.4" width="17" height="4.2" rx="1.4" fill="#334EAC"/></g>
-<text x="89.2" y="694" font-size="6.1" font-weight="700" fill="rgba(8,31,92,.62)" text-anchor="middle" letter-spacing=".02em">TABLE / MATRIX</text></a>
-<a class="key" href="diagram-types.html#a1" data-card="a1" aria-label="Preview: context"><rect x="117.2" y="664" width="52" height="34" fill="transparent"/><g transform="translate(119.2 668) scale(.86)"><rect x="20" y="3" width="16" height="10" rx="2" fill="#334EAC"/><rect x="1" y="4.5" width="11" height="7" rx="3.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><rect x="44" y="4.5" width="11" height="7" rx="1.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M12 8 L17 8" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="20,8 16.6,6.1 16.6,9.9" fill="#334EAC"/><path d="M44 8 L39 8" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="36,8 39.4,6.1 39.4,9.9" fill="#334EAC"/></g>
-<text x="143.3" y="694" font-size="6.1" font-weight="700" fill="rgba(8,31,92,.62)" text-anchor="middle" letter-spacing=".02em">CONTEXT</text></a>
-<a class="key" href="diagram-types.html#a2" data-card="a2" aria-label="Preview: container"><rect x="171.4" y="664" width="52" height="34" fill="transparent"/><g transform="translate(173.4 668) scale(.86)"><rect x="0" y="4" width="12" height="8" rx="1.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><rect x="19" y="4" width="12" height="8" rx="1.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M41 4.5 v8 a6.5 1.6 0 0 0 13 0 v-8" fill="none" stroke="#334EAC" stroke-width="1.1"/><ellipse cx="47.5" cy="4.5" rx="6.5" ry="1.6" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M12 8 L16 8" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="19,8 15.6,6.1 15.6,9.9" fill="#334EAC"/><path d="M31 8 L38 8" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="41,8 37.6,6.1 37.6,9.9" fill="#334EAC"/></g>
-<text x="197.4" y="694" font-size="6.1" font-weight="700" fill="rgba(8,31,92,.62)" text-anchor="middle" letter-spacing=".02em">CONTAINER</text></a>
-<a class="key" href="diagram-types.html#a3" data-card="a3" aria-label="Preview: component"><rect x="225.5" y="664" width="52" height="34" fill="transparent"/><g transform="translate(227.5 668) scale(.86)"><rect x="0" y="0.5" width="56" height="15" rx="3" fill="none" stroke="#334EAC" stroke-width="1.1" stroke-dasharray="2 1.6"/><rect x="5" y="5" width="10" height="6" rx="1.5" fill="#334EAC"/><rect x="23" y="5" width="10" height="6" rx="1.5" fill="#334EAC"/><rect x="41" y="5" width="10" height="6" rx="1.5" fill="#334EAC"/><path d="M15 8 L20 8" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="23,8 19.6,6.1 19.6,9.9" fill="#334EAC"/><path d="M33 8 L38 8" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="41,8 37.6,6.1 37.6,9.9" fill="#334EAC"/></g>
-<text x="251.6" y="694" font-size="6.1" font-weight="700" fill="rgba(8,31,92,.62)" text-anchor="middle" letter-spacing=".02em">COMPONENT</text></a>
-<a class="key" href="diagram-types.html#c1" data-card="c1" aria-label="Preview: sequence"><rect x="279.6" y="664" width="52" height="34" fill="transparent"/><g transform="translate(281.6 668) scale(.86)"><rect x="2" y="0" width="10" height="4" rx="1" fill="#334EAC"/><path d="M7 4 L7 16" fill="none" stroke="#334EAC" stroke-width="0.8" stroke-dasharray="1.4 1.4"/><rect x="23" y="0" width="10" height="4" rx="1" fill="#334EAC"/><path d="M28 4 L28 16" fill="none" stroke="#334EAC" stroke-width="0.8" stroke-dasharray="1.4 1.4"/><rect x="44" y="0" width="10" height="4" rx="1" fill="#334EAC"/><path d="M49 4 L49 16" fill="none" stroke="#334EAC" stroke-width="0.8" stroke-dasharray="1.4 1.4"/><path d="M7 8 L25 8" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="28,8 24.6,6.1 24.6,9.9" fill="#334EAC"/><path d="M28 11 L46 11" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="49,11 45.6,9.1 45.6,12.9" fill="#334EAC"/><path d="M49 14.5 L10 14.5" fill="none" stroke="#334EAC" stroke-width="1.1" stroke-dasharray="1.6 1.2"/><polygon points="7,14.5 10.4,12.6 10.4,16.4" fill="#334EAC"/></g>
-<text x="305.7" y="694" font-size="6.1" font-weight="700" fill="rgba(8,31,92,.62)" text-anchor="middle" letter-spacing=".02em">SEQUENCE</text></a>
-<a class="key" href="diagram-types.html#c3" data-card="c3" aria-label="Preview: flowchart"><rect x="333.7" y="664" width="52" height="34" fill="transparent"/><g transform="translate(335.7 668) scale(.86)"><rect x="0" y="4.5" width="11" height="7" rx="1.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M11 8 L17 8" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="20,8 16.6,6.1 16.6,9.9" fill="#334EAC"/><polygon points="26,2 32,8 26,14 20,8" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M32 8 L38 8" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M38 3.5 L38 12.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M38 3.5 L41 3.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="44,3.5 40.6,1.6 40.6,5.4" fill="#334EAC"/><path d="M38 12.5 L41 12.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="44,12.5 40.6,10.6 40.6,14.4" fill="#334EAC"/><rect x="44" y="0.5" width="12" height="6" rx="1.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><rect x="44" y="9.5" width="12" height="6" rx="1.5" fill="#334EAC"/></g>
-<text x="359.8" y="694" font-size="6.1" font-weight="700" fill="rgba(8,31,92,.62)" text-anchor="middle" letter-spacing=".02em">FLOWCHART</text></a>
-<a class="key" href="diagram-types.html#d1" data-card="d1" aria-label="Preview: erd"><rect x="387.9" y="664" width="52" height="34" fill="transparent"/><g transform="translate(389.9 668) scale(.86)"><rect x="2" y="2" width="18" height="12" rx="1" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M2 6 L20 6" fill="none" stroke="#334EAC" stroke-width="1.1"/><rect x="36" y="2" width="18" height="12" rx="1" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M36 6 L54 6" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M20 8 L31 8" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M31 8 L36 5" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M31 8 L36 8" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M31 8 L36 11" fill="none" stroke="#334EAC" stroke-width="1.1"/></g>
-<text x="413.9" y="694" font-size="6.1" font-weight="700" fill="rgba(8,31,92,.62)" text-anchor="middle" letter-spacing=".02em">ERD</text></a>
-<a class="key" href="diagram-types.html#d2" data-card="d2" aria-label="Preview: star schema"><rect x="442.0" y="664" width="52" height="34" fill="transparent"/><g transform="translate(444 668) scale(.86)"><rect x="22" y="4" width="12" height="8" rx="1.5" fill="#334EAC"/><rect x="2" y="5" width="10" height="6" rx="1.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><rect x="44" y="5" width="10" height="6" rx="1.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><rect x="23" y="0" width="10" height="3" rx="1" fill="none" stroke="#334EAC" stroke-width="1.1"/><rect x="23" y="13" width="10" height="3" rx="1" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M12 8 L22 8" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M34 8 L44 8" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M28 3 L28 4" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M28 12 L28 13" fill="none" stroke="#334EAC" stroke-width="1.1"/></g>
-<text x="468.1" y="694" font-size="6.1" font-weight="700" fill="rgba(8,31,92,.62)" text-anchor="middle" letter-spacing=".02em">STAR SCHEMA</text></a>
-<a class="key" href="diagram-types.html#d4" data-card="d4" aria-label="Preview: lineage"><rect x="496.1" y="664" width="52" height="34" fill="transparent"/><g transform="translate(498.1 668) scale(.86)"><rect x="46" y="6.4" width="10" height="3.2" rx="1.6" fill="#334EAC"/><rect x="0" y="1" width="10" height="3.2" rx="1.6" fill="#334EAC"/><path d="M10 2.6 L46 8" fill="none" stroke="#334EAC" stroke-width="1.1"/><rect x="0" y="6.4" width="10" height="3.2" rx="1.6" fill="#334EAC"/><path d="M10 8 L46 8" fill="none" stroke="#334EAC" stroke-width="1.1"/><rect x="0" y="11.8" width="10" height="3.2" rx="1.6" fill="#334EAC"/><path d="M10 13.4 L46 8" fill="none" stroke="#334EAC" stroke-width="1.1" stroke-dasharray="1.6 1.2"/></g>
-<text x="522.2" y="694" font-size="6.1" font-weight="700" fill="rgba(8,31,92,.62)" text-anchor="middle" letter-spacing=".02em">LINEAGE</text></a>
-<a class="key" href="diagram-types.html#d3" data-card="d3" aria-label="Preview: data flow"><rect x="550.2" y="664" width="52" height="34" fill="transparent"/><g transform="translate(552.2 668) scale(.86)"><rect x="0" y="4.5" width="11" height="7" rx="1.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M11 8 L19.5 8" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="22.5,8 19.1,6.1 19.1,9.9" fill="#334EAC"/><circle cx="27" cy="8" r="4.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M31.5 8 L41 8" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="44,8 40.6,6.1 40.6,9.9" fill="#334EAC"/><path d="M56 4.5 h-12 v7 h12" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M17 0 L17 16" fill="none" stroke="#334EAC" stroke-width="0.9" stroke-dasharray="1.6 1.4"/></g>
-<text x="576.3" y="694" font-size="6.1" font-weight="700" fill="rgba(8,31,92,.62)" text-anchor="middle" letter-spacing=".02em">DATA FLOW</text></a>
-<a class="key" href="diagram-types.html#d5" data-card="d5" aria-label="Preview: dag"><rect x="604.4" y="664" width="52" height="34" fill="transparent"/><g transform="translate(606.4 668) scale(.86)"><path d="M4 8 L20 3" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M4 8 L20 13" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M20 3 L36 8" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M20 13 L36 8" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M36 8 L52 8" fill="none" stroke="#334EAC" stroke-width="1.1"/><circle cx="4" cy="8" r="2.8" fill="#FFFDFA" stroke="#334EAC" stroke-width="1.1"/><circle cx="20" cy="3" r="2.8" fill="#FFFDFA" stroke="#334EAC" stroke-width="1.1"/><circle cx="20" cy="13" r="2.8" fill="#FFFDFA" stroke="#334EAC" stroke-width="1.1"/><circle cx="36" cy="8" r="2.8" fill="#FFFDFA" stroke="#334EAC" stroke-width="1.1"/><circle cx="52" cy="8" r="2.8" fill="#FFFDFA" stroke="#334EAC" stroke-width="1.1"/></g>
-<text x="630.4" y="694" font-size="6.1" font-weight="700" fill="rgba(8,31,92,.62)" text-anchor="middle" letter-spacing=".02em">DAG</text></a>
-<a class="key" href="diagram-types.html#b1" data-card="b1" aria-label="Preview: deployment"><rect x="658.5" y="664" width="52" height="34" fill="transparent"/><g transform="translate(660.5 668) scale(.86)"><rect x="0" y="0" width="25" height="16" rx="3" fill="none" stroke="#334EAC" stroke-width="1.1" stroke-dasharray="2 1.6"/><rect x="31" y="0" width="25" height="16" rx="3" fill="none" stroke="#334EAC" stroke-width="1.1" stroke-dasharray="2 1.6"/><rect x="3" y="4.5" width="7" height="7" rx="1.5" fill="#334EAC"/><rect x="13" y="4.5" width="7" height="7" rx="1.5" fill="#334EAC"/><rect x="37" y="4.5" width="7" height="7" rx="1.5" fill="#334EAC"/><rect x="47" y="4.5" width="7" height="7" rx="1.5" fill="#334EAC"/><path d="M20 8 L34 8" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="37,8 33.6,6.1 33.6,9.9" fill="#334EAC"/></g>
-<text x="684.6" y="694" font-size="6.1" font-weight="700" fill="rgba(8,31,92,.62)" text-anchor="middle" letter-spacing=".02em">DEPLOYMENT</text></a>
-<a class="key" href="diagram-types.html#b3" data-card="b3" aria-label="Preview: environments"><rect x="712.6" y="664" width="52" height="34" fill="transparent"/><g transform="translate(714.6 668) scale(.86)"><polygon points="0,3 13,3 17,8 13,13 0,13 4,8" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="19.5,3 32.5,3 36.5,8 32.5,13 19.5,13 23.5,8" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="39,3 52,3 56,8 52,13 39,13 43,8" fill="#334EAC"/></g>
-<text x="738.7" y="694" font-size="6.1" font-weight="700" fill="rgba(8,31,92,.62)" text-anchor="middle" letter-spacing=".02em">ENVIRONMENTS</text></a>
-<a class="key" href="diagram-types.html#e3" data-card="e3" aria-label="Preview: runbook"><rect x="766.7" y="664" width="52" height="34" fill="transparent"/><g transform="translate(768.7 668) scale(.86)"><circle cx="5" cy="8" r="3.6" fill="#334EAC"/><path d="M8.6 8 L14 8" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="17,8 13.6,6.1 13.6,9.9" fill="#334EAC"/><polygon points="23,2 29,8 23,14 17,8" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M29 8 L36 8" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M36 3.5 L36 12.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M36 3.5 L39 3.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="42,3.5 38.6,1.6 38.6,5.4" fill="#334EAC"/><path d="M36 12.5 L39 12.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="42,12.5 38.6,10.6 38.6,14.4" fill="#334EAC"/><rect x="42" y="0.5" width="14" height="6" rx="1.5" fill="#334EAC"/><rect x="42" y="9.5" width="14" height="6" rx="1.5" fill="none" stroke="#334EAC" stroke-width="1.1" stroke-dasharray="1.6 1.2"/></g>
-<text x="792.8" y="694" font-size="6.1" font-weight="700" fill="rgba(8,31,92,.62)" text-anchor="middle" letter-spacing=".02em">RUNBOOK</text></a>
-<a class="key" href="diagram-types.html#e1" data-card="e1" aria-label="Preview: pipeline"><rect x="820.9" y="664" width="52" height="34" fill="transparent"/><g transform="translate(822.9 668) scale(.86)"><rect x="0" y="1.5" width="9.5" height="8" rx="2" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="15.5,5.5 12.1,3.6 12.1,7.4" fill="#334EAC"/><path d="M9.5 5.5 L12.5 5.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><rect x="15.5" y="1.5" width="9.5" height="8" rx="2" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="31,5.5 27.6,3.6 27.6,7.4" fill="#334EAC"/><path d="M25 5.5 L28 5.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><rect x="31" y="1.5" width="9.5" height="8" rx="2" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="46.5,5.5 43.1,3.6 43.1,7.4" fill="#334EAC"/><path d="M40.5 5.5 L43.5 5.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><rect x="46.5" y="1.5" width="9.5" height="8" rx="2" fill="#334EAC"/><path d="M51 9.5 v3.5 h-46 v-2" fill="none" stroke="#334EAC" stroke-width="0.9" stroke-dasharray="1.6 1.2"/><polygon points="5,9.5 3.1,12.9 6.9,12.9" fill="#334EAC"/></g>
-<text x="846.9" y="694" font-size="6.1" font-weight="700" fill="rgba(8,31,92,.62)" text-anchor="middle" letter-spacing=".02em">PIPELINE</text></a>
+<g class="key" data-card="matrix" tabindex="0" role="button" aria-label="Diagram type: table / matrix"><rect x="63.1" y="664" width="52" height="34" fill="transparent"/><g transform="translate(65.1 668) scale(.86)"><rect x="0" y="3.4" width="17" height="4.2" rx="1.4" fill="#334EAC"/><rect x="19.5" y="3.4" width="17" height="4.2" rx="1.4" fill="#334EAC"/><rect x="39" y="3.4" width="17" height="4.2" rx="1.4" fill="#334EAC"/><rect x="0" y="9.4" width="17" height="4.2" rx="1.4" fill="#334EAC"/><rect x="19.5" y="9.4" width="17" height="4.2" rx="1.4" fill="#334EAC"/><rect x="39" y="9.4" width="17" height="4.2" rx="1.4" fill="#334EAC"/></g>
+<text x="89.2" y="694" font-size="6.1" font-weight="700" fill="rgba(8,31,92,.62)" text-anchor="middle" letter-spacing=".02em">TABLE / MATRIX</text></g>
+<g class="key" data-card="a1" tabindex="0" role="button" aria-label="Diagram type: context"><rect x="117.2" y="664" width="52" height="34" fill="transparent"/><g transform="translate(119.2 668) scale(.86)"><rect x="20" y="3" width="16" height="10" rx="2" fill="#334EAC"/><rect x="1" y="4.5" width="11" height="7" rx="3.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><rect x="44" y="4.5" width="11" height="7" rx="1.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M12 8 L17 8" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="20,8 16.6,6.1 16.6,9.9" fill="#334EAC"/><path d="M44 8 L39 8" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="36,8 39.4,6.1 39.4,9.9" fill="#334EAC"/></g>
+<text x="143.3" y="694" font-size="6.1" font-weight="700" fill="rgba(8,31,92,.62)" text-anchor="middle" letter-spacing=".02em">CONTEXT</text></g>
+<g class="key" data-card="a2" tabindex="0" role="button" aria-label="Diagram type: container"><rect x="171.4" y="664" width="52" height="34" fill="transparent"/><g transform="translate(173.4 668) scale(.86)"><rect x="0" y="4" width="12" height="8" rx="1.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><rect x="19" y="4" width="12" height="8" rx="1.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M41 4.5 v8 a6.5 1.6 0 0 0 13 0 v-8" fill="none" stroke="#334EAC" stroke-width="1.1"/><ellipse cx="47.5" cy="4.5" rx="6.5" ry="1.6" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M12 8 L16 8" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="19,8 15.6,6.1 15.6,9.9" fill="#334EAC"/><path d="M31 8 L38 8" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="41,8 37.6,6.1 37.6,9.9" fill="#334EAC"/></g>
+<text x="197.4" y="694" font-size="6.1" font-weight="700" fill="rgba(8,31,92,.62)" text-anchor="middle" letter-spacing=".02em">CONTAINER</text></g>
+<g class="key" data-card="a3" tabindex="0" role="button" aria-label="Diagram type: component"><rect x="225.5" y="664" width="52" height="34" fill="transparent"/><g transform="translate(227.5 668) scale(.86)"><rect x="0" y="0.5" width="56" height="15" rx="3" fill="none" stroke="#334EAC" stroke-width="1.1" stroke-dasharray="2 1.6"/><rect x="5" y="5" width="10" height="6" rx="1.5" fill="#334EAC"/><rect x="23" y="5" width="10" height="6" rx="1.5" fill="#334EAC"/><rect x="41" y="5" width="10" height="6" rx="1.5" fill="#334EAC"/><path d="M15 8 L20 8" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="23,8 19.6,6.1 19.6,9.9" fill="#334EAC"/><path d="M33 8 L38 8" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="41,8 37.6,6.1 37.6,9.9" fill="#334EAC"/></g>
+<text x="251.6" y="694" font-size="6.1" font-weight="700" fill="rgba(8,31,92,.62)" text-anchor="middle" letter-spacing=".02em">COMPONENT</text></g>
+<g class="key" data-card="c1" tabindex="0" role="button" aria-label="Diagram type: sequence"><rect x="279.6" y="664" width="52" height="34" fill="transparent"/><g transform="translate(281.6 668) scale(.86)"><rect x="2" y="0" width="10" height="4" rx="1" fill="#334EAC"/><path d="M7 4 L7 16" fill="none" stroke="#334EAC" stroke-width="0.8" stroke-dasharray="1.4 1.4"/><rect x="23" y="0" width="10" height="4" rx="1" fill="#334EAC"/><path d="M28 4 L28 16" fill="none" stroke="#334EAC" stroke-width="0.8" stroke-dasharray="1.4 1.4"/><rect x="44" y="0" width="10" height="4" rx="1" fill="#334EAC"/><path d="M49 4 L49 16" fill="none" stroke="#334EAC" stroke-width="0.8" stroke-dasharray="1.4 1.4"/><path d="M7 8 L25 8" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="28,8 24.6,6.1 24.6,9.9" fill="#334EAC"/><path d="M28 11 L46 11" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="49,11 45.6,9.1 45.6,12.9" fill="#334EAC"/><path d="M49 14.5 L10 14.5" fill="none" stroke="#334EAC" stroke-width="1.1" stroke-dasharray="1.6 1.2"/><polygon points="7,14.5 10.4,12.6 10.4,16.4" fill="#334EAC"/></g>
+<text x="305.7" y="694" font-size="6.1" font-weight="700" fill="rgba(8,31,92,.62)" text-anchor="middle" letter-spacing=".02em">SEQUENCE</text></g>
+<g class="key" data-card="c3" tabindex="0" role="button" aria-label="Diagram type: flowchart"><rect x="333.7" y="664" width="52" height="34" fill="transparent"/><g transform="translate(335.7 668) scale(.86)"><rect x="0" y="4.5" width="11" height="7" rx="1.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M11 8 L17 8" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="20,8 16.6,6.1 16.6,9.9" fill="#334EAC"/><polygon points="26,2 32,8 26,14 20,8" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M32 8 L38 8" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M38 3.5 L38 12.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M38 3.5 L41 3.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="44,3.5 40.6,1.6 40.6,5.4" fill="#334EAC"/><path d="M38 12.5 L41 12.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="44,12.5 40.6,10.6 40.6,14.4" fill="#334EAC"/><rect x="44" y="0.5" width="12" height="6" rx="1.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><rect x="44" y="9.5" width="12" height="6" rx="1.5" fill="#334EAC"/></g>
+<text x="359.8" y="694" font-size="6.1" font-weight="700" fill="rgba(8,31,92,.62)" text-anchor="middle" letter-spacing=".02em">FLOWCHART</text></g>
+<g class="key" data-card="d1" tabindex="0" role="button" aria-label="Diagram type: ERD"><rect x="387.9" y="664" width="52" height="34" fill="transparent"/><g transform="translate(389.9 668) scale(.86)"><rect x="2" y="2" width="18" height="12" rx="1" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M2 6 L20 6" fill="none" stroke="#334EAC" stroke-width="1.1"/><rect x="36" y="2" width="18" height="12" rx="1" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M36 6 L54 6" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M20 8 L31 8" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M31 8 L36 5" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M31 8 L36 8" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M31 8 L36 11" fill="none" stroke="#334EAC" stroke-width="1.1"/></g>
+<text x="413.9" y="694" font-size="6.1" font-weight="700" fill="rgba(8,31,92,.62)" text-anchor="middle" letter-spacing=".02em">ERD</text></g>
+<g class="key" data-card="d2" tabindex="0" role="button" aria-label="Diagram type: star schema"><rect x="442.0" y="664" width="52" height="34" fill="transparent"/><g transform="translate(444 668) scale(.86)"><rect x="22" y="4" width="12" height="8" rx="1.5" fill="#334EAC"/><rect x="2" y="5" width="10" height="6" rx="1.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><rect x="44" y="5" width="10" height="6" rx="1.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><rect x="23" y="0" width="10" height="3" rx="1" fill="none" stroke="#334EAC" stroke-width="1.1"/><rect x="23" y="13" width="10" height="3" rx="1" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M12 8 L22 8" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M34 8 L44 8" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M28 3 L28 4" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M28 12 L28 13" fill="none" stroke="#334EAC" stroke-width="1.1"/></g>
+<text x="468.1" y="694" font-size="6.1" font-weight="700" fill="rgba(8,31,92,.62)" text-anchor="middle" letter-spacing=".02em">STAR SCHEMA</text></g>
+<g class="key" data-card="d4" tabindex="0" role="button" aria-label="Diagram type: lineage"><rect x="496.1" y="664" width="52" height="34" fill="transparent"/><g transform="translate(498.1 668) scale(.86)"><rect x="46" y="6.4" width="10" height="3.2" rx="1.6" fill="#334EAC"/><rect x="0" y="1" width="10" height="3.2" rx="1.6" fill="#334EAC"/><path d="M10 2.6 L46 8" fill="none" stroke="#334EAC" stroke-width="1.1"/><rect x="0" y="6.4" width="10" height="3.2" rx="1.6" fill="#334EAC"/><path d="M10 8 L46 8" fill="none" stroke="#334EAC" stroke-width="1.1"/><rect x="0" y="11.8" width="10" height="3.2" rx="1.6" fill="#334EAC"/><path d="M10 13.4 L46 8" fill="none" stroke="#334EAC" stroke-width="1.1" stroke-dasharray="1.6 1.2"/></g>
+<text x="522.2" y="694" font-size="6.1" font-weight="700" fill="rgba(8,31,92,.62)" text-anchor="middle" letter-spacing=".02em">LINEAGE</text></g>
+<g class="key" data-card="d3" tabindex="0" role="button" aria-label="Diagram type: data flow"><rect x="550.2" y="664" width="52" height="34" fill="transparent"/><g transform="translate(552.2 668) scale(.86)"><rect x="0" y="4.5" width="11" height="7" rx="1.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M11 8 L19.5 8" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="22.5,8 19.1,6.1 19.1,9.9" fill="#334EAC"/><circle cx="27" cy="8" r="4.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M31.5 8 L41 8" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="44,8 40.6,6.1 40.6,9.9" fill="#334EAC"/><path d="M56 4.5 h-12 v7 h12" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M17 0 L17 16" fill="none" stroke="#334EAC" stroke-width="0.9" stroke-dasharray="1.6 1.4"/></g>
+<text x="576.3" y="694" font-size="6.1" font-weight="700" fill="rgba(8,31,92,.62)" text-anchor="middle" letter-spacing=".02em">DATA FLOW</text></g>
+<g class="key" data-card="d5" tabindex="0" role="button" aria-label="Diagram type: DAG"><rect x="604.4" y="664" width="52" height="34" fill="transparent"/><g transform="translate(606.4 668) scale(.86)"><path d="M4 8 L20 3" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M4 8 L20 13" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M20 3 L36 8" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M20 13 L36 8" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M36 8 L52 8" fill="none" stroke="#334EAC" stroke-width="1.1"/><circle cx="4" cy="8" r="2.8" fill="#FFFDFA" stroke="#334EAC" stroke-width="1.1"/><circle cx="20" cy="3" r="2.8" fill="#FFFDFA" stroke="#334EAC" stroke-width="1.1"/><circle cx="20" cy="13" r="2.8" fill="#FFFDFA" stroke="#334EAC" stroke-width="1.1"/><circle cx="36" cy="8" r="2.8" fill="#FFFDFA" stroke="#334EAC" stroke-width="1.1"/><circle cx="52" cy="8" r="2.8" fill="#FFFDFA" stroke="#334EAC" stroke-width="1.1"/></g>
+<text x="630.4" y="694" font-size="6.1" font-weight="700" fill="rgba(8,31,92,.62)" text-anchor="middle" letter-spacing=".02em">DAG</text></g>
+<g class="key" data-card="b1" tabindex="0" role="button" aria-label="Diagram type: deployment"><rect x="658.5" y="664" width="52" height="34" fill="transparent"/><g transform="translate(660.5 668) scale(.86)"><rect x="0" y="0" width="25" height="16" rx="3" fill="none" stroke="#334EAC" stroke-width="1.1" stroke-dasharray="2 1.6"/><rect x="31" y="0" width="25" height="16" rx="3" fill="none" stroke="#334EAC" stroke-width="1.1" stroke-dasharray="2 1.6"/><rect x="3" y="4.5" width="7" height="7" rx="1.5" fill="#334EAC"/><rect x="13" y="4.5" width="7" height="7" rx="1.5" fill="#334EAC"/><rect x="37" y="4.5" width="7" height="7" rx="1.5" fill="#334EAC"/><rect x="47" y="4.5" width="7" height="7" rx="1.5" fill="#334EAC"/><path d="M20 8 L34 8" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="37,8 33.6,6.1 33.6,9.9" fill="#334EAC"/></g>
+<text x="684.6" y="694" font-size="6.1" font-weight="700" fill="rgba(8,31,92,.62)" text-anchor="middle" letter-spacing=".02em">DEPLOYMENT</text></g>
+<g class="key" data-card="b3" tabindex="0" role="button" aria-label="Diagram type: environments"><rect x="712.6" y="664" width="52" height="34" fill="transparent"/><g transform="translate(714.6 668) scale(.86)"><polygon points="0,3 13,3 17,8 13,13 0,13 4,8" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="19.5,3 32.5,3 36.5,8 32.5,13 19.5,13 23.5,8" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="39,3 52,3 56,8 52,13 39,13 43,8" fill="#334EAC"/></g>
+<text x="738.7" y="694" font-size="6.1" font-weight="700" fill="rgba(8,31,92,.62)" text-anchor="middle" letter-spacing=".02em">ENVIRONMENTS</text></g>
+<g class="key" data-card="e3" tabindex="0" role="button" aria-label="Diagram type: runbook"><rect x="766.7" y="664" width="52" height="34" fill="transparent"/><g transform="translate(768.7 668) scale(.86)"><circle cx="5" cy="8" r="3.6" fill="#334EAC"/><path d="M8.6 8 L14 8" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="17,8 13.6,6.1 13.6,9.9" fill="#334EAC"/><polygon points="23,2 29,8 23,14 17,8" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M29 8 L36 8" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M36 3.5 L36 12.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><path d="M36 3.5 L39 3.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="42,3.5 38.6,1.6 38.6,5.4" fill="#334EAC"/><path d="M36 12.5 L39 12.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="42,12.5 38.6,10.6 38.6,14.4" fill="#334EAC"/><rect x="42" y="0.5" width="14" height="6" rx="1.5" fill="#334EAC"/><rect x="42" y="9.5" width="14" height="6" rx="1.5" fill="none" stroke="#334EAC" stroke-width="1.1" stroke-dasharray="1.6 1.2"/></g>
+<text x="792.8" y="694" font-size="6.1" font-weight="700" fill="rgba(8,31,92,.62)" text-anchor="middle" letter-spacing=".02em">RUNBOOK</text></g>
+<g class="key" data-card="e1" tabindex="0" role="button" aria-label="Diagram type: pipeline"><rect x="820.9" y="664" width="52" height="34" fill="transparent"/><g transform="translate(822.9 668) scale(.86)"><rect x="0" y="1.5" width="9.5" height="8" rx="2" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="15.5,5.5 12.1,3.6 12.1,7.4" fill="#334EAC"/><path d="M9.5 5.5 L12.5 5.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><rect x="15.5" y="1.5" width="9.5" height="8" rx="2" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="31,5.5 27.6,3.6 27.6,7.4" fill="#334EAC"/><path d="M25 5.5 L28 5.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><rect x="31" y="1.5" width="9.5" height="8" rx="2" fill="none" stroke="#334EAC" stroke-width="1.1"/><polygon points="46.5,5.5 43.1,3.6 43.1,7.4" fill="#334EAC"/><path d="M40.5 5.5 L43.5 5.5" fill="none" stroke="#334EAC" stroke-width="1.1"/><rect x="46.5" y="1.5" width="9.5" height="8" rx="2" fill="#334EAC"/><path d="M51 9.5 v3.5 h-46 v-2" fill="none" stroke="#334EAC" stroke-width="0.9" stroke-dasharray="1.6 1.2"/><polygon points="5,9.5 3.1,12.9 6.9,12.9" fill="#334EAC"/></g>
+<text x="846.9" y="694" font-size="6.1" font-weight="700" fill="rgba(8,31,92,.62)" text-anchor="middle" letter-spacing=".02em">PIPELINE</text></g>
 </svg>
+<ul class="keylist" aria-label="Key: the diagram types in the matrix">
+  <li><button type="button" class="dg" data-card="matrix">table / matrix</button></li>
+  <li><button type="button" class="dg" data-card="a1">context</button></li>
+  <li><button type="button" class="dg" data-card="a2">container</button></li>
+  <li><button type="button" class="dg" data-card="a3">component</button></li>
+  <li><button type="button" class="dg" data-card="c1">sequence</button></li>
+  <li><button type="button" class="dg" data-card="c3">flowchart</button></li>
+  <li><button type="button" class="dg" data-card="d1">ERD</button></li>
+  <li><button type="button" class="dg" data-card="d2">star schema</button></li>
+  <li><button type="button" class="dg" data-card="d4">lineage</button></li>
+  <li><button type="button" class="dg" data-card="d3">data flow</button></li>
+  <li><button type="button" class="dg" data-card="d5">DAG</button></li>
+  <li><button type="button" class="dg" data-card="b1">deployment</button></li>
+  <li><button type="button" class="dg" data-card="b3">environments</button></li>
+  <li><button type="button" class="dg" data-card="e3">runbook</button></li>
+  <li><button type="button" class="dg" data-card="e1">pipeline</button></li>
+</ul>
 <p style="font-size:12px;color:var(--mut);margin:12px 0 0">Section names are canonical, not verbatim:
 a few are merged onto one row where two documents call the same thing by different names. The
 highlighted column, security / access control, shows the decide-build-ship order most clearly. The decision and its
@@ -487,16 +528,16 @@ it that one.</p>
   <ol class="sec">
     <li><b>The design in one page</b><span class="q">the whole argument, standalone</span><span class="dg n">—</span></li>
     <li><b>Problem and why now</b><span class="q">what breaks if we do nothing</span><span class="dg n">—</span></li>
-    <li><b>Who is involved</b><span class="q">users and systems around it</span><a class="dg" href="diagram-types.html#a1" data-card="a1">context</a></li>
+    <li><b>Who is involved</b><span class="q">users and systems around it</span><button type="button" class="dg" data-card="a1">context</button></li>
     <li><b>Constraints</b><span class="q">budget, latency, compliance, team</span><span class="dg n">—</span></li>
     <li class="hinge"><b>The decision</b><span class="q">what we will build, in 3 sentences</span><span class="dg n">—</span></li>
     <li><b>Alternatives rejected</b><span class="q">and the one fact that killed each</span><span class="dg n">—</span></li>
-    <li><b>The parts</b><span class="q">deployables and stores</span><a class="dg" href="diagram-types.html#a2" data-card="a2">container</a></li>
-    <li><b>Inside the main part</b><span class="q">modules and their calls</span><a class="dg" href="diagram-types.html#a3" data-card="a3">component</a></li>
-    <li><b>The main flow</b><span class="q">what happens on a request</span><a class="dg" href="diagram-types.html#c1" data-card="c1">sequence</a></li>
-    <li><b>Data model</b><span class="q">what we store and how it relates</span><a class="dg" href="diagram-types.html#d1" data-card="d1">ERD</a></li>
-    <li><b>Where it runs</b><span class="q">services, boundaries, cost</span><a class="dg" href="diagram-types.html#b1" data-card="b1">deployment</a></li>
-    <li><b>When it breaks</b><span class="q">failure modes and who gets paged</span><a class="dg" href="diagram-types.html#e3" data-card="e3">runbook</a></li>
+    <li><b>The parts</b><span class="q">deployables and stores</span><button type="button" class="dg" data-card="a2">container</button></li>
+    <li><b>Inside the main part</b><span class="q">modules and their calls</span><button type="button" class="dg" data-card="a3">component</button></li>
+    <li><b>The main flow</b><span class="q">what happens on a request</span><button type="button" class="dg" data-card="c1">sequence</button></li>
+    <li><b>Data model</b><span class="q">what we store and how it relates</span><button type="button" class="dg" data-card="d1">ERD</button></li>
+    <li><b>Where it runs</b><span class="q">services, boundaries, cost</span><button type="button" class="dg" data-card="b1">deployment</button></li>
+    <li><b>When it breaks</b><span class="q">failure modes and who gets paged</span><button type="button" class="dg" data-card="e3">runbook</button></li>
     <li><b>Rollout</b><span class="q">phases, flags, the point of no return</span><span class="dg n">—</span></li>
     <li><b>Open questions</b><span class="q">named owner, named date</span><span class="dg n">—</span></li>
   </ol>
@@ -512,10 +553,10 @@ it that one.</p>
   <p class="meta">brownfield · 2–4 pages · the team</p>
   <ol class="sec">
     <li><b>What changes</b><span class="q">one paragraph, no preamble</span><span class="dg n">—</span></li>
-    <li><b>Today</b><span class="q">the part you are about to touch</span><a class="dg" href="diagram-types.html#a3" data-card="a3">component</a></li>
-    <li class="hinge"><b>After</b><span class="q">the same diagram, changes marked</span><a class="dg t" href="diagram-types.html#a3" data-card="a3">component</a></li>
-    <li><b>The new flow</b><span class="q">only the path that differs</span><a class="dg" href="diagram-types.html#c3" data-card="c3">activity</a></li>
-    <li><b>Data changes</b><span class="q">new fields, backfill, old readers</span><a class="dg" href="diagram-types.html#d4" data-card="d4">lineage</a></li>
+    <li><b>Today</b><span class="q">the part you are about to touch</span><button type="button" class="dg" data-card="a3">component</button></li>
+    <li class="hinge"><b>After</b><span class="q">the same diagram, changes marked</span><button type="button" class="dg t" data-card="a3">component</button></li>
+    <li><b>The new flow</b><span class="q">only the path that differs</span><button type="button" class="dg" data-card="c3">activity</button></li>
+    <li><b>Data changes</b><span class="q">new fields, backfill, old readers</span><button type="button" class="dg" data-card="d4">lineage</button></li>
     <li><b>Risk and rollback</b><span class="q">how we undo it, and how fast</span><span class="dg n">—</span></li>
     <li><b>Tests</b><span class="q">what proves it works</span><span class="dg n">—</span></li>
   </ol>
@@ -532,16 +573,16 @@ it that one.</p>
   <ol class="sec">
     <li><b>The design in one page</b><span class="q">for the owner who reads nothing else</span><span class="dg n">—</span></li>
     <li><b>The decision</b><span class="q">where enforcement lives, and why there</span><span class="dg n">—</span></li>
-    <li><b>Who reads what</b><span class="q">roles against fields</span><a class="dg t" href="diagram-types.html#matrix" data-card="matrix">matrix</a></li>
-    <li><b>Which records they reach</b><span class="q">scope, separate from fields</span><a class="dg t" href="diagram-types.html#matrix" data-card="matrix">matrix</a></li>
+    <li><b>Who reads what</b><span class="q">roles against fields</span><button type="button" class="dg t" data-card="matrix">matrix</button></li>
+    <li><b>Which records they reach</b><span class="q">scope, separate from fields</span><button type="button" class="dg t" data-card="matrix">matrix</button></li>
     <li><b>Decisions the business owns</b><span class="q">the questions you cannot answer</span><span class="dg n">—</span></li>
     <li><b>Alternatives rejected</b><span class="q">and why each one leaks</span><span class="dg n">—</span></li>
-    <li><b>What is exposed today</b><span class="q">every field, every surface</span><a class="dg" href="diagram-types.html#d4" data-card="d4">lineage</a></li>
-    <li class="hinge"><b>Enforcement in the code</b><span class="q">the one place that decides</span><a class="dg" href="diagram-types.html#c3" data-card="c3">activity</a></li>
-    <li><b>Trust boundaries</b><span class="q">what crosses, in which direction</span><a class="dg" href="diagram-types.html#d3" data-card="d3">DFD</a></li>
+    <li><b>What is exposed today</b><span class="q">every field, every surface</span><button type="button" class="dg" data-card="d4">lineage</button></li>
+    <li class="hinge"><b>Enforcement in the code</b><span class="q">the one place that decides</span><button type="button" class="dg" data-card="c3">activity</button></li>
+    <li><b>Trust boundaries</b><span class="q">what crosses, in which direction</span><button type="button" class="dg" data-card="d3">DFD</button></li>
     <li><b>Tests that prove it</b><span class="q">a leak test, not a unit test</span><span class="dg n">—</span></li>
-    <li><b>The request flow</b><span class="q">login, permission check, response</span><a class="dg" href="diagram-types.html#c1" data-card="c1">sequence</a></li>
-    <li><b>Where it runs</b><span class="q">gateway, compute, stores</span><a class="dg" href="diagram-types.html#b1" data-card="b1">deployment</a></li>
+    <li><b>The request flow</b><span class="q">login, permission check, response</span><button type="button" class="dg" data-card="c1">sequence</button></li>
+    <li><b>Where it runs</b><span class="q">gateway, compute, stores</span><button type="button" class="dg" data-card="b1">deployment</button></li>
     <li><b>Audit and operations</b><span class="q">one line per request, metadata only</span><span class="dg n">—</span></li>
     <li><b>Rollout</b><span class="q">who gets it first, and how you revoke</span><span class="dg n">—</span></li>
   </ol>
@@ -556,13 +597,13 @@ it that one.</p>
   <p class="meta">5–10 pages · eng + whoever owns the risk</p>
   <ol class="sec">
     <li><b>Why move</b><span class="q">the cost of staying, in numbers</span><span class="dg n">—</span></li>
-    <li><b>Today</b><span class="q">the system as it is now</span><a class="dg" href="diagram-types.html#a2" data-card="a2">container</a></li>
-    <li><b>Target</b><span class="q">same altitude, same layout, new parts</span><a class="dg t" href="diagram-types.html#a2" data-card="a2">container</a></li>
+    <li><b>Today</b><span class="q">the system as it is now</span><button type="button" class="dg" data-card="a2">container</button></li>
+    <li><b>Target</b><span class="q">same altitude, same layout, new parts</span><button type="button" class="dg t" data-card="a2">container</button></li>
     <li><b>Gap</b><span class="q">row per capability: keep, port, drop</span><span class="dg n">—</span></li>
-    <li class="hinge"><b>Cutover</b><span class="q">the exact order of operations</span><a class="dg" href="diagram-types.html#c1" data-card="c1">sequence</a></li>
-    <li><b>Data migration</b><span class="q">backfill, dual-write, reconciliation</span><a class="dg" href="diagram-types.html#d5" data-card="d5">DAG</a></li>
-    <li><b>Rollback</b><span class="q">at each step, and the last reversible one</span><a class="dg" href="diagram-types.html#c3" data-card="c3">activity</a></li>
-    <li><b>Environments</b><span class="q">where you rehearse it</span><a class="dg" href="diagram-types.html#b3" data-card="b3">environments</a></li>
+    <li class="hinge"><b>Cutover</b><span class="q">the exact order of operations</span><button type="button" class="dg" data-card="c1">sequence</button></li>
+    <li><b>Data migration</b><span class="q">backfill, dual-write, reconciliation</span><button type="button" class="dg" data-card="d5">DAG</button></li>
+    <li><b>Rollback</b><span class="q">at each step, and the last reversible one</span><button type="button" class="dg" data-card="c3">activity</button></li>
+    <li><b>Environments</b><span class="q">where you rehearse it</span><button type="button" class="dg" data-card="b3">environments</button></li>
     <li><b>Phases and dates</b><span class="q">who does what, when</span><span class="dg n">—</span></li>
   </ol>
   <div class="tail">
@@ -577,11 +618,11 @@ it that one.</p>
   <p class="meta">3–6 pages · eng + the vendor’s engineer</p>
   <ol class="sec">
     <li><b>What we need from them</b><span class="q">first, because it has the longest lead time</span><span class="dg n">—</span></li>
-    <li><b>Context</b><span class="q">them as one external box</span><a class="dg" href="diagram-types.html#a1" data-card="a1">context</a></li>
+    <li><b>Context</b><span class="q">them as one external box</span><button type="button" class="dg" data-card="a1">context</button></li>
     <li><b>The contract</b><span class="q">endpoints, payloads, limits, errors</span><span class="dg n">—</span></li>
-    <li class="hinge"><b>The handshake</b><span class="q">auth and the first real call</span><a class="dg" href="diagram-types.html#c1" data-card="c1">sequence</a></li>
-    <li><b>Failure modes</b><span class="q">their 500, their timeout, their rate limit</span><a class="dg" href="diagram-types.html#c3" data-card="c3">activity</a></li>
-    <li><b>What crosses the boundary</b><span class="q">which fields leave, and to whom</span><a class="dg" href="diagram-types.html#d3" data-card="d3">DFD</a></li>
+    <li class="hinge"><b>The handshake</b><span class="q">auth and the first real call</span><button type="button" class="dg" data-card="c1">sequence</button></li>
+    <li><b>Failure modes</b><span class="q">their 500, their timeout, their rate limit</span><button type="button" class="dg" data-card="c3">activity</button></li>
+    <li><b>What crosses the boundary</b><span class="q">which fields leave, and to whom</span><button type="button" class="dg" data-card="d3">DFD</button></li>
     <li><b>Credentials</b><span class="q">where stored, who rotates, how often</span><span class="dg n">—</span></li>
     <li><b>Cost per call</b><span class="q">and the ceiling that stops a runaway</span><span class="dg n">—</span></li>
   </ol>
@@ -598,11 +639,11 @@ it that one.</p>
   <ol class="sec">
     <li><b>Who consumes this, and for what</b><span class="q">start at the output, not the source</span><span class="dg n">—</span></li>
     <li><b>Sources</b><span class="q">owner, freshness, volume, trust</span><span class="dg n">—</span></li>
-    <li><b>Where each field comes from</b><span class="q">source to output, field level</span><a class="dg" href="diagram-types.html#d4" data-card="d4">lineage</a></li>
-    <li class="hinge"><b>The model</b><span class="q">grain, facts, dimensions</span><a class="dg" href="diagram-types.html#d2" data-card="d2">star schema</a></li>
-    <li><b>The jobs</b><span class="q">order, parallelism, schedule</span><a class="dg" href="diagram-types.html#d5" data-card="d5">DAG</a></li>
-    <li><b>Quality gates</b><span class="q">what fails the run, what only warns</span><a class="dg" href="diagram-types.html#c3" data-card="c3">activity</a></li>
-    <li><b>Where it runs</b><span class="q">compute, storage, cost per run</span><a class="dg" href="diagram-types.html#b1" data-card="b1">deployment</a></li>
+    <li><b>Where each field comes from</b><span class="q">source to output, field level</span><button type="button" class="dg" data-card="d4">lineage</button></li>
+    <li class="hinge"><b>The model</b><span class="q">grain, facts, dimensions</span><button type="button" class="dg" data-card="d2">star schema</button></li>
+    <li><b>The jobs</b><span class="q">order, parallelism, schedule</span><button type="button" class="dg" data-card="d5">DAG</button></li>
+    <li><b>Quality gates</b><span class="q">what fails the run, what only warns</span><button type="button" class="dg" data-card="c3">activity</button></li>
+    <li><b>Where it runs</b><span class="q">compute, storage, cost per run</span><button type="button" class="dg" data-card="b1">deployment</button></li>
     <li><b>Backfill and reprocessing</b><span class="q">how you fix a bad day</span><span class="dg n">—</span></li>
   </ol>
   <div class="tail">
@@ -634,10 +675,10 @@ it that one.</p>
   <p class="meta">3–5 pages · whoever is on call at 3 a.m.</p>
   <ol class="sec">
     <li><b>What this system does</b><span class="q">two sentences, no jargon</span><span class="dg n">—</span></li>
-    <li><b>What it looks like</b><span class="q">the one picture to orient on</span><a class="dg" href="diagram-types.html#b1" data-card="b1">deployment</a></li>
+    <li><b>What it looks like</b><span class="q">the one picture to orient on</span><button type="button" class="dg" data-card="b1">deployment</button></li>
     <li><b>Normal</b><span class="q">the numbers that mean “fine”</span><span class="dg n">—</span></li>
-    <li class="hinge"><b>The alerts</b><span class="q">one block each: cause, check, fix</span><a class="dg" href="diagram-types.html#e3" data-card="e3">runbook</a></li>
-    <li><b>How to deploy and roll back</b><span class="q">exact commands, copy-pasteable</span><a class="dg" href="diagram-types.html#e1" data-card="e1">pipeline</a></li>
+    <li class="hinge"><b>The alerts</b><span class="q">one block each: cause, check, fix</span><button type="button" class="dg" data-card="e3">runbook</button></li>
+    <li><b>How to deploy and roll back</b><span class="q">exact commands, copy-pasteable</span><button type="button" class="dg" data-card="e1">pipeline</button></li>
     <li><b>Access</b><span class="q">what you need, and who grants it</span><span class="dg n">—</span></li>
     <li><b>Who to escalate to</b><span class="q">by role, with a fallback</span><span class="dg n">—</span></li>
   </ol>
@@ -690,6 +731,10 @@ rest as a starting shape to cut down, not a specification to follow.</p>
 
 </div>
 
+<div id="pv-tip" role="tooltip" hidden></div>
+
+<!-- previews:start -->
+<!-- Generated by docs/tools/sync_previews.py from diagram-types.html. Do not edit by hand: change the card, then run the script. -->
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
   <marker id="a" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5.4" markerHeight="5.4" orient="auto-start-reverse">
     <path d="M0 0 L8 4 L0 8 z" fill="#334EAC"/></marker>
@@ -698,70 +743,443 @@ rest as a starting shape to cut down, not a specification to follow.</p>
   <marker id="r" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5.4" markerHeight="5.4" orient="auto-start-reverse">
     <path d="M0 0 L8 4 L0 8 z" fill="#B3453A"/></marker>
 </defs></svg>
-
-<dialog id="pv" aria-label="Diagram type preview">
-  <div class="pv-in">
-    <div class="pv-bar"><span>Diagram catalogue · preview</span><button type="button" class="pv-x" aria-label="Close preview">×</button></div>
-    <div class="pv-body"></div>
-    <p class="pv-go"><a href="diagram-types.html">Open in the catalogue →</a></p>
-  </div>
-</dialog>
+<template id="pv-a1">
+<p class="pv-t">System context</p>
+<p class="alt">System context diagram · C4 level 1</p>
+<svg viewBox="0 0 230 128" role="img" aria-label="One dark system box in the middle with a person and two external systems pointing at it">
+    <rect x="76" y="46" width="78" height="38" rx="6" fill="#081F5C"/>
+    <text x="115" y="69" text-anchor="middle" font-size="9" font-weight="800" fill="#F7F2EB" letter-spacing=".05em">YOUR SYSTEM</text>
+    <g fill="none" stroke="#334EAC" stroke-width="1.5">
+      <rect x="10" y="12" width="56" height="24" rx="12"/><rect x="164" y="12" width="56" height="24" rx="4"/>
+      <rect x="87" y="102" width="56" height="22" rx="4"/></g>
+    <g font-size="8" font-weight="700" fill="#334EAC" text-anchor="middle">
+      <text x="38" y="27">PERSON</text><text x="192" y="27">EXT SYS</text><text x="115" y="117">EXT SYS</text></g>
+    <g fill="none" stroke="#334EAC" stroke-width="1.4" marker-end="url(#a)">
+      <path d="M38 40 L38 58 L70 58"/><path d="M192 40 L192 70 L160 70"/><path d="M115 98 L115 90"/></g>
+    <g font-size="7.5" fill="rgba(8,31,92,.62)"><text x="42" y="53">uses</text><text x="196" y="53">sends to</text></g>
+  </svg>
+<div class="when"><p class="yes"><b>Use when</b> the reader has never heard of the system.</p>
+  <p class="no"><b>Not when</b> they already know what it is for.</p></div>
+</template>
+<template id="pv-a2">
+<p class="pv-t">Container</p>
+<p class="alt">Container diagram · C4 level 2</p>
+<svg viewBox="0 0 230 128" role="img" aria-label="A web app, an API, a worker and a cylinder store, joined by labelled arrows">
+    <g fill="none" stroke="#334EAC" stroke-width="1.5">
+      <rect x="10" y="22" width="60" height="30" rx="5"/><rect x="92" y="22" width="60" height="30" rx="5"/>
+      <rect x="92" y="88" width="60" height="30" rx="5"/>
+      <path d="M172 32 a24 8 0 0 1 48 0 v30 a24 8 0 0 1 -48 0 z"/><path d="M172 32 a24 8 0 0 0 48 0"/></g>
+    <g font-size="8.5" font-weight="800" fill="#081F5C" text-anchor="middle">
+      <text x="40" y="41">WEB APP</text><text x="122" y="41">API</text><text x="122" y="107">WORKER</text><text x="196" y="53">STORE</text></g>
+    <g fill="none" stroke="#334EAC" stroke-width="1.4" marker-end="url(#a)">
+      <path d="M70 37 L88 37"/><path d="M152 42 L168 46"/><path d="M122 88 L122 56"/></g>
+    <g font-size="7.5" fill="rgba(8,31,92,.62)" text-anchor="middle">
+      <text x="79" y="16">HTTPS</text><text x="168" y="90">SQL</text><text x="140" y="76">reads</text></g>
+  </svg>
+<div class="when"><p class="yes"><b>Use when</b> you plan a deployment, estimate cost, or hand over to ops.</p>
+  <p class="no"><b>Not when</b> the question is how the code is organised.</p></div>
+</template>
+<template id="pv-a3">
+<p class="pv-t">Component</p>
+<p class="alt">Component diagram · C4 level 3</p>
+<svg viewBox="0 0 230 128" role="img" aria-label="One dashed container holding four modules chained by arrows">
+    <rect x="8" y="24" width="214" height="84" rx="9" fill="none" stroke="rgba(8,31,92,.34)" stroke-width="1.1" stroke-dasharray="4 4"/>
+    <text x="20" y="19" font-size="8" font-weight="700" fill="rgba(8,31,92,.62)" letter-spacing=".12em">ONE CONTAINER</text>
+    <g fill="none" stroke="#334EAC" stroke-width="1.5">
+      <rect x="18" y="54" width="44" height="28" rx="5"/><rect x="76" y="54" width="44" height="28" rx="5"/>
+      <rect x="134" y="54" width="44" height="28" rx="5"/><rect x="190" y="54" width="24" height="28" rx="5"/></g>
+    <g font-size="8" font-weight="800" fill="#081F5C" text-anchor="middle">
+      <text x="40" y="72">CART</text><text x="98" y="72">PRICE</text><text x="156" y="72">TAX</text><text x="202" y="72">OUT</text></g>
+    <g fill="none" stroke="#334EAC" stroke-width="1.4" marker-end="url(#a)">
+      <path d="M62 68 L72 68"/><path d="M120 68 L130 68"/><path d="M178 68 L186 68"/></g>
+    <text x="115" y="99" font-size="7.5" fill="rgba(8,31,92,.62)" text-anchor="middle">one arrow per call, every one labelled</text>
+  </svg>
+<div class="when"><p class="yes"><b>Use when</b> you explain how one deployable is built, or where a change lands.</p>
+  <p class="no"><b>Not when</b> you have over ~12 modules. Group them first. Simon Brown advises most teams stop at level 2 — a component diagram changes with nearly every commit.</p></div>
+</template>
+<template id="pv-b1">
+<p class="pv-t">Deployment / infrastructure</p>
+<p class="alt">Deployment diagram · UML · C4 deployment</p>
+<svg viewBox="0 0 230 142" role="img" aria-label="Two dashed boundaries holding coloured service tiles, with one arrow crossing between them">
+    <g fill="none" stroke="rgba(8,31,92,.34)" stroke-width="1.1" stroke-dasharray="4 4">
+      <rect x="8" y="22" width="132" height="104" rx="9"/><rect x="152" y="22" width="70" height="104" rx="9"/></g>
+    <g font-size="8" font-weight="700" fill="rgba(8,31,92,.62)" letter-spacing=".11em">
+      <text x="18" y="17">YOUR ACCOUNT</text><text x="162" y="17">VENDOR</text></g>
+    <rect x="22" y="44" width="28" height="28" rx="4" fill="#8C4FFF"/>
+    <rect x="72" y="44" width="28" height="28" rx="4" fill="#ED7100"/>
+    <rect x="72" y="94" width="28" height="18" rx="4" fill="#7AA116"/>
+    <rect x="174" y="44" width="28" height="28" rx="4" fill="#334EAC"/>
+    <g font-size="7.5" font-weight="700" fill="#081F5C" text-anchor="middle">
+      <text x="36" y="84">GATEWAY</text><text x="86" y="84">COMPUTE</text><text x="86" y="124">STORE</text><text x="188" y="84">THEIRS</text></g>
+    <g fill="none" stroke="#334EAC" stroke-width="1.4" marker-end="url(#a)">
+      <path d="M50 58 L68 58"/><path d="M100 58 L170 58"/><path d="M86 72 L86 90"/></g>
+    <text x="135" y="74" font-size="7.5" fill="rgba(8,31,92,.62)" text-anchor="middle">crosses the boundary</text>
+  </svg>
+<div class="when"><p class="yes"><b>Use when</b> the question is cost, ops, blast radius, or “what do we run”.</p>
+  <p class="no"><b>Not when</b> the point is a rule inside one service. An icon cannot show it.</p></div>
+</template>
+<template id="pv-b3">
+<p class="pv-t">Environment promotion</p>
+<p class="alt">No standard name — usually drawn as part of a deployment pipeline</p>
+<svg viewBox="0 0 230 142" role="img" aria-label="Three environment boxes in a row with a manual approval gate between stage and production">
+    <g fill="none" stroke="#334EAC" stroke-width="1.5">
+      <rect x="8" y="48" width="56" height="40" rx="5"/><rect x="88" y="48" width="56" height="40" rx="5"/>
+      <rect x="168" y="48" width="56" height="40" rx="5"/></g>
+    <g font-size="9" font-weight="800" fill="#081F5C" text-anchor="middle">
+      <text x="36" y="66">DEV</text><text x="116" y="66">STAGE</text><text x="196" y="66">PROD</text></g>
+    <g font-size="7" fill="rgba(8,31,92,.62)" text-anchor="middle">
+      <text x="36" y="79">synthetic</text><text x="116" y="79">masked copy</text><text x="196" y="79">real data</text></g>
+    <g fill="none" stroke="#334EAC" stroke-width="1.4" marker-end="url(#a)">
+      <path d="M64 68 L84 68"/><path d="M144 68 L164 68"/></g>
+    <path d="M156 24 L166 34 L156 44 L146 34 Z" fill="#FFFDFA" stroke="#334EAC" stroke-width="1.3"/>
+    <path d="M156 44 L156 62" fill="none" stroke="#334EAC" stroke-width="1.2" stroke-dasharray="3 2"/>
+    <text x="156" y="18" font-size="7.5" font-weight="700" fill="#081F5C" text-anchor="middle">approval</text>
+    <text x="115" y="110" font-size="7.5" fill="rgba(8,31,92,.62)" text-anchor="middle">one row per environment · the gate is the content</text>
+  </svg>
+<div class="when"><p class="yes"><b>Use when</b> an auditor asks how code reaches production, or a release keeps surprising people.</p>
+  <p class="no"><b>Not when</b> you have one environment. Many teams fold this into the deployment pipeline (E1) rather than drawing it separately.</p></div>
+</template>
+<template id="pv-c1">
+<p class="pv-t">Sequence</p>
+<p class="alt">Sequence diagram · UML</p>
+<svg viewBox="0 0 230 132" role="img" aria-label="Three vertical lifelines with four numbered messages between them, replies dashed">
+    <g fill="none" stroke="#334EAC" stroke-width="1.5">
+      <rect x="8" y="8" width="50" height="22" rx="4"/><rect x="90" y="8" width="50" height="22" rx="4"/><rect x="172" y="8" width="50" height="22" rx="4"/></g>
+    <g font-size="8" font-weight="800" fill="#081F5C" text-anchor="middle">
+      <text x="33" y="23">CLIENT</text><text x="115" y="23">API</text><text x="197" y="23">STORE</text></g>
+    <g stroke="rgba(8,31,92,.34)" stroke-width="1" stroke-dasharray="3 3">
+      <path d="M33 30 L33 126"/><path d="M115 30 L115 126"/><path d="M197 30 L197 126"/></g>
+    <g fill="none" stroke="#334EAC" stroke-width="1.4" marker-end="url(#a)"><path d="M33 48 L109 48"/><path d="M115 72 L191 72"/></g>
+    <g fill="none" stroke="#7096D1" stroke-width="1.4" stroke-dasharray="3 2.4" marker-end="url(#b)"><path d="M197 94 L121 94"/><path d="M115 116 L39 116"/></g>
+    <g font-size="7.5" fill="rgba(8,31,92,.62)">
+      <text x="40" y="43">1 · request</text><text x="122" y="67">2 · read</text>
+      <text x="190" y="89" text-anchor="end">3 · record</text><text x="108" y="111" text-anchor="end">4 · reply</text></g>
+  </svg>
+<div class="when"><p class="yes"><b>Use when</b> order is the content: a handshake, a token exchange, a retry, a race.</p>
+  <p class="no"><b>Not when</b> the reader needs to know what the system <i>is</i>.</p></div>
+</template>
+<template id="pv-c3">
+<p class="pv-t">Activity / flowchart</p>
+<p class="alt">Activity diagram · UML · flowchart</p>
+<svg viewBox="0 0 230 132" role="img" aria-label="A step leading to a diamond decision with two labelled exits ending in two terminal states">
+    <rect x="82" y="8" width="64" height="24" rx="5" fill="none" stroke="#334EAC" stroke-width="1.5"/>
+    <text x="114" y="24" font-size="9" font-weight="800" fill="#081F5C" text-anchor="middle">CHECK</text>
+    <path d="M114 46 L152 68 L114 90 L76 68 Z" fill="none" stroke="#334EAC" stroke-width="1.5"/>
+    <text x="114" y="71" font-size="8" font-weight="700" fill="#081F5C" text-anchor="middle">order found?</text>
+    <g fill="none" stroke="#334EAC" stroke-width="1.5"><rect x="8" y="100" width="58" height="24" rx="5"/><rect x="162" y="100" width="58" height="24" rx="5"/></g>
+    <g font-size="9" font-weight="800" text-anchor="middle"><text x="37" y="116" fill="#B3453A">404</text><text x="191" y="116" fill="#3E7A4E">200</text></g>
+    <g fill="none" stroke="#334EAC" stroke-width="1.4" marker-end="url(#a)">
+      <path d="M114 32 L114 42"/><path d="M76 68 L37 68 L37 96"/><path d="M152 68 L191 68 L191 96"/></g>
+    <g font-size="7.5" fill="rgba(8,31,92,.62)"><text x="50" y="63">no</text><text x="166" y="63">yes</text></g>
+  </svg>
+<div class="when"><p class="yes"><b>Use when</b> the logic is the content — an authorisation check, a validation chain.</p>
+  <p class="no"><b>Not when</b> nothing branches. A straight line of six steps is a list.</p></div>
+</template>
+<template id="pv-d1">
+<p class="pv-t">ERD</p>
+<p class="alt">Entity–relationship diagram · ERD · crow’s-foot notation</p>
+<svg viewBox="0 0 230 128" role="img" aria-label="Two entity boxes with attribute rows joined by a one-to-many crow's foot line">
+    <g fill="none" stroke="#334EAC" stroke-width="1.4">
+      <rect x="10" y="22" width="84" height="62" rx="3"/><path d="M10 38 h84"/>
+      <rect x="136" y="22" width="84" height="62" rx="3"/><path d="M136 38 h84"/></g>
+    <g font-size="8.5" font-weight="800" fill="#081F5C" text-anchor="middle"><text x="52" y="34">customer</text><text x="178" y="34">order</text></g>
+    <g font-size="7" fill="rgba(8,31,92,.62)">
+      <text x="16" y="52">PK id</text><text x="16" y="64">name</text><text x="16" y="76">email</text>
+      <text x="142" y="52">PK id</text><text x="142" y="64">FK cust_id</text><text x="142" y="76">date</text></g>
+    <path d="M94 53 L128 53" fill="none" stroke="#334EAC" stroke-width="1.4"/>
+    <g fill="none" stroke="#334EAC" stroke-width="1.3"><path d="M128 53 L136 46 M128 53 L136 53 M128 53 L136 60"/><path d="M102 48 v10"/></g>
+    <g font-size="7" fill="rgba(8,31,92,.62)" text-anchor="middle"><text x="111" y="44">1</text><text x="124" y="70">many</text></g>
+  </svg>
+<div class="when"><p class="yes"><b>Use when</b> you design a schema, or explain a join someone keeps getting wrong.</p>
+  <p class="no"><b>Not when</b> the data is one document per key, as in a key-value store. There are no relationships to draw.</p></div>
+</template>
+<template id="pv-d2">
+<p class="pv-t">Dimensional / star schema</p>
+<p class="alt">Dimensional model · star schema · Kimball</p>
+<svg viewBox="0 0 230 128" role="img" aria-label="A central fact table with four dimension tables radiating from it in a star">
+    <rect x="86" y="50" width="58" height="30" rx="3" fill="#081F5C"/>
+    <text x="115" y="69" font-size="8.5" font-weight="800" fill="#F7F2EB" text-anchor="middle">FACT</text>
+    <g fill="none" stroke="#334EAC" stroke-width="1.4">
+      <rect x="10" y="10" width="56" height="24" rx="3"/><rect x="164" y="10" width="56" height="24" rx="3"/>
+      <rect x="10" y="96" width="56" height="24" rx="3"/><rect x="164" y="96" width="56" height="24" rx="3"/></g>
+    <g font-size="7.5" font-weight="700" fill="#081F5C" text-anchor="middle">
+      <text x="38" y="26">dim_date</text><text x="192" y="26">dim_customer</text><text x="38" y="112">dim_product</text><text x="192" y="112">dim_store</text></g>
+    <g fill="none" stroke="#334EAC" stroke-width="1.2"><path d="M60 34 L90 52"/><path d="M170 34 L140 52"/><path d="M60 96 L90 78"/><path d="M170 96 L140 78"/></g>
+  </svg>
+<div class="when"><p class="yes"><b>Use when</b> you design a warehouse or a BI layer, and “what can I group by” is the question.</p>
+  <p class="no"><b>Not when</b> you are modelling transactions. Use D1.</p></div>
+</template>
+<template id="pv-d3">
+<p class="pv-t">Data flow diagram</p>
+<p class="alt">Data flow diagram · DFD · the STRIDE threat-model shape</p>
+<svg viewBox="0 0 230 128" role="img" aria-label="An external entity, a circular process and an open-ended data store, with a dashed trust boundary crossing the flows">
+    <rect x="8" y="48" width="44" height="26" rx="3" fill="none" stroke="#334EAC" stroke-width="1.4"/>
+    <text x="30" y="65" font-size="7.5" font-weight="700" fill="#081F5C" text-anchor="middle">USER</text>
+    <circle cx="124" cy="61" r="26" fill="none" stroke="#334EAC" stroke-width="1.5"/>
+    <text x="124" y="59" font-size="7.5" font-weight="800" fill="#081F5C" text-anchor="middle">1.0</text>
+    <text x="124" y="70" font-size="7" fill="rgba(8,31,92,.62)" text-anchor="middle">checkout</text>
+    <g fill="none" stroke="#334EAC" stroke-width="1.4"><path d="M182 44 h40 M182 68 h40"/></g>
+    <text x="202" y="60" font-size="7.5" font-weight="700" fill="#081F5C" text-anchor="middle">D1 orders</text>
+    <g fill="none" stroke="#334EAC" stroke-width="1.4" marker-end="url(#a)"><path d="M52 61 L94 61"/><path d="M150 56 L178 56"/></g>
+    <path d="M178 66 L152 66" fill="none" stroke="#334EAC" stroke-width="1.4" marker-end="url(#a)"/>
+    <path d="M74 14 L74 114" fill="none" stroke="#B3453A" stroke-width="1.4" stroke-dasharray="5 4"/>
+    <text x="74" y="124" font-size="7" font-weight="700" fill="#B3453A" text-anchor="middle">trust boundary</text>
+  </svg>
+<div class="when"><p class="yes"><b>Use when</b> you threat-model. Every STRIDE method starts by drawing this.</p>
+  <p class="no"><b>Not when</b> you want control flow. An arrow here means data moved, not that something was called.</p></div>
+</template>
+<template id="pv-d4">
+<p class="pv-t">Lineage</p>
+<p class="alt">Data lineage diagram</p>
+<svg viewBox="0 0 230 128" role="img" aria-label="Four sources on the left fanning into two outputs on the right, with one feed drawn dashed red to mark it as cut">
+    <g fill="none" stroke="#334EAC" stroke-width="1.3">
+      <rect x="8" y="10" width="58" height="20" rx="4"/><rect x="8" y="40" width="58" height="20" rx="4"/>
+      <rect x="8" y="70" width="58" height="20" rx="4"/><rect x="8" y="100" width="58" height="20" rx="4"/>
+      <rect x="164" y="28" width="58" height="26" rx="4"/><rect x="164" y="78" width="58" height="26" rx="4"/></g>
+    <g font-size="7.5" font-weight="700" fill="#081F5C" text-anchor="middle">
+      <text x="37" y="24">SOURCE A</text><text x="37" y="54">SOURCE B</text><text x="37" y="84">SOURCE C</text><text x="37" y="114">SOURCE D</text>
+      <text x="193" y="45">OUTPUT 1</text><text x="193" y="95">OUTPUT 2</text></g>
+    <g fill="none" stroke="#334EAC" stroke-width="1.1" opacity=".85">
+      <path d="M66 20 L164 38"/><path d="M66 50 L164 42"/><path d="M66 80 L164 88"/><path d="M66 110 L164 96"/><path d="M66 50 L164 92"/></g>
+    <path d="M66 80 L164 48" fill="none" stroke="#B3453A" stroke-width="1.3" stroke-dasharray="4 3"/>
+    <text x="115" y="126" font-size="7" fill="#B3453A" text-anchor="middle">dashed = the feed this diagram argues to cut</text>
+  </svg>
+<div class="when"><p class="yes"><b>Use when</b> someone asks “where did this number come from?”, or you argue to remove a dependency.</p>
+  <p class="no"><b>Not when</b> there are more than ~30 feeds. Past that it is a hairball — filter to one output.</p></div>
+</template>
+<template id="pv-d5">
+<p class="pv-t">Pipeline DAG</p>
+<p class="alt">Directed acyclic graph · DAG · workflow diagram</p>
+<svg viewBox="0 0 230 128" role="img" aria-label="A task graph that forks into three parallel branches and merges back into one final task">
+    <g fill="none" stroke="#334EAC" stroke-width="1.4">
+      <rect x="6" y="52" width="44" height="24" rx="4"/>
+      <rect x="78" y="12" width="52" height="22" rx="4"/><rect x="78" y="52" width="52" height="22" rx="4"/><rect x="78" y="92" width="52" height="22" rx="4"/>
+      <rect x="158" y="52" width="60" height="24" rx="4"/></g>
+    <g font-size="7.5" font-weight="700" fill="#081F5C" text-anchor="middle">
+      <text x="28" y="67">load</text><text x="104" y="26">region 1</text><text x="104" y="66">region 2</text><text x="104" y="106">region 3</text><text x="188" y="67">report</text></g>
+    <g fill="none" stroke="#334EAC" stroke-width="1.3" marker-end="url(#a)">
+      <path d="M50 60 L64 60 L64 23 L74 23"/><path d="M50 64 L74 64"/><path d="M50 68 L64 68 L64 103 L74 103"/>
+      <path d="M130 23 L144 23 L144 60 L154 60"/><path d="M130 64 L154 64"/><path d="M130 103 L144 103 L144 68 L154 68"/></g>
+    <text x="104" y="126" font-size="7" fill="rgba(8,31,92,.34)" text-anchor="middle">fan-out, then fan-in — the width is the parallelism</text>
+  </svg>
+<div class="when"><p class="yes"><b>Use when</b> a job has parallelism, a join, or a step people keep running out of order.</p>
+  <p class="no"><b>Not when</b> the pipeline is a straight line. Write the six commands instead.</p></div>
+</template>
+<template id="pv-matrix">
+<p class="pv-t">Matrix</p>
+<p class="alt">Access matrix / responsibility grid · a table, not a diagram</p>
+<svg viewBox="0 0 230 128" role="img" aria-label="A grid with four roles down the side and four fields across the top; each cell is dark for can read, pale for masked, or empty for no access">
+    <text x="8" y="22" font-size="6.8" fill="rgba(8,31,92,.34)">role \ field</text>
+    <g font-size="7.5" font-weight="700" fill="#081F5C" text-anchor="middle">
+      <text x="94" y="22">name</text><text x="131" y="22">email</text><text x="168" y="22">address</text><text x="204" y="22">card</text></g>
+    <g stroke="rgba(8,31,92,.16)" stroke-width="1"><path d="M8 28 h214 M8 48 h214 M8 68 h214 M8 88 h214 M8 108 h214"/><path d="M76 12 v96"/></g>
+    <g font-size="7.5" font-weight="700" fill="rgba(8,31,92,.62)" text-anchor="end">
+      <text x="68" y="41">SUPPORT</text><text x="68" y="61">WAREHOUSE</text><text x="68" y="81">FINANCE</text><text x="68" y="101">ADMIN</text></g>
+    <g fill="#334EAC">
+      <rect x="81" y="31" width="26" height="14" rx="2"/><rect x="118" y="31" width="26" height="14" rx="2"/>
+      <rect x="81" y="51" width="26" height="14" rx="2"/><rect x="155" y="51" width="26" height="14" rx="2"/>
+      <rect x="81" y="71" width="26" height="14" rx="2"/><rect x="118" y="71" width="26" height="14" rx="2"/>
+      <rect x="81" y="91" width="26" height="14" rx="2"/><rect x="118" y="91" width="26" height="14" rx="2"/><rect x="155" y="91" width="26" height="14" rx="2"/></g>
+    <g fill="#7096D1">
+      <rect x="155" y="31" width="26" height="14" rx="2"/><rect x="191" y="71" width="26" height="14" rx="2"/><rect x="191" y="91" width="26" height="14" rx="2"/></g>
+    <g fill="none" stroke="rgba(8,31,92,.34)" stroke-width="1">
+      <rect x="191.5" y="31.5" width="25" height="13" rx="2"/><rect x="118.5" y="51.5" width="25" height="13" rx="2"/>
+      <rect x="191.5" y="51.5" width="25" height="13" rx="2"/><rect x="155.5" y="71.5" width="25" height="13" rx="2"/></g>
+    <text x="115" y="124" font-size="7" fill="rgba(8,31,92,.62)" text-anchor="middle">dark = can read · pale = masked · empty = no access</text>
+  </svg>
+<div class="when"><p class="yes"><b>Use when</b> a reviewer must check the rows one at a time — who reads which field, or who owns which task.</p>
+  <p class="no"><b>Not when</b> the content has a shape: what calls what, or what happens first. Draw that instead.</p></div>
+</template>
+<template id="pv-e1">
+<p class="pv-t">CI/CD pipeline</p>
+<p class="alt">Deployment pipeline · Humble &amp; Farley · “CI/CD pipeline”</p>
+<svg viewBox="0 0 230 112" role="img" aria-label="Five build stages in a row with a gate before deploy and a failure path returning to the start">
+    <g fill="none" stroke="#334EAC" stroke-width="1.4">
+      <rect x="4" y="34" width="40" height="24" rx="4"/><rect x="56" y="34" width="40" height="24" rx="4"/>
+      <rect x="108" y="34" width="40" height="24" rx="4"/><rect x="186" y="34" width="40" height="24" rx="4"/></g>
+    <g font-size="7.5" font-weight="700" fill="#081F5C" text-anchor="middle">
+      <text x="24" y="49">commit</text><text x="76" y="49">build</text><text x="128" y="49">test</text><text x="206" y="49">deploy</text></g>
+    <path d="M167 34 L178 46 L167 58 L156 46 Z" fill="#FFFDFA" stroke="#334EAC" stroke-width="1.3"/>
+    <text x="167" y="26" font-size="7" font-weight="700" fill="#081F5C" text-anchor="middle">gate</text>
+    <g fill="none" stroke="#334EAC" stroke-width="1.4" marker-end="url(#a)">
+      <path d="M44 46 L52 46"/><path d="M96 46 L104 46"/><path d="M148 46 L152 46"/><path d="M178 46 L182 46"/></g>
+    <path d="M128 58 L128 78 L24 78 L24 62" fill="none" stroke="#B3453A" stroke-width="1.3" stroke-dasharray="4 3" marker-end="url(#r)"/>
+    <text x="76" y="90" font-size="7" fill="#B3453A" text-anchor="middle">red = what happens when it fails</text>
+  </svg>
+<div class="when"><p class="yes"><b>Use when</b> onboarding, or when the pipeline has a gate people do not know about.</p>
+  <p class="no"><b>Not when</b> it is push-to-deploy with no gates. One sentence covers it.</p></div>
+</template>
+<template id="pv-e3">
+<p class="pv-t">Incident / runbook flow</p>
+<p class="alt">No standard name — an activity diagram used as a runbook</p>
+<svg viewBox="0 0 230 112" role="img" aria-label="An alert leading to a triage decision with two labelled outcomes, one escalating and one resolving">
+    <rect x="80" y="4" width="68" height="22" rx="11" fill="#B3453A"/>
+    <text x="114" y="19" font-size="8" font-weight="800" fill="#FFFDFA" text-anchor="middle">ALERT FIRES</text>
+    <path d="M114 36 L152 56 L114 76 L76 56 Z" fill="none" stroke="#334EAC" stroke-width="1.4"/>
+    <text x="114" y="55" font-size="7.5" font-weight="700" fill="#081F5C" text-anchor="middle">5xx rate</text>
+    <text x="114" y="64" font-size="7" fill="rgba(8,31,92,.62)" text-anchor="middle">over 1%?</text>
+    <g fill="none" stroke="#334EAC" stroke-width="1.4"><rect x="4" y="82" width="68" height="22" rx="4"/><rect x="158" y="82" width="68" height="22" rx="4"/></g>
+    <g font-size="7.5" font-weight="700" text-anchor="middle"><text x="38" y="97" fill="#334EAC">watch 15 min</text><text x="192" y="97" fill="#B3453A">page the owner</text></g>
+    <g fill="none" stroke="#334EAC" stroke-width="1.4" marker-end="url(#a)">
+      <path d="M114 26 L114 32"/><path d="M76 56 L38 56 L38 78"/><path d="M152 56 L192 56 L192 78"/></g>
+    <g font-size="7" fill="rgba(8,31,92,.62)"><text x="50" y="51">no</text><text x="158" y="51">yes</text></g>
+  </svg>
+<div class="when"><p class="yes"><b>Use when</b> an alert is noisy, or a new on-call rotation starts.</p>
+  <p class="no"><b>Not when</b> the response is “read the dashboard and think”. A diagram cannot help there.</p></div>
+</template>
+<!-- previews:end -->
 
 <script>
 (function () {
-  var dlg = document.getElementById('pv');
-  if (!dlg || typeof dlg.showModal !== 'function' || !window.fetch || !window.DOMParser) return;
-  if (location.protocol !== 'file:') { var hint = document.querySelector('.hint'); if (hint) hint.hidden = false; }
-  var body = dlg.querySelector('.pv-body');
-  var go = dlg.querySelector('.pv-go a');
-  var closeBtn = dlg.querySelector('.pv-x');
-  var opener = null;
-  var page = null;   // cached promise of the parsed catalogue
+  // Hover box for the diagram badges. Hover or focus shows it; a tap or click toggles it;
+  // Esc, a tap elsewhere, or leaving the badge hides it. Nothing here navigates.
+  var tip = document.getElementById('pv-tip');
+  if (!tip || !('content' in document.createElement('template')) || !Element.prototype.closest) return;
+  var hint = document.querySelector('.hint');
+  if (hint) hint.hidden = false;
+  var cur = null;      // the badge the box belongs to
+  var pinned = false;  // opened by a tap or click: stays until a second tap, Esc or a tap elsewhere
+  var timer = 0;
+  var GAP = 8, EDGE = 8;
 
-  function catalogue() {
-    if (!page) {
-      page = fetch('diagram-types.html')
-        .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
-        .then(function (t) { return new DOMParser().parseFromString(t, 'text/html'); });
-      page.catch(function () { page = null; });   // allow a retry later
+  function badgeOf(node) {
+    return node && node.closest ? node.closest('[data-card]') : null;
+  }
+
+  function place(el) {
+    var r = el.getBoundingClientRect();
+    var vw = document.documentElement.clientWidth, vh = document.documentElement.clientHeight;
+    if (r.bottom < 0 || r.top > vh || r.right < 0 || r.left > vw) { hide(); return; }
+    var w = tip.offsetWidth, h = tip.offsetHeight, x, y;
+    // skeleton badges sit at the right edge of their card, so the box goes on their left when it fits
+    var atRight = el.tagName.toLowerCase() === 'button' || r.right > vw * 0.6;
+    if (atRight && r.left - GAP - w >= EDGE) {
+      x = r.left - GAP - w;
+      y = r.top + r.height / 2 - h / 2;
+    } else {
+      x = r.left + r.width / 2 - w / 2;
+      y = (r.bottom + GAP + h <= vh - EDGE || r.top - GAP - h < EDGE) ? r.bottom + GAP : r.top - GAP - h;
     }
-    return page;
+    x = Math.max(EDGE, Math.min(x, vw - EDGE - w));
+    y = Math.max(EDGE, Math.min(y, vh - EDGE - h));
+    tip.style.left = Math.round(x) + 'px';
+    tip.style.top = Math.round(y) + 'px';
   }
 
-  function hrefOf(a) {
-    return a.getAttribute('href') || a.getAttribute('xlink:href') || ('diagram-types.html#' + a.getAttribute('data-card'));
+  function release() {
+    if (!cur) return;
+    cur.removeAttribute('aria-describedby');
+    cur.classList.remove('on');
+    cur = null;
   }
 
+  function show(el) {
+    clearTimeout(timer);
+    var t = document.getElementById('pv-' + el.getAttribute('data-card'));
+    if (!t) return;
+    if (cur !== el) {
+      release();
+      pinned = false;
+      tip.replaceChildren(t.content.cloneNode(true));
+      cur = el;
+      el.setAttribute('aria-describedby', 'pv-tip');
+      el.classList.add('on');
+    }
+    tip.hidden = false;
+    place(el);
+  }
+
+  function hide() {
+    clearTimeout(timer);
+    release();
+    pinned = false;
+    tip.hidden = true;
+  }
+
+  function hideSoon() {
+    if (pinned) return;
+    clearTimeout(timer);
+    timer = setTimeout(hide, 120);
+  }
+
+  function toggle(el) {
+    if (cur === el && pinned && !tip.hidden) { hide(); return; }
+    show(el);
+    pinned = true;
+  }
+
+  // mouse hover; touch and pen use the tap below, so a tap does not show and hide at once
+  document.addEventListener('pointerover', function (e) {
+    if (e.pointerType !== 'mouse') return;
+    var el = badgeOf(e.target);
+    if (el) show(el);
+  });
+  document.addEventListener('pointerout', function (e) {
+    if (e.pointerType !== 'mouse') return;
+    var el = badgeOf(e.target);
+    if (el && el === cur && !el.contains(e.relatedTarget)) hideSoon();
+  });
+
+  // keyboard focus
+  document.addEventListener('focusin', function (e) {
+    var el = badgeOf(e.target);
+    if (el) show(el);
+  });
+  document.addEventListener('focusout', function (e) {
+    var el = badgeOf(e.target);
+    if (el && el === cur && (e.relatedTarget || !pinned)) {   // Tab moved on: hide even a pinned box
+      pinned = false;
+      hideSoon();
+    }
+  });
+
+  // tap or click toggles; Enter and Space do the same on the SVG badges
   document.addEventListener('click', function (e) {
-    if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
-    var a = e.target.closest ? e.target.closest('[data-card]') : null;
-    if (!a || dlg.contains(a)) return;
-    if (location.protocol === 'file:') return;   // fetch cannot read local files: let the link navigate
+    var el = badgeOf(e.target);
+    if (!el) return;
     e.preventDefault();
-    var id = a.getAttribute('data-card');
-    catalogue().then(function (doc) {
-      var card = doc.getElementById(id);
-      if (!card) throw new Error('no card ' + id);
-      var clone = document.importNode(card, true);
-      clone.removeAttribute('id');
-      body.replaceChildren(clone);
-      var h = clone.querySelector('h3');
-      dlg.setAttribute('aria-label', 'Preview: ' + (h ? h.textContent : id));
-      go.setAttribute('href', 'diagram-types.html#' + id);
-      opener = a;
-      if (!dlg.open) dlg.showModal();
-      closeBtn.focus();
-    }).catch(function () {
-      location.href = hrefOf(a);   // preview failed: do what the link does
-    });
+    toggle(el);
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' || e.key === 'Esc') {
+      if (!tip.hidden) hide();
+      return;
+    }
+    var el = badgeOf(e.target);
+    if (el && el.tagName.toLowerCase() === 'g' && (e.key === 'Enter' || e.key === ' ')) {
+      e.preventDefault();
+      toggle(el);
+    }
   });
 
-  closeBtn.addEventListener('click', function () { dlg.close(); });
-  dlg.addEventListener('click', function (e) { if (e.target === dlg) dlg.close(); });   // backdrop
-  dlg.addEventListener('close', function () {
-    if (opener && typeof opener.focus === 'function') opener.focus();
-    opener = null;
+  // a tap or click anywhere else hides the box
+  document.addEventListener('pointerdown', function (e) {
+    if (!tip.hidden && !badgeOf(e.target)) hide();
   });
+
+  // scrolling or resizing moves the box with its badge, or hides it when the badge leaves the screen
+  function follow() { if (cur && !tip.hidden) place(cur); }
+  window.addEventListener('scroll', follow, { passive: true, capture: true });
+  window.addEventListener('resize', follow);
+
+  // below 600 px the matrix key badges are too small to tap: the CSS stops their taps, and this
+  // takes them out of the Tab order and the accessibility tree, so the .keylist buttons replace them
+  var phone = window.matchMedia ? window.matchMedia('screen and (max-width:600px)') : null;
+  function fitKey() {
+    var small = !!(phone && phone.matches);
+    if (small && cur && cur.tagName.toLowerCase() === 'g' && cur.classList.contains('key')) hide();
+    var keys = document.querySelectorAll('g.key[data-card]');
+    for (var i = 0; i < keys.length; i++) {
+      keys[i].setAttribute('tabindex', small ? '-1' : '0');
+      if (small) keys[i].setAttribute('aria-hidden', 'true');
+      else keys[i].removeAttribute('aria-hidden');
+    }
+  }
+  if (phone) {
+    fitKey();
+    if (phone.addEventListener) phone.addEventListener('change', fitKey);
+    else if (phone.addListener) phone.addListener(fitKey);
+  }
 })();
 </script>
 </body></html>

@@ -40,6 +40,9 @@ jobs:
       - name: Check JSON
         run: git ls-files -z '*.json' | xargs -0 -n1 python -m json.tool --no-ensure-ascii > /dev/null
 
+      - name: Guide previews in sync
+        run: python docs/tools/sync_previews.py --check
+
       - name: Marketplace manifests match
         run: |
           if ! cmp .claude-plugin/marketplace.json .codebuddy-plugin/marketplace.json; then

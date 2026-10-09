@@ -87,9 +87,23 @@ tech-design-doc/
 `docs/` is the public guide, served from `main` at
 <https://whitewhiteqq.github.io/tech-design-doc/>.
 
-- `docs/index.html`: doc skeletons. Each diagram badge is a link
-  `diagram-types.html#<id>` with `data-card="<id>"`; a small inline script opens
-  that card in a preview dialog.
+- `docs/index.html`: doc skeletons. Each diagram badge is a button with
+  `data-card="<id>"`; no badge navigates anywhere. Hover over a badge, focus it
+  or tap it, and a small hover box shows that diagram type: its title, its
+  sub-line, its sketch, and the "Use when" and "Not when" lines. A small inline
+  script fills the box from `<template id="pv-<id>">` in the block between
+  `<!-- previews:start -->` and `<!-- previews:end -->` near the end of the page.
+  Below 600 px the SVG badges are too small to tap, so two HTML button lists
+  replace them: `.phases` for "The usual order" and `.keylist` for the key
+  under "All eight at once". When you add, remove or rename an SVG badge,
+  change the matching list too.
+- `docs/tools/sync_previews.py`: generates that block from the cards in
+  `docs/diagram-types.html`. The block also holds a copy of the catalogue's
+  shared `<svg><defs>` (the arrowhead markers), so change a marker in
+  `diagram-types.html` only. Never edit the block by hand. After you change a
+  card, a marker or a badge, run `python docs/tools/sync_previews.py`. CI runs
+  `python docs/tools/sync_previews.py --check`, which fails when the block is
+  out of date, a badge has no card, or an SVG `url(#id)` has no matching id.
 - `docs/diagram-types.html`: one card per diagram type. Each card has an `id`
   (`a1` … `f5`, `matrix`). A new badge needs a card with that id.
 - `docs/diagram-types.md`: the short Markdown version. Keep its counts and
@@ -99,8 +113,8 @@ tech-design-doc/
 
 Keep both pages self-contained: no web font, no CDN, no external request.
 Use invented, generic examples only; never a real project, client or employer.
-Check a change by opening `docs/index.html` over HTTP
-(`python -m http.server -d docs`) and clicking a badge.
+Check a change by opening `docs/index.html` in a browser and hovering over a
+badge. The page works from a local file; it needs no server.
 
 ## Changing the Skill
 
