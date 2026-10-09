@@ -6,16 +6,16 @@
 
 ## Phase order
 
-Skeletons are subsets of this order, never reshuffles.
+Three skeletons keep this order (2, 3, 6). The other five change it on purpose, and each one says why.
 
 Phase | Question | Diagrams
 -|-|-
-Why | problem, decision | prose
+Why | problem, decision, rejects | prose
 Who | users, neighbour systems | context
 What | the parts, inside one part | container, component
 How | flow, logic, data | sequence, flowchart, ERD
 Where | infra, environments | deployment, timeline/rollout
-What if | failure, rollout, rejects | runbook, prose
+What if | failure, rollout, open questions | runbook, prose
 
 ## Five ordering rules
 
@@ -48,7 +48,7 @@ Section | Asks | Fig
 13 Rollout | phases, flags, no-return point
 14 Open questions | owner, date
 
-Works: a reviewer can stop after 5. Fails: 7-11 come before 5. Needs: flowchart, sequenceDiagram, erDiagram, cloud_diagram.py.
+Works: a reviewer can stop after 6. Fails: 7-11 come before 5. Order: 3 before 4-6, because constraints and decision name those users and systems. Needs: flowchart, sequenceDiagram, erDiagram, cloud_diagram.py.
 
 ### 2. Feature / change (2-4 pp, the team)
 
@@ -99,7 +99,7 @@ Section | Asks | Fig
 8 Environments | where you rehearse | timeline/rollout
 9 Phases, dates | who, what, when
 
-Works: today and target share a layout. Fails: rollback is one sentence. Needs: flowchart, sequenceDiagram, cloud_diagram.py.
+Works: today and target share a layout. Fails: rollback is one sentence. Order: 7 right after 5-6, before 8, so each step sits next to its undo. Needs: flowchart, sequenceDiagram, cloud_diagram.py.
 
 ### 5. Third-party integration (3-6 pp, vendor engineer)
 
@@ -109,12 +109,12 @@ Section | Asks | Fig
 2 Context | them as one external box | context
 3 Contract | endpoints, payloads, limits
 **4 Handshake** | auth and the first real call | sequence
-5 Failure modes | 500, timeout, rate limit | flowchart
-6 What crosses | which of our fields leave | data flow
+5 What crosses | which of our fields leave | data flow
+6 Failure modes | 500, timeout, rate limit | flowchart
 7 Credentials | where, who rotates
 8 Cost per call | and the runaway ceiling
 
-Works: 1 is an ask, started day one. Fails: 6 is missing. Needs: flowchart, sequenceDiagram.
+Works: 1 is an ask, started day one. Fails: 5 is missing. Order: 1 first, because vendor access has the longest lead time. Needs: flowchart, sequenceDiagram.
 
 ### 6. Data platform / pipeline (4-8 pp, consumers)
 
@@ -141,7 +141,7 @@ Section | Asks | Fig
 4 Consequences | good and bad
 5 Alternatives | one line each, killing fact
 
-Works: immutable; supersede, never edit. Fails: it grows a diagram (use 1). Needs: no diagram.
+Works: immutable; supersede, never edit. Fails: it grows a diagram (use 1). Order: 1-4 follow Nygard's format; alternatives are added at the end, so the format stays intact. Needs: no diagram.
 
 ### 8. Handover / runbook (3-5 pp, on-call at 3 a.m.)
 
@@ -155,11 +155,11 @@ Section | Asks | Fig
 6 Access | what you need, who grants it
 7 Escalation | by role, with a fallback
 
-Works: a non-author can act on each section. Fails: it explains architecture. Needs: cloud_diagram.py, flowchart.
+Works: a non-author can act on each section. Fails: it explains architecture. Order: deployment second, because on call "where does it run?" comes first. Needs: cloud_diagram.py, flowchart.
 
 ## What a reviewer reads (in order, <5 min)
 
-1. Title: the plain topic name ("Distributed transaction", "RBAC design"). The decision goes in the summary, not the title.
+1. Title: the plain topic name ("Distributed transaction", "Checkout pricing"). The decision goes in the summary, not the title.
 2. Summary: written last, standalone.
 3. First diagram: the widest one.
 4. Decisions, alternatives: before the design.
@@ -175,8 +175,8 @@ Works: a non-author can act on each section. Fails: it explains architecture. Ne
 
 ## Failure modes
 
-1. Opens on deployment: open on context instead.
+1. Opens on deployment: open on context instead, except a runbook.
 2. Decision on page 7: earlier pages read as settled.
-3. Reject without the killing fact: write "Redis adds a VPC; the Lambda has none".
+3. Reject without the killing fact: write "Kafka needs a team to run it; we have two engineers".
 4. Behaviour before structure: lifelines are unknown nouns.
 5. Summary written first: it describes the intended doc.
