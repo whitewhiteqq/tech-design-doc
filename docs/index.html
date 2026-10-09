@@ -126,26 +126,28 @@
   }
 </style></head><body><div class="wrap">
 
-<nav class="topnav" aria-label="Site"><a href="index.html" aria-current="page">Doc structure</a><a href="diagram-types.html">Diagram catalogue</a><a href="https://github.com/whitewhiteqq/tech-design-doc">GitHub</a></nav>
+<nav class="topnav" aria-label="Site"><a href="index.html" aria-current="page">Doc structure</a><a href="diagram-types.html">Diagram catalogue</a><a href="skill.html">Use the skill</a><a href="https://github.com/whitewhiteqq/tech-design-doc">GitHub</a></nav>
 
 <h1>How to organise an architecture design doc</h1>
-<p class="lede">Which diagram comes first, which comes last, and why. Then eight skeletons — one per
-kind of document — showing the section order and what diagram belongs in each. Every diagram is named
-the way other people name it — “sequence”, “container”, “DFD” — and
-the <a href="diagram-types.html">diagram catalogue</a> has a card for each one.</p>
+<p class="lede">You have the design in your head. This page helps you decide what goes on page one,
+which diagram comes next, and what can wait. It includes eight ready-made outlines, one for each common
+kind of design doc. Diagram names are the standard ones (“sequence”, “container”, “DFD”).
+The <a href="diagram-types.html">diagram catalogue</a> explains each one.</p>
 <p class="hint" hidden>Hover over a diagram badge, or tap it, to see that diagram type.</p>
 
 <div class="rule">
   <b>A design doc is an argument, not an inventory.</b>
-  <p>Sections go in the order the reader’s questions arise, and each diagram answers a question the
-  previous section raised. If a diagram answers nothing anyone asked yet, it is too early. That one
-  test settles almost every ordering argument.</p>
+  <p>You are not listing everything you built. You are walking a reader through a case.
+  Put each section where the reader’s next question would come up. Before you place a diagram, ask:
+  “Has the reader asked the question this answers yet?” If not, move it later.</p>
 </div>
 
 <!-- ══════════════ the arc ══════════════ -->
 <h2>The usual order</h2>
-<p class="note">Six phases. This ordering is common practice, not a named standard — the closest published template is <b>arc42</b>. Every doc below is a subset of this order, never a reshuffle of it. The
-movement is <b>wide to narrow</b>: a reader must meet a box before they can follow an arrow into it.</p>
+<p class="note">Most design docs move through six phases, from the big picture down to the details.
+This is common practice, not a formal standard; the closest published template is <b>arc42</b>.
+The reason is simple: a reader needs to see a box before they can follow an arrow into it.
+Three of the outlines below keep this order. The other five change it on purpose, and each one says why.</p>
 <div class="hero arc">
 <svg viewBox="0 0 720 168" role="group" aria-label="Six phases left to right: why, who, what, how, where, what if. Each names the question it answers and the diagram types that belong in it. An arrow underneath reads widest first.">
   <g font-size="10.5" font-weight="800" fill="#F7F2EB" text-anchor="middle" letter-spacing=".06em">
@@ -156,12 +158,12 @@ movement is <b>wide to narrow</b>: a reader must meet a box before they can foll
     <rect x="472" y="18" width="108" height="30" rx="5" fill="#334EAC"/><text x="526" y="38">WHERE</text>
     <rect x="588" y="18" width="124" height="30" rx="5" fill="#081F5C"/><text x="650" y="38">WHAT IF</text></g>
   <g font-size="9" fill="rgba(8,31,92,.62)" text-anchor="middle">
-    <text x="62" y="62">the problem,</text><text x="62" y="73">and the decision</text>
+    <text x="62" y="62">the problem, the choice,</text><text x="62" y="73">and what we rejected</text>
     <text x="178" y="62">who uses it, and</text><text x="178" y="73">what it talks to</text>
     <text x="294" y="62">the parts, and</text><text x="294" y="73">what is inside one</text>
     <text x="410" y="62">the flow, the logic,</text><text x="410" y="73">the data</text>
     <text x="526" y="62">infrastructure</text><text x="526" y="73">and environments</text>
-    <text x="650" y="62">failure, rollout,</text><text x="650" y="73">what we rejected</text></g>
+    <text x="650" y="62">failure, rollout,</text><text x="650" y="73">open questions</text></g>
   <g font-size="7.4" font-weight="700" text-anchor="middle">
     <rect x="30" y="86" width="63" height="15" rx="4" fill="rgba(8,31,92,.34)"/><text x="62" y="97" fill="#FFFDFA">prose only</text>
     <g class="chip" data-card="a1" tabindex="0" role="button" aria-label="Diagram type: context"><rect x="154" y="86" width="48" height="15" rx="4" fill="#334EAC"/><text x="178" y="97" fill="#FFFDFA">context</text></g>
@@ -177,18 +179,18 @@ movement is <b>wide to narrow</b>: a reader must meet a box before they can foll
   </g>
   <path d="M8 146 L706 146" fill="none" stroke="#334EAC" stroke-width="1.4" marker-end="url(#a)"/>
   <text x="14" y="160" font-size="9" font-weight="700" fill="#334EAC">widest first</text>
-  <text x="706" y="160" font-size="9" fill="rgba(8,31,92,.62)" text-anchor="end">never open on a deployment diagram — it answers “where”, and nobody has asked yet</text>
+  <text x="706" y="160" font-size="9" fill="rgba(8,31,92,.62)" text-anchor="end">don’t open on the deployment diagram — nobody has asked “where” yet (a runbook is the exception)</text>
 </svg>
 <div class="phases">
   <ol aria-label="Six phases, in order">
-    <li><b>WHY</b><span class="q">the problem, and the decision</span><span class="chips"><span class="dg n">prose only</span></span></li>
+    <li><b>WHY</b><span class="q">the problem, the choice, and what we rejected</span><span class="chips"><span class="dg n">prose only</span></span></li>
     <li><b>WHO</b><span class="q">who uses it, and what it talks to</span><span class="chips"><button type="button" class="dg" data-card="a1">context</button></span></li>
     <li><b>WHAT</b><span class="q">the parts, and what is inside one</span><span class="chips"><button type="button" class="dg" data-card="a2">container</button><button type="button" class="dg" data-card="a3">component</button></span></li>
     <li><b>HOW</b><span class="q">the flow, the logic, the data</span><span class="chips"><button type="button" class="dg" data-card="c1">sequence</button><button type="button" class="dg" data-card="c3">activity</button><button type="button" class="dg" data-card="d1">ERD</button></span></li>
     <li><b>WHERE</b><span class="q">infrastructure and environments</span><span class="chips"><button type="button" class="dg" data-card="b1">deployment</button><button type="button" class="dg" data-card="b3">environments</button></span></li>
-    <li><b>WHAT IF</b><span class="q">failure, rollout, what we rejected</span><span class="chips"><button type="button" class="dg" data-card="e3">runbook</button><span class="dg n">prose</span></span></li>
+    <li><b>WHAT IF</b><span class="q">failure, rollout, open questions</span><span class="chips"><button type="button" class="dg" data-card="e3">runbook</button><span class="dg n">prose</span></span></li>
   </ol>
-  <p><b>Widest first.</b> Never open on a deployment diagram — it answers “where”, and nobody has asked yet.</p>
+  <p><b>Widest first.</b> Don’t open on the deployment diagram (a runbook is the exception, see outline 8). Nobody has asked “where” yet.</p>
 </div>
 </div>
 
@@ -196,26 +198,26 @@ movement is <b>wide to narrow</b>: a reader must meet a box before they can foll
 <h2>Five ordering rules <span class="cnt">why that order</span></h2>
 <table>
   <tr><th style="width:4%"></th><th style="width:30%">Rule</th><th>Why</th></tr>
-  <tr><td><b>1</b></td><td><b>Widest altitude first.</b> Context → container → component, never the reverse.</td>
-      <td>A reader who meets <code>orders.pricing</code> before they know the system exists has to hold an unexplained name in working memory. Zooming in is free; zooming out mid-document is not.</td></tr>
-  <tr><td><b>2</b></td><td><b>Structure before behaviour.</b> Every structure diagram before any behaviour diagram.</td>
-      <td>A sequence diagram’s participants have to be things the reader already met. Otherwise each lifeline is a new noun arriving at the worst moment.</td></tr>
-  <tr><td><b>3</b></td><td><b>The decision before the design.</b> State what you chose, and what you rejected, before you draw how it works.</td>
-      <td>Reviewers argue with the decision, not the drawing. Burying it on page 7 wastes the first six pages of their attention.</td></tr>
-  <tr><td><b>4</b></td><td><b>Deployment late.</b> The deployment diagram belongs after the behaviour, not before it.</td>
-      <td>“Where does it run” only matters once “what is it” is settled. A doc that opens on a cloud diagram has answered a question nobody asked.</td></tr>
-  <tr><td><b>5</b></td><td><b>One diagram per section, at most.</b></td>
-      <td>Two diagrams in one section means the section has two topics. Split the section, not the figure.</td></tr>
+  <tr><td><b>1</b></td><td><b>Big picture first.</b> Show the whole system, then its parts, then the inside of one part. Never the reverse.</td>
+      <td>Say your second section mentions <code>orders.pricing</code> (the pricing code inside the Orders service). The reader doesn’t know there is an Orders service yet. Now they have to remember a name nobody explained.</td></tr>
+  <tr><td><b>2</b></td><td><b>Parts before steps.</b> Show what the parts are before you show what they do.</td>
+      <td>Every box in a sequence diagram should be something the reader has already seen. If not, each one is a new name to learn in the middle of a flow.</td></tr>
+  <tr><td><b>3</b></td><td><b>The decision before the design.</b> Say what you chose, and what you rejected, before you show how it works.</td>
+      <td>Reviewers push back on the decision, not the diagrams. If the decision is on page 7, they read six pages before they reach the part they care about.</td></tr>
+  <tr><td><b>4</b></td><td><b>Infrastructure late.</b> The deployment diagram comes after you explain how the system behaves (a runbook is the exception, see outline 8).</td>
+      <td>“Where does it run?” only matters once the reader knows what “it” is. A cloud diagram on page one answers a question nobody has asked.</td></tr>
+  <tr><td><b>5</b></td><td><b>At most one diagram per section.</b></td>
+      <td>If a section needs two diagrams, it is covering two topics. Split it into two sections.</td></tr>
 </table>
 
 <!-- ══════════════ all eight at once ══════════════ -->
 <h2>All eight at once <span class="cnt">23 sections · 8 documents</span></h2>
-<p class="note">Every section any of the eight documents uses, down the side. Every document, across
-the top. A <b>solid block</b> means that document has that section; a <b>dark block</b> marks the one
-section the document exists to deliver; a <b>faint dotted line</b> means it is absent. The block’s
-shape says what fills it — two bars for prose, a grid for a table or matrix, and for a figure, a
-small silhouette of that diagram type, named in the key under the matrix. Read a column to see the shape of one document; read a row to see which documents need that
-section at all.</p>
+<p class="note">This chart compares all eight outlines. Sections run down the side, document types across the top.</p>
+<p class="note">A <b>block</b> means the document has that section. A <b>dark block</b> is the section the document exists for.
+A <b>dotted line</b> means the section is not there. The block’s shape shows what goes in it: prose, a table, or a
+small sketch of the diagram (the key is under the chart).</p>
+<p class="note">Read down a column to see one document. Read across a row to see which documents need that section.
+Each outline is also listed on its own in the next section.</p>
 <div class="hero">
 <svg viewBox="0 0 882 702" role="group" aria-label="Twenty-three canonical sections down the side, eight document types across the top. A block means the document has that section, a dark block marks the section it exists to deliver, a faint dotted line means it is absent, and the shape of the block is a small silhouette of what fills the section: prose, a table, or one of fourteen diagram types named in the key underneath.">
 <rect x="158" y="8" width="88" height="642" rx="7" fill="rgba(8,31,92,.045)"/>
@@ -226,9 +228,9 @@ section at all.</p>
 <text x="292" y="22" font-size="8.4" font-weight="800" fill="#334EAC" text-anchor="middle" letter-spacing=".05em">FEATURE /</text>
 <text x="292" y="32" font-size="8.4" font-weight="800" fill="#334EAC" text-anchor="middle" letter-spacing=".05em">CHANGE</text>
 <text x="292" y="44" font-size="7" font-weight="600" fill="rgba(8,31,92,.62)" text-anchor="middle" letter-spacing=".06em">7 SECTIONS</text>
-<rect x="338" y="8" width="88" height="642" rx="7" fill="#FFFDFA" stroke="#081F5C" stroke-width="1.2"/>
-<text x="382" y="22" font-size="8.4" font-weight="800" fill="#081F5C" text-anchor="middle" letter-spacing=".05em">SECURITY /</text>
-<text x="382" y="32" font-size="8.4" font-weight="800" fill="#081F5C" text-anchor="middle" letter-spacing=".05em">ACCESS</text>
+<rect x="338" y="8" width="88" height="642" rx="7" fill="rgba(8,31,92,.045)"/>
+<text x="382" y="22" font-size="8.4" font-weight="800" fill="#334EAC" text-anchor="middle" letter-spacing=".05em">SECURITY /</text>
+<text x="382" y="32" font-size="8.4" font-weight="800" fill="#334EAC" text-anchor="middle" letter-spacing=".05em">ACCESS</text>
 <text x="382" y="44" font-size="7" font-weight="600" fill="rgba(8,31,92,.62)" text-anchor="middle" letter-spacing=".06em">14 SECTIONS</text>
 <rect x="428" y="8" width="88" height="642" rx="7" fill="rgba(8,31,92,.045)"/>
 <text x="472" y="22" font-size="8.4" font-weight="800" fill="#334EAC" text-anchor="middle" letter-spacing=".05em">MIGRATION</text>
@@ -506,19 +508,16 @@ section at all.</p>
   <li><button type="button" class="dg" data-card="e3">runbook</button></li>
   <li><button type="button" class="dg" data-card="e1">pipeline</button></li>
 </ul>
-<p style="font-size:12px;color:var(--mut);margin:12px 0 0">Section names are canonical, not verbatim:
-a few are merged onto one row where two documents call the same thing by different names. The
-highlighted column, security / access control, shows the decide-build-ship order most clearly. The decision and its
-table come before any diagram, the diagrams follow, and rollout comes last: decide, then build,
-then ship.</p>
+<p style="font-size:12px;color:var(--mut);margin:12px 0 0">Row names are shared across documents, so they don’t always
+match an outline word for word. Where two outlines use different names for the same thing, they share one row.
+The rows use one fixed order. For the order of each document, see its outline below.</p>
 </div>
 
 <!-- ══════════════ skeletons ══════════════ -->
-<h2>Eight skeletons, by use case <span class="cnt">pick the nearest, then cut</span></h2>
-<p class="note">Each row is a section. The chip on the right names the diagram that belongs there, or
-<code>—</code> for prose and tables only. The <span style="background:rgba(51,78,172,.07);padding:1px 6px;border-radius:3px">shaded row</span>
-is the section the whole document exists to deliver. If a reader reads one section, make
-it that one.</p>
+<h2>Eight outlines, by use case <span class="cnt">pick the nearest, then cut</span></h2>
+<p class="note">Pick the outline closest to your doc, then delete what you don’t need. Each row is a section.
+The tag on the right names the diagram for that section; <code>—</code> means prose or a table. The <span style="background:rgba(51,78,172,.07);padding:1px 6px;border-radius:3px">shaded row</span>
+is the most important section. If someone reads only one section, it should be that one.</p>
 <div class="grid">
 
 <!-- 1 -->
@@ -542,8 +541,8 @@ it that one.</p>
     <li><b>Open questions</b><span class="q">named owner, named date</span><span class="dg n">—</span></li>
   </ol>
   <div class="tail">
-    <p class="k"><b>Works because</b> the reviewer can stop after section 6 and still have reviewed the real decision.</p>
-    <p class="x"><b>Fails when</b> sections 7–11 arrive before 5. Then every page of design is read as a fait accompli.</p>
+    <p class="k"><b>Works because</b> the reviewer can stop after section 6 and still have reviewed the real decision. Section 3 comes before the decision, because the constraints and the decision name those users and systems.</p>
+    <p class="x"><b>Fails when</b> sections 7–11 come before 5. The design then looks already decided, and reviewers feel they can no longer change it.</p>
   </div>
 </div>
 
@@ -561,7 +560,7 @@ it that one.</p>
     <li><b>Tests</b><span class="q">what proves it works</span><span class="dg n">—</span></li>
   </ol>
   <div class="tail">
-    <p class="k"><b>The trick:</b> sections 2 and 3 are the <i>same diagram twice</i>, at the same altitude, with the delta highlighted. Nothing else communicates a change so fast.</p>
+    <p class="k"><b>The trick:</b> sections 2 and 3 are the <i>same diagram twice</i>, with the changes highlighted in the second. The reader sees the change at a glance.</p>
     <p class="x"><b>Fails when</b> “today” is redrawn from scratch. Then the reader compares two drawings instead of reading one change.</p>
   </div>
 </div>
@@ -587,8 +586,8 @@ it that one.</p>
     <li><b>Rollout</b><span class="q">who gets it first, and how you revoke</span><span class="dg n">—</span></li>
   </ol>
   <div class="tail">
-    <p class="k"><b>Works because</b> it splits <i>decide</i> (1–6), <i>build</i> (7–10) and <i>ship</i> (11–14). Three audiences, three stopping points.</p>
-    <p class="x"><b>Fails when</b> the field matrix is prose. A reviewer must be able to check one row against one role.</p>  </div>
+    <p class="k"><b>Works because</b> it splits into <i>decide</i> (1–6), <i>build</i> (7–10) and <i>ship</i> (11–14). Business owners can stop after 6. Engineers build from 7–10. Whoever ships it reads 11–14.</p>
+    <p class="x"><b>Fails when</b> the roles-and-fields matrix is written as prose. A reviewer needs to check one field against one role, row by row.</p>  </div>
 </div>
 
 <!-- 4 -->
@@ -598,7 +597,7 @@ it that one.</p>
   <ol class="sec">
     <li><b>Why move</b><span class="q">the cost of staying, in numbers</span><span class="dg n">—</span></li>
     <li><b>Today</b><span class="q">the system as it is now</span><button type="button" class="dg" data-card="a2">container</button></li>
-    <li><b>Target</b><span class="q">same altitude, same layout, new parts</span><button type="button" class="dg t" data-card="a2">container</button></li>
+    <li><b>Target</b><span class="q">same detail, same layout, new parts</span><button type="button" class="dg t" data-card="a2">container</button></li>
     <li><b>Gap</b><span class="q">row per capability: keep, port, drop</span><span class="dg n">—</span></li>
     <li class="hinge"><b>Cutover</b><span class="q">the exact order of operations</span><button type="button" class="dg" data-card="c1">sequence</button></li>
     <li><b>Data migration</b><span class="q">backfill, dual-write, reconciliation</span><button type="button" class="dg" data-card="d5">DAG</button></li>
@@ -607,8 +606,8 @@ it that one.</p>
     <li><b>Phases and dates</b><span class="q">who does what, when</span><span class="dg n">—</span></li>
   </ol>
   <div class="tail">
-    <p class="k"><b>The trick:</b> draw “today” and “target” at the <i>same altitude with the same layout</i>, so the eye reads the difference instead of hunting for it.</p>
-    <p class="x"><b>Fails when</b> rollback is one sentence. Name the last reversible step, or the plan is a one-way door nobody noticed.</p>
+    <p class="k"><b>The trick:</b> draw “today” and “target” at the <i>same level of detail with the same layout</i>. Then the differences stand out without any searching. Rollback (7) comes right after cutover and data migration, before environments, so each step sits next to its undo.</p>
+    <p class="x"><b>Fails when</b> rollback is one sentence. Name the last step you can still undo. Otherwise nobody knows when going back stops being an option.</p>
   </div>
 </div>
 
@@ -621,14 +620,14 @@ it that one.</p>
     <li><b>Context</b><span class="q">them as one external box</span><button type="button" class="dg" data-card="a1">context</button></li>
     <li><b>The contract</b><span class="q">endpoints, payloads, limits, errors</span><span class="dg n">—</span></li>
     <li class="hinge"><b>The handshake</b><span class="q">auth and the first real call</span><button type="button" class="dg" data-card="c1">sequence</button></li>
-    <li><b>Failure modes</b><span class="q">their 500, their timeout, their rate limit</span><button type="button" class="dg" data-card="c3">activity</button></li>
     <li><b>What crosses the boundary</b><span class="q">which fields leave, and to whom</span><button type="button" class="dg" data-card="d3">DFD</button></li>
+    <li><b>Failure modes</b><span class="q">their 500, their timeout, their rate limit</span><button type="button" class="dg" data-card="c3">activity</button></li>
     <li><b>Credentials</b><span class="q">where stored, who rotates, how often</span><span class="dg n">—</span></li>
     <li><b>Cost per call</b><span class="q">and the ceiling that stops a runaway</span><span class="dg n">—</span></li>
   </ol>
   <div class="tail">
-    <p class="k"><b>Works because</b> section 1 is an ask, not a summary. Vendor access takes weeks; start it on day one.</p>
-    <p class="x"><b>Fails when</b> section 6 is missing. Nobody notices which customer fields leave the building until an auditor asks.</p>
+    <p class="k"><b>Works because</b> section 1 is a request, not a summary. Getting access from a vendor can take weeks, so ask on day one. This is why the outline starts here, not with the problem.</p>
+    <p class="x"><b>Fails when</b> section 5 is missing. Then nobody tracks which customer data goes to the vendor, until an auditor asks.</p>
   </div>
 </div>
 
@@ -640,15 +639,15 @@ it that one.</p>
     <li><b>Who consumes this, and for what</b><span class="q">start at the output, not the source</span><span class="dg n">—</span></li>
     <li><b>Sources</b><span class="q">owner, freshness, volume, trust</span><span class="dg n">—</span></li>
     <li><b>Where each field comes from</b><span class="q">source to output, field level</span><button type="button" class="dg" data-card="d4">lineage</button></li>
-    <li class="hinge"><b>The model</b><span class="q">grain, facts, dimensions</span><button type="button" class="dg" data-card="d2">star schema</button></li>
-    <li><b>The jobs</b><span class="q">order, parallelism, schedule</span><button type="button" class="dg" data-card="d5">DAG</button></li>
+    <li class="hinge"><b>The model</b><span class="q">what one row means, measures, lookups</span><button type="button" class="dg" data-card="d2">star schema</button></li>
+    <li><b>The jobs</b><span class="q">which job runs after which, and when</span><button type="button" class="dg" data-card="d5">DAG</button></li>
     <li><b>Quality gates</b><span class="q">what fails the run, what only warns</span><button type="button" class="dg" data-card="c3">activity</button></li>
     <li><b>Where it runs</b><span class="q">compute, storage, cost per run</span><button type="button" class="dg" data-card="b1">deployment</button></li>
     <li><b>Backfill and reprocessing</b><span class="q">how you fix a bad day</span><span class="dg n">—</span></li>
   </ol>
   <div class="tail">
-    <p class="k"><b>Works because</b> it reads backwards: output first, then source. That is the order the consumer cares about.</p>
-    <p class="x"><b>Fails when</b> it opens on the DAG. A task graph means nothing until the reader knows what the data is for.</p>
+    <p class="k"><b>Works because</b> it starts at the output and works back to the sources. That is the order the people who use the data care about.</p>
+    <p class="x"><b>Fails when</b> it opens on the job graph (DAG). The jobs mean nothing until the reader knows what the data is for.</p>
   </div>
 </div>
 
@@ -658,14 +657,14 @@ it that one.</p>
   <p class="meta">1 page · future you · never longer</p>
   <ol class="sec">
     <li><b>Title, status, date</b><span class="q">proposed · accepted · superseded by N</span><span class="dg n">—</span></li>
-    <li><b>Context</b><span class="q">the forces that applied <i>at the time</i></span><span class="dg n">—</span></li>
+    <li><b>Context</b><span class="q">what was true <i>at the time</i></span><span class="dg n">—</span></li>
     <li class="hinge"><b>Decision</b><span class="q">“We will …” — one sentence, active voice</span><span class="dg n">—</span></li>
     <li><b>Consequences</b><span class="q">good and bad, both stated</span><span class="dg n">—</span></li>
     <li><b>Alternatives</b><span class="q">one line each, with the disqualifying fact</span><span class="dg n">—</span></li>
   </ol>
   <div class="tail">
-    <p class="k"><b>Works because</b> it is immutable. You never edit an ADR; you supersede it. That is what makes the history readable in two years.</p>
-    <p class="x"><b>Fails when</b> it grows a diagram. At most one, and usually none — if you need a figure, you are writing doc type 1.</p>
+    <p class="k"><b>Works because</b> you never edit an old ADR (architecture decision record). You write a new one that replaces it. In two years, the trail of decisions is still readable. The first four sections follow Michael Nygard’s ADR format. Alternatives are added at the end, so the format stays intact.</p>
+    <p class="x"><b>Fails when</b> it grows diagrams. One at most, usually none. If you need more, write outline 1 instead.</p>
   </div>
 </div>
 
@@ -683,22 +682,22 @@ it that one.</p>
     <li><b>Who to escalate to</b><span class="q">by role, with a fallback</span><span class="dg n">—</span></li>
   </ol>
   <div class="tail">
-    <p class="k"><b>Works because</b> every section is actionable at 3 a.m. by someone who did not build it.</p>
-    <p class="x"><b>Fails when</b> it explains architecture. Nobody debugs from a component diagram at 3 a.m. — put that in doc type 1 and link it.</p>
+    <p class="k"><b>Works because</b> someone who didn’t build the system can act on every section at 3 a.m. That is also why the deployment diagram comes second: on call, “where does it run?” is the first question.</p>
+    <p class="x"><b>Fails when</b> it explains the design. Nobody debugs from a component diagram at 3 a.m. Put that in outline 1 and link to it.</p>
   </div>
 </div>
 </div>
 
 <!-- ══════════════ first five minutes ══════════════ -->
 <h2>What a reviewer actually reads</h2>
-<p class="note">In order, and usually in under five minutes. Design the document around this, not
-around the order you figured things out in.</p>
+<p class="note">Most reviewers skim. They read these parts, in this order, and many stop early.
+Arrange the doc for them, not in the order you worked things out.</p>
 <table>
   <tr><th style="width:7%">Order</th><th style="width:28%">What they read</th><th>What it means for you</th></tr>
-  <tr><td><b>1</b></td><td>The title</td><td>Make it a claim, not a topic. “Calculate prices on the server, not in the checkout page” beats “Pricing design”.</td></tr>
+  <tr><td><b>1</b></td><td>The title</td><td>Name the topic plainly, such as “Checkout pricing”. Put the claim in the summary’s first sentence: “We will calculate prices on the server, not in the checkout page.”</td></tr>
   <tr><td><b>2</b></td><td>The one-page summary</td><td>Write it last, and make it survive alone. Many readers read only this.</td></tr>
-  <tr><td><b>3</b></td><td>The first diagram</td><td>Make it the widest one. A reviewer who meets a module name here is already lost.</td></tr>
-  <tr><td><b>4</b></td><td>The decisions and alternatives</td><td>This is where they push back. Put it before the design, or they argue after reading 10 pages of it.</td></tr>
+  <tr><td><b>3</b></td><td>The first diagram</td><td>Make it the big-picture one. If the first diagram shows code modules, the reviewer has nothing to hang them on.</td></tr>
+  <tr><td><b>4</b></td><td>The decisions and alternatives</td><td>This is where they push back. Put it before the design, so they don’t read 10 pages first.</td></tr>
   <tr><td><b>5</b></td><td>The risks and open questions</td><td>They look for what you are worried about. If nothing is listed, they assume you have not looked.</td></tr>
   <tr><td><b>6</b></td><td style="color:var(--faint)">Everything else, if at all</td><td>Sections 7 onward exist for the person who implements it, not the person who approves it.</td></tr>
 </table>
@@ -708,25 +707,25 @@ around the order you figured things out in.</p>
 <table>
   <tr><th style="width:17%">Use</th><th style="width:37%">When</th><th>Because</th></tr>
   <tr><td><b>A figure</b></td><td>The content is a shape: what contains what, what calls what, what happens in what order.</td><td>A reader takes in a shape in one glance and a paragraph in thirty seconds.</td></tr>
-  <tr><td><b>A table</b></td><td>The content is a set of rows a reviewer must check one at a time — roles, fields, endpoints, costs.</td><td>Precision. Nobody can audit a field list drawn as boxes.</td></tr>
-  <tr><td><b>Prose</b></td><td>The content is a judgement: why you chose this, what you rejected, what worries you.</td><td>Reasoning has no shape. A diagram of an argument is a flowchart nobody asked for.</td></tr>
-  <tr><td><b>Nothing</b></td><td>It is true of every system, or a tool can generate it.</td><td>“We will write tests” and a hand-drawn dependency graph both cost attention and return none.</td></tr>
+  <tr><td><b>A table</b></td><td>The content is a set of rows a reviewer must check one at a time — roles, fields, endpoints, costs.</td><td>A reviewer can check a table row by row. Nobody can check a list of fields drawn as boxes.</td></tr>
+  <tr><td><b>Prose</b></td><td>The content is a judgement: why you chose this, what you rejected, what worries you.</td><td>Reasoning has no shape. Turning an argument into a diagram makes it harder to follow, not easier.</td></tr>
+  <tr><td><b>Nothing</b></td><td>It is true of every system, or a tool can generate it.</td><td>“We will write tests” tells the reader nothing new. A hand-drawn dependency graph goes out of date. Both waste the reader’s time.</td></tr>
 </table>
 
 <h2>Five ways the order goes wrong</h2>
 <ol class="mist">
-  <li><b>The doc opens on the deployment diagram.</b> Usually because it was the first thing the author drew. It answers “where”, and the reader has not yet asked. Move it to the WHERE phase and open on the system context diagram.</li>
-  <li><b>The decision is on page 7.</b> Every page before it reads as a presentation of something already settled. Reviewers who disagree have to argue backwards.</li>
+  <li><b>The doc opens on the deployment diagram.</b> Usually because it was the first thing the author drew. It answers “where”, and the reader has not yet asked. Move it to the WHERE phase and open on the system context diagram (a runbook is the exception, see outline 8).</li>
+  <li><b>The decision is on page 7.</b> The pages before it read as if everything is already settled. Reviewers who disagree have to argue against six pages of design.</li>
   <li><b>Alternatives are listed without the disqualifying fact.</b> “We considered Kafka” is not a rejection. “Kafka needs a team to run it, and we have two engineers” is.</li>
-  <li><b>Behaviour before structure.</b> A sequence diagram on page 2 whose participants appear on page 5. Every lifeline is an unexplained noun.</li>
+  <li><b>Steps before parts.</b> A sequence diagram on page 2 shows boxes that only get explained on page 5. The reader meets each one as an unknown name.</li>
   <li><b>The summary was written first.</b> It then describes the doc you intended, not the one you wrote. Write it last, every time.</li>
 </ol>
 
 <p class="foot"><b>What is standard here, and what is not.</b> The diagram names are standard: they come
-from UML 2.5, C4, ArchiMate and the DFD/STRIDE convention, and
+from UML 2.5, C4, ArchiMate and the data flow diagram (DFD) convention used in STRIDE threat modelling, and
 the <a href="diagram-types.html">diagram catalogue</a> has a card for each. The <i>section orders</i> are
-not a named standard — they follow common practice. Two exceptions: <b>skeleton 7</b> is Michael
-Nygard’s ADR format, and the closest published template to <b>skeleton 1</b> is <b>arc42</b>. Treat the
+not a named standard — they follow common practice. Two exceptions: <b>outline 7</b> builds on Michael
+Nygard’s ADR format, and the closest published template to <b>outline 1</b> is <b>arc42</b>. Treat the
 rest as a starting shape to cut down, not a specification to follow.</p>
 
 </div>

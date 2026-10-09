@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Let the skill write the first draft</title>
+<link rel="icon" href="data:,">
+<!-- How the tech-design-doc skill applies the guide in index.html and diagram-types.html.
+     Self-contained: no font, no CDN, no script, no external request. -->
+<style>
+  :root{
+    --bg:#F7F2EB; --card:#FFFDFA; --txt:#081F5C; --data:#334EAC; --data2:#7096D1;
+    --mut:rgba(8,31,92,.62); --faint:rgba(8,31,92,.34); --grid:rgba(8,31,92,.16);
+    --ok:#3E7A4E; --no:#B3453A;
+    --sans:"Segoe UI",system-ui,-apple-system,"Helvetica Neue",sans-serif;
+    --mono:ui-monospace,"Cascadia Mono",Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{background:var(--bg);color:var(--txt);margin:0;font:15px/1.6 var(--sans);padding:34px 28px 60px}
+  .wrap{max-width:1040px;margin:0 auto}
+  h1{font-size:26px;line-height:1.22;margin:0 0 6px;letter-spacing:-.015em}
+  .lede{font-size:15px;color:var(--mut);margin:0 0 10px;max-width:68ch}
+  h2{font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;font-weight:700;color:var(--mut);
+     margin:46px 0 4px;padding-bottom:7px;border-bottom:1px solid var(--grid)}
+  .note{font-size:14px;color:var(--mut);margin:10px 0 16px;max-width:76ch}
+  .rule{background:var(--card);border:1px solid var(--grid);border-left:4px solid var(--data);
+        border-radius:8px;padding:16px 20px;margin:24px 0 0}
+  .rule b{font-size:17px}
+  .rule p{margin:8px 0 0;color:var(--mut);font-size:14px}
+  table{border-collapse:collapse;width:100%;font-size:14px}
+  th{text-align:left;font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--mut);
+     font-weight:700;padding:0 14px 8px 0;border-bottom:1px solid var(--grid)}
+  td{padding:9px 14px 9px 0;border-bottom:1px solid var(--grid);vertical-align:top}
+  tr:last-child td{border-bottom:none}
+  td.q{color:var(--mut);font-style:italic}
+  code{font:12.8px/1.4 var(--mono);background:rgba(8,31,92,.06);padding:1px 5px;border-radius:4px}
+  pre{background:var(--card);border:1px solid var(--grid);border-radius:8px;padding:12px 14px;
+      font:13px/1.5 var(--mono);overflow-x:auto;margin:10px 0 0}
+  pre code{background:none;padding:0}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(300px,100%),1fr));gap:16px;margin-top:16px}
+  .card{background:var(--card);border:1px solid var(--grid);border-radius:10px;padding:15px 17px 16px}
+  .card h3{margin:0 0 6px;font-size:16px;letter-spacing:-.01em}
+  .card p{margin:0 0 8px;font-size:14px;color:var(--mut)} .card p:last-child{margin:0}
+  ul.you{margin:0;padding-left:20px} ul.you li{margin-bottom:8px}
+  .topnav{display:flex;flex-wrap:wrap;gap:6px 20px;font-size:13px;font-weight:600;margin:0 0 22px}
+  .topnav a{color:var(--mut);text-decoration:none;padding-bottom:2px;border-bottom:2px solid transparent}
+  .topnav a:hover,.topnav a:focus-visible{color:var(--txt);border-bottom-color:var(--grid)}
+  .topnav a[aria-current="page"]{color:var(--txt);border-bottom-color:var(--data)}
+  .foot{margin-top:40px;padding-top:16px;border-top:1px solid var(--grid);font-size:13px;color:var(--mut)}
+  @media print{
+    .topnav{display:none!important}
+    body{background:#fff;padding:0;font-size:9.6pt}
+    .card,.rule,pre{background:#fff;break-inside:avoid} h2{margin-top:18px}
+  }
+</style></head><body><div class="wrap">
+
+<nav class="topnav" aria-label="Site"><a href="index.html">Doc structure</a><a href="diagram-types.html">Diagram catalogue</a><a href="skill.html" aria-current="page">Use the skill</a><a href="https://github.com/whitewhiteqq/tech-design-doc">GitHub</a></nav>
+
+<h1>Let the skill write the first draft</h1>
+<p class="lede">The <a href="index.html">guide</a> explains how to order a design doc. The
+<b>tech-design-doc</b> skill applies those same rules for you.</p>
+<p class="lede">You describe the system in plain words. Your AI agent picks an outline, writes the doc
+in Markdown, draws the diagrams, and checks every diagram before it hands the doc back. It works in
+Claude Code, Tencent CodeBuddy, GitHub Copilot and OpenAI Codex.</p>
+
+<div class="rule">
+  <b>You bring the decision. The skill brings the structure.</b>
+  <p>The skill can’t know why you chose one design over another. Tell it what you chose and what you
+  rejected. It builds the rest of the doc around that.</p>
+</div>
+
+<!-- ══════════════ guide to skill ══════════════ -->
+<h2>How the skill follows this guide</h2>
+<p class="note">The skill carries a short copy of this guide. The agent reads it before it writes a single
+section. Here is how each part of the guide shows up in the doc you get.</p>
+<table>
+  <tr><th style="width:24%">In the guide</th><th>What the skill does</th><th style="width:26%">Where it lives in the skill</th></tr>
+  <tr><td><b>The six phases and five ordering rules</b></td>
+      <td>Puts the big picture first, the decision before the design, and the deployment diagram late.</td>
+      <td><code>reference/doc-skeletons.md</code></td></tr>
+  <tr><td><b>The eight outlines</b></td>
+      <td>Picks the outline closest to your request. Then it removes the sections your reader doesn’t need.</td>
+      <td><code>reference/doc-skeletons.md</code></td></tr>
+  <tr><td><b>The diagram catalogue</b></td>
+      <td>Picks a diagram type for each section that needs one. It draws most diagrams in Mermaid. GitHub shows Mermaid as is; Confluence needs a Mermaid macro. The deployment diagram uses the cloud icons (below).</td>
+      <td><code>reference/diagram-types.md</code></td></tr>
+  <tr><td><b>Figure, table or prose?</b></td>
+      <td>Writes a list of roles and fields as a table, not a drawing. Writes the reasons for a choice as prose.</td>
+      <td><code>reference/doc-skeletons.md</code></td></tr>
+  <tr><td><b>One diagram per section</b></td>
+      <td>Keeps each diagram to one question and 4 to 12 boxes. A bigger picture gets split.</td>
+      <td><code>SKILL.md</code></td></tr>
+</table>
+
+<!-- ══════════════ beyond the guide ══════════════ -->
+<h2>What it adds on top</h2>
+<p class="note">The guide tells you which diagram to draw. The skill also draws it, and checks it.</p>
+<div class="grid">
+  <div class="card">
+    <h3>Cloud diagrams with the real icons</h3>
+    <p>For a deployment diagram, the skill uses the official AWS, Azure and Google Cloud icons.</p>
+    <p>One small JSON file gives you an SVG, a PNG, an editable draw.io file and the lines to paste into the doc.</p>
+  </div>
+  <div class="card">
+    <h3>A check before you see it</h3>
+    <p>The skill opens every diagram in a hidden Chrome window and measures it. It looks for boxes that overlap, labels with no room, and icons cut off at the edge.</p>
+    <p>It fixes each problem and runs the check again. It stops at “0 FAIL” and tells you how many diagrams it checked.</p>
+  </div>
+  <div class="card">
+    <h3>An HTML page, if you want one</h3>
+    <p>Markdown is the main output, ready for Confluence. Ask for HTML too, and you also get a standalone page with the same names, steps and failure paths as the Markdown.</p>
+  </div>
+</div>
+
+<!-- ══════════════ your part ══════════════ -->
+<h2>What you still do</h2>
+<p class="note">The skill gives you a well-ordered first draft. These parts only you can supply.</p>
+<ul class="you">
+  <li><b>The decision, and what you rejected.</b> Give the one fact that ruled out each option. “Kafka needs a team to run it, and we have two engineers” is enough.</li>
+  <li><b>The numbers.</b> Budget, latency targets, data volume, cost per month. The skill can’t invent them, and reviewers will ask.</li>
+  <li><b>Owners for open questions.</b> A name and a date for each one.</li>
+  <li><b>A real review.</b> The check makes sure every diagram is readable. It can’t tell you if a diagram is correct. Read it as your reviewers will.</li>
+</ul>
+
+<!-- ══════════════ try it ══════════════ -->
+<h2>Try it</h2>
+<p class="note">Install the skill. In Claude Code, run:</p>
+<pre><code>claude plugin marketplace add whitewhiteqq/tech-design-doc
+claude plugin install tech-design-doc@tech-design-doc</code></pre>
+<p class="note">For CodeBuddy, Copilot or a manual copy, see the
+<a href="https://github.com/whitewhiteqq/tech-design-doc#install">install steps in the README</a>.
+For Codex, use option 3 there, <code>npx skills add</code>.
+Cloud diagrams also need the vendor icon packs, a one-time download.</p>
+<p class="note">Then ask in plain words. Each prompt below leads to one of the eight outlines. Put your
+decision in the prompt, and the first draft gets much better.</p>
+<table>
+  <tr><th style="width:24%">Outline</th><th>Ask your agent</th></tr>
+  <tr><td><b>1 · New system design</b></td>
+      <td class="q">“Write a design doc for a new notification service. We chose a queue over direct calls, because the email provider is often slow. Markdown for Confluence.”</td></tr>
+  <tr><td><b>2 · Feature / change</b></td>
+      <td class="q">“Write a design doc for adding refunds to the checkout service. Show the checkout component before and after.”</td></tr>
+  <tr><td><b>3 · Security / access</b></td>
+      <td class="q">“Write an access-control design for the support dashboard. Which roles can see which customer fields?”</td></tr>
+  <tr><td><b>4 · Migration</b></td>
+      <td class="q">“Write a plan to move the reports database from MySQL to Postgres, with cutover and rollback steps.”</td></tr>
+  <tr><td><b>5 · Integration</b></td>
+      <td class="q">“Write an integration design for a payment provider’s refund API.”</td></tr>
+  <tr><td><b>6 · Data pipeline</b></td>
+      <td class="q">“Write a design for the daily sales report pipeline. Start from who uses the report.”</td></tr>
+  <tr><td><b>7 · ADR</b></td>
+      <td class="q">“Write an ADR: we will filter rows in the database, not in the API.”</td></tr>
+  <tr><td><b>8 · Handover / runbook</b></td>
+      <td class="q">“Write a handover runbook for the order service, with one block per alert.”</td></tr>
+</table>
+<p class="note">If you don’t say Markdown or HTML, the skill asks you once.</p>
+
+<!-- ══════════════ output ══════════════ -->
+<h2>What you get back</h2>
+<ul class="you">
+  <li><b>The doc</b>, as a Markdown file, in the order of the outline it picked.</li>
+  <li><b>An <code>img/</code> folder</b> next to it, if the doc has a cloud deployment diagram, with the SVG, PNG and draw.io files the doc links to.</li>
+  <li><b>A check result</b> in the agent’s reply, such as “6 diagrams checked, 0 FAIL”.</li>
+  <li><b>An HTML page</b>, only if you asked for one.</li>
+</ul>
+
+<p class="foot">The skill is open source under Apache-2.0. Source, examples and install steps:
+<a href="https://github.com/whitewhiteqq/tech-design-doc">github.com/whitewhiteqq/tech-design-doc</a>.
+The skill’s copy of this guide is <code>skills/tech-design-doc/reference/doc-skeletons.md</code>.</p>
+
+</div></body></html>

@@ -108,10 +108,14 @@ tech-design-doc/
   (`a1` … `f5`, `matrix`). A new badge needs a card with that id.
 - `docs/diagram-types.md`: the short Markdown version. Keep its counts and
   names in step with the HTML.
+- `docs/skill.html`: how the skill applies the guide, with one sample prompt
+  per outline. It has no badges and no script. When you change a skill file it
+  names (`SKILL.md`, `reference/doc-skeletons.md`, `reference/diagram-types.md`)
+  or the install commands, check this page still matches.
 - `docs/.nojekyll`: keeps GitHub Pages from turning the `.md` into a second
   `diagram-types.html`.
 
-Keep both pages self-contained: no web font, no CDN, no external request.
+Keep every page self-contained: no web font, no CDN, no external request.
 Use invented, generic examples only; never a real project, client or employer.
 Check a change by opening `docs/index.html` in a browser and hovering over a
 badge. The page works from a local file; it needs no server.
