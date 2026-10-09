@@ -1050,9 +1050,18 @@ rest as a starting shape to cut down, not a specification to follow.</p>
     var vw = document.documentElement.clientWidth, vh = document.documentElement.clientHeight;
     if (r.bottom < 0 || r.top > vh || r.right < 0 || r.left > vw) { hide(); return; }
     var w = tip.offsetWidth, h = tip.offsetHeight, x, y;
-    // skeleton badges sit at the right edge of their card, so the box goes on their left when it fits
-    var atRight = el.tagName.toLowerCase() === 'button' || r.right > vw * 0.6;
-    if (atRight && r.left - GAP - w >= EDGE) {
+    // an outline badge puts the box beside its whole card, never over it: right of the card when
+    // it fits, else left of it; on a one-column screen neither fits and the box goes below or above
+    var card = el.closest('.skel');
+    var c = card ? card.getBoundingClientRect() : null;
+    var atRight = !card && (el.tagName.toLowerCase() === 'button' || r.right > vw * 0.6);
+    if (c && c.right + GAP + w <= vw - EDGE) {
+      x = c.right + GAP;
+      y = r.top + r.height / 2 - h / 2;
+    } else if (c && c.left - GAP - w >= EDGE) {
+      x = c.left - GAP - w;
+      y = r.top + r.height / 2 - h / 2;
+    } else if (atRight && r.left - GAP - w >= EDGE) {
       x = r.left - GAP - w;
       y = r.top + r.height / 2 - h / 2;
     } else {
