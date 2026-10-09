@@ -1,0 +1,929 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Architecture diagrams — the full catalogue</title>
+<link rel="icon" href="data:,">
+<style>
+  :root{
+    --bg:#F7F2EB; --card:#FFFDFA; --txt:#081F5C; --data:#334EAC; --data2:#7096D1;
+    --mut:rgba(8,31,92,.62); --faint:rgba(8,31,92,.34); --grid:rgba(8,31,92,.16);
+    --ok:#3E7A4E; --no:#B3453A;
+    --sans:"Segoe UI",system-ui,-apple-system,"Helvetica Neue",sans-serif;
+    --mono:ui-monospace,"Cascadia Mono",Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{background:var(--bg);color:var(--txt);margin:0;font:15px/1.6 var(--sans);padding:34px 28px 60px}
+  .wrap{max-width:1240px;margin:0 auto}
+  h1{font-size:26px;line-height:1.22;margin:0 0 6px;letter-spacing:-.015em}
+  .lede{font-size:15px;color:var(--mut);margin:0;max-width:66ch}
+  h2{font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;font-weight:700;color:var(--mut);
+     margin:46px 0 4px;padding-bottom:7px;border-bottom:1px solid var(--grid)}
+  h2 .cnt{float:right;letter-spacing:.04em;color:var(--faint);text-transform:none;font-weight:600}
+  .famnote{font-size:13.5px;color:var(--mut);margin:10px 0 16px;max-width:76ch}
+  .rule{background:var(--card);border:1px solid var(--grid);border-left:4px solid var(--data);
+        border-radius:8px;padding:16px 20px;margin:24px 0 0}
+  .rule b{font-size:17px}
+  .rule p{margin:8px 0 0;color:var(--mut);font-size:14px}
+  table{border-collapse:collapse;width:100%;font-size:14px}
+  th{text-align:left;font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--mut);
+     font-weight:700;padding:0 14px 8px 0;border-bottom:1px solid var(--grid)}
+  td{padding:9px 14px 9px 0;border-bottom:1px solid var(--grid);vertical-align:top}
+  tr:last-child td{border-bottom:none}
+  code{font:12.8px/1.4 var(--mono);background:rgba(8,31,92,.06);padding:1px 5px;border-radius:4px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(372px,100%),1fr));gap:16px}
+  .card{background:var(--card);border:1px solid var(--grid);border-radius:10px;padding:15px 17px 16px;
+        break-inside:avoid;display:flex;flex-direction:column;scroll-margin-top:18px}
+  .card:target{border-color:var(--data);box-shadow:0 0 0 3px rgba(51,78,172,.28)}
+  .card h3{margin:0;font-size:16.5px;letter-spacing:-.01em}
+  .hd{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+  .alt{font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--faint);
+       font-weight:700;margin:1px 0 11px}
+  .freq{font-size:10px;letter-spacing:.1em;white-space:nowrap;color:var(--faint);font-weight:700}
+  .freq i{font-style:normal;color:var(--data)}
+  .card svg{display:block;width:100%;height:auto;margin:2px 0 13px}
+  .kv{display:grid;grid-template-columns:76px 1fr;gap:3px 10px;font-size:13.2px;margin:0 0 11px}
+  .kv dt{color:var(--mut);font-weight:600}
+  .kv dd{margin:0}
+  .io{font-size:13.2px;margin:0 0 8px;padding-left:18px;position:relative}
+  .io:before{position:absolute;left:0;top:0;font-weight:700}
+  .inc:before{content:"+";color:var(--ok)} .exc:before{content:"\2212";color:var(--no)}
+  .when{border-top:1px solid var(--grid);margin-top:auto;padding-top:10px;font-size:13.2px}
+  .when p{margin:0 0 6px} .when p:last-child{margin:0}
+  .yes b{color:var(--ok)} .no b{color:var(--no)}
+  .ex{font-size:11.5px;color:var(--faint);margin:9px 0 0}
+  ol.mistakes{margin:0;padding-left:22px} ol.mistakes li{margin-bottom:10px} ol.mistakes b{display:block}
+  .foot{margin-top:40px;padding-top:16px;border-top:1px solid var(--grid);font-size:13px;color:var(--mut)}
+  .topnav{display:flex;flex-wrap:wrap;gap:6px 20px;font-size:13px;font-weight:600;margin:0 0 22px}
+  .topnav a{color:var(--mut);text-decoration:none;padding-bottom:2px;border-bottom:2px solid transparent}
+  .topnav a:hover,.topnav a:focus-visible{color:var(--txt);border-bottom-color:var(--grid)}
+  .topnav a[aria-current="page"]{color:var(--txt);border-bottom-color:var(--data)}
+  @media print{
+    .topnav{display:none}
+    .card:target{box-shadow:none;border-color:var(--grid)}
+    body{background:#fff;padding:0;font-size:9.6pt}
+    .grid{grid-template-columns:1fr 1fr;gap:9px}
+    .card,.rule{background:#fff;break-inside:avoid} h2{margin-top:18px}
+  }
+</style></head><body><div class="wrap">
+
+<nav class="topnav" aria-label="Site"><a href="index.html">Doc structure</a><a href="diagram-types.html" aria-current="page">Diagram catalogue</a><a href="https://github.com/whitewhiteqq/tech-design-doc">GitHub</a></nav>
+
+<h1>Architecture diagrams — the full catalogue</h1>
+<p class="lede">Thirty-two types across six families: thirty-one diagrams and one table. Each one: what a box means, what an arrow means,
+what to include, what to leave out, and when it is the wrong picture. The dots say how often you will
+actually draw it — <i style="font-style:normal;color:#334EAC">●●●</i> most weeks,
+<i style="font-style:normal;color:#334EAC">●●</i>○ sometimes, <i style="font-style:normal;color:#334EAC">●</i>○○ rare.</p>
+
+<div class="rule" style="border-left-color:#B3453A">
+  <b>Say the name, not the code.</b>
+  <p>The codes <code>A1</code>…<code>F5</code> and the six families are <b>local shorthand for this
+  page only</b>. Nobody outside it uses them. Each card’s grey sub-line gives the name other people
+  will recognise — say “a C4 container diagram” or “a sequence diagram”, never “an A2”. Where a type
+  has no agreed name, the sub-line says so.</p>
+</div>
+
+<div class="rule">
+  <b>The question picks the type. You do not pick it.</b>
+  <p>Write the question in one sentence first. The verb names the family: <i>is</i> → structure ·
+  <i>runs</i> → deployment · <i>happens</i> → behaviour · <i>comes from</i> → data ·
+  <i>ships</i> → delivery · <i>owns</i> → business. If the sentence needs the word “and”, you have
+  two diagrams.</p>
+</div>
+
+<!-- ══════════════════ A · STRUCTURE ══════════════════ -->
+<h2>A · Structure — what exists <span class="cnt">7 types</span></h2>
+<p class="famnote">Static shape. No time, no order. The question is always some form of “what is in
+there, and what contains what”. Pick <b>one</b> altitude per diagram: a bucket beside a Python
+function is the most common beginner error on this page.</p>
+<div class="grid">
+
+<div class="card" id="a1"><div class="hd"><h3>A1 · System context</h3><span class="freq"><i>●●●</i></span></div>
+  <p class="alt">System context diagram · C4 level 1</p>
+  <svg viewBox="0 0 230 128" role="img" aria-label="One dark system box in the middle with a person and two external systems pointing at it">
+    <rect x="76" y="46" width="78" height="38" rx="6" fill="#081F5C"/>
+    <text x="115" y="69" text-anchor="middle" font-size="9" font-weight="800" fill="#F7F2EB" letter-spacing=".05em">YOUR SYSTEM</text>
+    <g fill="none" stroke="#334EAC" stroke-width="1.5">
+      <rect x="10" y="12" width="56" height="24" rx="12"/><rect x="164" y="12" width="56" height="24" rx="4"/>
+      <rect x="87" y="102" width="56" height="22" rx="4"/></g>
+    <g font-size="8" font-weight="700" fill="#334EAC" text-anchor="middle">
+      <text x="38" y="27">PERSON</text><text x="192" y="27">EXT SYS</text><text x="115" y="117">EXT SYS</text></g>
+    <g fill="none" stroke="#334EAC" stroke-width="1.4" marker-end="url(#a)">
+      <path d="M38 40 L38 58 L70 58"/><path d="M192 40 L192 70 L160 70"/><path d="M115 98 L115 90"/></g>
+    <g font-size="7.5" fill="rgba(8,31,92,.62)"><text x="42" y="53">uses</text><text x="196" y="53">sends to</text></g>
+  </svg>
+  <dl class="kv"><dt>Box is</dt><dd>A whole system, or a kind of person</dd>
+    <dt>Arrow is</dt><dd>“uses” or “sends data to”, in plain words</dd><dt>Size</dt><dd>1 system, 3–7 around it</dd></dl>
+  <p class="io inc"><b>Include</b> your system as one box · every human role · every external system · one label per arrow.</p>
+  <p class="io exc"><b>Leave out</b> everything inside your system. That restraint <i>is</i> the type.</p>
+  <div class="when"><p class="yes"><b>Use when</b> the reader has never heard of the system.</p>
+    <p class="no"><b>Not when</b> they already know what it is for.</p></div>
+</div>
+
+<div class="card" id="a2"><div class="hd"><h3>A2 · Container</h3><span class="freq"><i>●●●</i></span></div>
+  <p class="alt">Container diagram · C4 level 2</p>
+  <svg viewBox="0 0 230 128" role="img" aria-label="A web app, an API, a worker and a cylinder store, joined by labelled arrows">
+    <g fill="none" stroke="#334EAC" stroke-width="1.5">
+      <rect x="10" y="22" width="60" height="30" rx="5"/><rect x="92" y="22" width="60" height="30" rx="5"/>
+      <rect x="92" y="88" width="60" height="30" rx="5"/>
+      <path d="M172 32 a24 8 0 0 1 48 0 v30 a24 8 0 0 1 -48 0 z"/><path d="M172 32 a24 8 0 0 0 48 0"/></g>
+    <g font-size="8.5" font-weight="800" fill="#081F5C" text-anchor="middle">
+      <text x="40" y="41">WEB APP</text><text x="122" y="41">API</text><text x="122" y="107">WORKER</text><text x="196" y="53">STORE</text></g>
+    <g fill="none" stroke="#334EAC" stroke-width="1.4" marker-end="url(#a)">
+      <path d="M70 37 L88 37"/><path d="M152 42 L168 46"/><path d="M122 88 L122 56"/></g>
+    <g font-size="7.5" fill="rgba(8,31,92,.62)" text-anchor="middle">
+      <text x="79" y="16">HTTPS</text><text x="168" y="90">SQL</text><text x="140" y="76">reads</text></g>
+  </svg>
+  <dl class="kv"><dt>Box is</dt><dd>A separately deployable thing, or a store</dd>
+    <dt>Arrow is</dt><dd>A call, with protocol and payload</dd><dt>Size</dt><dd>4–10 boxes</dd></dl>
+  <p class="io inc"><b>Include</b> each deployable · each store · the technology in small type · the protocol on each arrow.</p>
+  <p class="io exc"><b>Leave out</b> modules and classes. If <code>orders.pricing</code> appears, you slipped to A3.</p>
+  <div class="when"><p class="yes"><b>Use when</b> you plan a deployment, estimate cost, or hand over to ops.</p>
+    <p class="no"><b>Not when</b> the question is how the code is organised.</p>
+    <p class="ex">Close, but not this: vendor icons and an account boundary make a diagram B1.</p></div>
+</div>
+
+<div class="card" id="a3"><div class="hd"><h3>A3 · Component</h3><span class="freq"><i>●●</i>○</span></div>
+  <p class="alt">Component diagram · C4 level 3</p>
+  <svg viewBox="0 0 230 128" role="img" aria-label="One dashed container holding four modules chained by arrows">
+    <rect x="8" y="24" width="214" height="84" rx="9" fill="none" stroke="rgba(8,31,92,.34)" stroke-width="1.1" stroke-dasharray="4 4"/>
+    <text x="20" y="19" font-size="8" font-weight="700" fill="rgba(8,31,92,.62)" letter-spacing=".12em">ONE CONTAINER</text>
+    <g fill="none" stroke="#334EAC" stroke-width="1.5">
+      <rect x="18" y="54" width="44" height="28" rx="5"/><rect x="76" y="54" width="44" height="28" rx="5"/>
+      <rect x="134" y="54" width="44" height="28" rx="5"/><rect x="190" y="54" width="24" height="28" rx="5"/></g>
+    <g font-size="8" font-weight="800" fill="#081F5C" text-anchor="middle">
+      <text x="40" y="72">CART</text><text x="98" y="72">PRICE</text><text x="156" y="72">TAX</text><text x="202" y="72">OUT</text></g>
+    <g fill="none" stroke="#334EAC" stroke-width="1.4" marker-end="url(#a)">
+      <path d="M62 68 L72 68"/><path d="M120 68 L130 68"/><path d="M178 68 L186 68"/></g>
+    <text x="115" y="99" font-size="7.5" fill="rgba(8,31,92,.62)" text-anchor="middle">one arrow per call, every one labelled</text>
+  </svg>
+  <dl class="kv"><dt>Box is</dt><dd>A module inside <b>one</b> container</dd>
+    <dt>Arrow is</dt><dd>A call between modules</dd><dt>Size</dt><dd>5–12 boxes</dd></dl>
+  <p class="io inc"><b>Include</b> the modules of one deployable only · the one or two external things they reach.</p>
+  <p class="io exc"><b>Leave out</b> other containers’ internals. Two containers mean two diagrams.</p>
+  <div class="when"><p class="yes"><b>Use when</b> you explain how one deployable is built, or where a change lands.</p>
+    <p class="no"><b>Not when</b> you have over ~12 modules. Group them first. Simon Brown advises most teams stop at level 2 — a component diagram changes with nearly every commit.</p>
+    <p class="ex">Not this: deployable boxes with arrows numbered for time. That is a C4 dynamic diagram — see C2.</p></div>
+</div>
+
+<div class="card" id="a4"><div class="hd"><h3>A4 · Class / code</h3><span class="freq"><i>●</i>○○</span></div>
+  <p class="alt">Class diagram · UML · C4 level 4</p>
+  <svg viewBox="0 0 230 128" role="img" aria-label="Two UML class boxes with name, attribute and method compartments, joined by a hollow inheritance triangle">
+    <g fill="none" stroke="#334EAC" stroke-width="1.4">
+      <rect x="74" y="8" width="84" height="44" rx="2"/><path d="M74 24 h84 M74 38 h84"/>
+      <rect x="18" y="80" width="84" height="40" rx="2"/><path d="M18 96 h84 M18 108 h84"/>
+      <rect x="130" y="80" width="84" height="40" rx="2"/><path d="M130 96 h84 M130 108 h84"/></g>
+    <g font-size="8" font-weight="800" fill="#081F5C" text-anchor="middle">
+      <text x="116" y="20">Discount</text><text x="60" y="92">PercentOff</text><text x="172" y="92">FixedOff</text></g>
+    <g font-size="7" fill="rgba(8,31,92,.62)">
+      <text x="79" y="34">+ code</text><text x="79" y="48">+ apply()</text>
+      <text x="23" y="105">+ rate</text><text x="135" y="105">+ amount</text></g>
+    <g fill="none" stroke="#334EAC" stroke-width="1.3">
+      <path d="M60 80 L60 66 L172 66 L172 80"/><path d="M116 66 L116 58"/>
+      <path d="M116 52 L110 60 L122 60 Z" fill="#FFFDFA"/></g>
+  </svg>
+  <dl class="kv"><dt>Box is</dt><dd>A class: name, attributes, methods</dd>
+    <dt>Arrow is</dt><dd>Inherits (hollow triangle), uses, or holds</dd></dl>
+  <p class="io inc"><b>Include</b> only the classes in the relationship you are explaining · the cardinality on an association.</p>
+  <p class="io exc"><b>Leave out</b> getters, setters and every class that is merely nearby.</p>
+  <div class="when"><p class="yes"><b>Use when</b> an inheritance or composition tree is genuinely hard to read in code.</p>
+    <p class="no"><b>Not when</b> the code reads fine — which is nearly always. It rots the day someone renames a method.</p></div>
+</div>
+
+<div class="card" id="a5"><div class="hd"><h3>A5 · Layered / tiered</h3><span class="freq"><i>●●●</i></span></div>
+  <p class="alt">Layered architecture diagram · ArchiMate layered viewpoint</p>
+  <svg viewBox="0 0 230 128" role="img" aria-label="Four stacked horizontal layers with a downward arrow at the side showing that dependencies point only inward">
+    <g stroke="#334EAC" stroke-width="1.4">
+      <rect x="20" y="10" width="164" height="24" rx="4" fill="none"/>
+      <rect x="20" y="40" width="164" height="24" rx="4" fill="none"/>
+      <rect x="20" y="70" width="164" height="24" rx="4" fill="#081F5C" stroke="none"/>
+      <rect x="20" y="100" width="164" height="22" rx="4" fill="none"/></g>
+    <g font-size="8.5" font-weight="800" text-anchor="middle" fill="#081F5C">
+      <text x="102" y="26">INTERFACE · web, api, cli</text><text x="102" y="56">APPLICATION · checkout, refunds</text></g>
+    <text x="102" y="86" font-size="8.5" font-weight="800" text-anchor="middle" fill="#F7F2EB">DOMAIN · orders, pricing, rules</text>
+    <text x="102" y="115" font-size="8" font-weight="800" text-anchor="middle" fill="#081F5C">INFRASTRUCTURE · db, queue, s3</text>
+    <path d="M194 16 L194 112" fill="none" stroke="#334EAC" stroke-width="1.4" marker-end="url(#a)"/>
+    <text x="206" y="68" font-size="7.5" fill="rgba(8,31,92,.62)" transform="rotate(90 206 68)" text-anchor="middle">may import</text>
+  </svg>
+  <dl class="kv"><dt>Band is</dt><dd>A layer. Order is the content</dd>
+    <dt>Arrow is</dt><dd>The one legal direction of dependency</dd></dl>
+  <p class="io inc"><b>Include</b> every layer, in order · the rule that says which way imports may point · the one or two legal exceptions, named.</p>
+  <p class="io exc"><b>Leave out</b> individual calls. This type states a rule, not a flow.</p>
+  <div class="when"><p class="yes"><b>Use when</b> you onboard someone to a codebase, or you want to stop a bad import.</p>
+    <p class="no"><b>Not when</b> the layering is aspirational. Draw what is true, or the diagram lies.</p></div>
+</div>
+
+<div class="card" id="a6"><div class="hd"><h3>A6 · Package &amp; dependency graph</h3><span class="freq"><i>●●</i>○</span></div>
+  <p class="alt">Package diagram · UML · dependency graph</p>
+  <svg viewBox="0 0 230 128" role="img" aria-label="Six package boxes joined by dependency arrows, with one red cycle highlighted">
+    <g fill="none" stroke="#334EAC" stroke-width="1.4">
+      <rect x="12" y="16" width="52" height="24" rx="3"/><rect x="90" y="16" width="52" height="24" rx="3"/>
+      <rect x="168" y="16" width="50" height="24" rx="3"/><rect x="12" y="84" width="52" height="24" rx="3"/>
+      <rect x="90" y="84" width="52" height="24" rx="3"/><rect x="168" y="84" width="50" height="24" rx="3"/></g>
+    <g font-size="8" font-weight="700" fill="#081F5C" text-anchor="middle">
+      <text x="38" y="32">api</text><text x="116" y="32">checkout</text><text x="193" y="32">refunds</text>
+      <text x="38" y="100">orders</text><text x="116" y="100">pricing</text><text x="193" y="100">payments</text></g>
+    <g fill="none" stroke="#334EAC" stroke-width="1.3" marker-end="url(#a)">
+      <path d="M64 28 L86 28"/><path d="M142 28 L164 28"/><path d="M116 40 L116 80"/>
+      <path d="M64 96 L86 96"/><path d="M193 40 L193 80"/></g>
+    <g fill="none" stroke="#B3453A" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#r)">
+      <path d="M142 96 L164 96"/><path d="M186 84 L140 44"/></g>
+    <text x="115" y="124" font-size="7.5" fill="#B3453A" text-anchor="middle">red = an import cycle, the thing this diagram exists to find</text>
+  </svg>
+  <dl class="kv"><dt>Box is</dt><dd>A package or module</dd><dt>Arrow is</dt><dd>“imports” — never a call at runtime</dd></dl>
+  <p class="io inc"><b>Include</b> every package in the scope you are checking · cycles, marked so they stand out.</p>
+  <p class="io exc"><b>Leave out</b> the standard library and third-party packages. They are never the problem.</p>
+  <div class="when"><p class="yes"><b>Use when</b> you hunt a cycle, plan a split, or check a layering rule holds.</p>
+    <p class="no"><b>Not when</b> you would draw it by hand. Generate it, or it is stale by Friday.</p></div>
+</div>
+
+<div class="card" id="a7"><div class="hd"><h3>A7 · Composite structure</h3><span class="freq"><i>●</i>○○</span></div>
+  <p class="alt">Composite structure diagram · UML</p>
+  <svg viewBox="0 0 230 128" role="img" aria-label="One outer box with small port squares on its border and two internal parts wired to those ports">
+    <rect x="30" y="20" width="170" height="88" rx="4" fill="none" stroke="#334EAC" stroke-width="1.5"/>
+    <text x="40" y="34" font-size="8.5" font-weight="800" fill="#081F5C">CheckoutService</text>
+    <g fill="none" stroke="#334EAC" stroke-width="1.3">
+      <rect x="66" y="54" width="52" height="30" rx="3"/><rect x="134" y="54" width="48" height="30" rx="3"/></g>
+    <g font-size="7.5" font-weight="700" fill="#081F5C" text-anchor="middle">
+      <text x="92" y="72">validate</text><text x="158" y="72">price</text></g>
+    <g fill="#FFFDFA" stroke="#334EAC" stroke-width="1.3">
+      <rect x="24" y="62" width="12" height="12"/><rect x="194" y="62" width="12" height="12"/></g>
+    <g fill="none" stroke="#334EAC" stroke-width="1.3"><path d="M36 68 L64 68"/><path d="M118 69 L132 69"/><path d="M182 68 L194 68"/></g>
+    <g font-size="7" fill="rgba(8,31,92,.62)" text-anchor="middle"><text x="12" y="84">port in</text><text x="212" y="84">port out</text></g>
+  </svg>
+  <dl class="kv"><dt>Box is</dt><dd>One classifier, with its internal parts</dd><dt>Port</dt><dd>A port — a named interface</dd></dl>
+  <p class="io inc"><b>Include</b> the parts inside one thing · the ports on its boundary · the connectors between them.</p>
+  <p class="io exc"><b>Leave out</b> anything outside the classifier. Its surroundings belong on A1 or A2.</p>
+  <div class="when"><p class="yes"><b>Use when</b> ports and adapters are the design — embedded work, or a strict hexagonal codebase.</p>
+    <p class="no"><b>Not when</b> A3 would do. Almost always, A3 will do.</p></div>
+</div>
+</div>
+
+<p class="famnote" style="margin-top:14px"><b>Three more C4 types.</b> The C4 <b>deployment diagram</b> is
+carded as B1. Two are not carded: a <b>system landscape diagram</b> shows several systems and how they
+relate — one level above A1, for an organisation rather than a system. A <b>dynamic diagram</b> is C4’s
+own notation for a numbered runtime flow drawn over the boxes of A2 or A3, so it answers the same
+question as C1 or C2 in a different style: A2 boxes, C2 arrows. All three
+are defined by the C4 model alongside its four levels.</p>
+
+<!-- ══════════════════ B · DEPLOYMENT ══════════════════ -->
+<h2>B · Deployment — where it runs <span class="cnt">3 types</span></h2>
+<p class="famnote">Boxes are infrastructure, not code. The defining limit: <b>one service is one icon</b>.
+If your point is a distinction <i>inside</i> a service, no diagram in this family can carry it — use
+A3 or C3 instead.</p>
+<div class="grid">
+
+<div class="card" id="b1"><div class="hd"><h3>B1 · Deployment / infrastructure</h3><span class="freq"><i>●●●</i></span></div>
+  <p class="alt">Deployment diagram · UML · C4 deployment</p>
+  <svg viewBox="0 0 230 142" role="img" aria-label="Two dashed boundaries holding coloured service tiles, with one arrow crossing between them">
+    <g fill="none" stroke="rgba(8,31,92,.34)" stroke-width="1.1" stroke-dasharray="4 4">
+      <rect x="8" y="22" width="132" height="104" rx="9"/><rect x="152" y="22" width="70" height="104" rx="9"/></g>
+    <g font-size="8" font-weight="700" fill="rgba(8,31,92,.62)" letter-spacing=".11em">
+      <text x="18" y="17">YOUR ACCOUNT</text><text x="162" y="17">VENDOR</text></g>
+    <rect x="22" y="44" width="28" height="28" rx="4" fill="#8C4FFF"/>
+    <rect x="72" y="44" width="28" height="28" rx="4" fill="#ED7100"/>
+    <rect x="72" y="94" width="28" height="18" rx="4" fill="#7AA116"/>
+    <rect x="174" y="44" width="28" height="28" rx="4" fill="#334EAC"/>
+    <g font-size="7.5" font-weight="700" fill="#081F5C" text-anchor="middle">
+      <text x="36" y="84">GATEWAY</text><text x="86" y="84">COMPUTE</text><text x="86" y="124">STORE</text><text x="188" y="84">THEIRS</text></g>
+    <g fill="none" stroke="#334EAC" stroke-width="1.4" marker-end="url(#a)">
+      <path d="M50 58 L68 58"/><path d="M100 58 L170 58"/><path d="M86 72 L86 90"/></g>
+    <text x="135" y="74" font-size="7.5" fill="rgba(8,31,92,.62)" text-anchor="middle">crosses the boundary</text>
+  </svg>
+  <dl class="kv"><dt>Box is</dt><dd>A managed service or machine, in the vendor’s own icon</dd>
+    <dt>Arrow is</dt><dd>A call across infrastructure</dd><dt>Boundary</dt><dd>Account, region, tenant — where billing or trust changes</dd></dl>
+  <p class="io inc"><b>Include</b> every service on the bill · account and region boundaries · what crosses each boundary.</p>
+  <p class="io exc"><b>Leave out</b> services you never think about — IAM, CloudFormation. On every diagram, so they inform none.</p>
+  <div class="when"><p class="yes"><b>Use when</b> the question is cost, ops, blast radius, or “what do we run”.</p>
+    <p class="no"><b>Not when</b> the point is a rule inside one service. An icon cannot show it.</p></div>
+</div>
+
+<div class="card" id="b2"><div class="hd"><h3>B2 · Network topology</h3><span class="freq"><i>●●</i>○</span></div>
+  <p class="alt">Network topology diagram</p>
+  <svg viewBox="0 0 230 142" role="img" aria-label="A VPC containing a public and a private subnet with CIDR ranges, a gateway, and a firewall rule between them">
+    <rect x="10" y="22" width="212" height="102" rx="7" fill="none" stroke="#334EAC" stroke-width="1.4"/>
+    <text x="20" y="17" font-size="8" font-weight="700" fill="#081F5C" letter-spacing=".08em">VPC 10.0.0.0/16</text>
+    <g fill="none" stroke="rgba(8,31,92,.34)" stroke-width="1.2" stroke-dasharray="4 3">
+      <rect x="22" y="38" width="90" height="74" rx="5"/><rect x="124" y="38" width="86" height="74" rx="5"/></g>
+    <g font-size="7.5" font-weight="700" fill="rgba(8,31,92,.62)">
+      <text x="30" y="52">PUBLIC 10.0.1.0/24</text><text x="132" y="52">PRIVATE 10.0.2.0/24</text></g>
+    <g fill="none" stroke="#334EAC" stroke-width="1.4">
+      <rect x="38" y="68" width="58" height="26" rx="4"/><rect x="138" y="68" width="58" height="26" rx="4"/></g>
+    <g font-size="8" font-weight="800" fill="#081F5C" text-anchor="middle"><text x="67" y="85">NAT GW</text><text x="167" y="85">APP</text></g>
+    <path d="M96 81 L134 81" fill="none" stroke="#334EAC" stroke-width="1.4" marker-end="url(#a)"/>
+    <path d="M118 60 L118 102" fill="none" stroke="#B3453A" stroke-width="1.4" stroke-dasharray="3 2"/>
+    <text x="118" y="120" font-size="7" fill="#B3453A" text-anchor="middle">sg: 443 only</text>
+  </svg>
+  <dl class="kv"><dt>Box is</dt><dd>A subnet, a gateway, or a host</dd><dt>Line is</dt><dd>A route, or a rule that blocks one</dd></dl>
+  <p class="io inc"><b>Include</b> CIDR ranges · which subnet is public · every rule that blocks or allows traffic · the egress path.</p>
+  <p class="io exc"><b>Leave out</b> applications. What runs on a host belongs on B1.</p>
+  <div class="when"><p class="yes"><b>Use when</b> you run inside a VPC, or a security review asks what can reach what.</p>
+    <p class="no"><b>Not when</b> you are fully serverless with no VPC — then there is nothing to draw.</p></div>
+</div>
+
+<div class="card" id="b3"><div class="hd"><h3>B3 · Environment promotion</h3><span class="freq"><i>●●</i>○</span></div>
+  <p class="alt">No standard name — usually drawn as part of a deployment pipeline</p>
+  <svg viewBox="0 0 230 142" role="img" aria-label="Three environment boxes in a row with a manual approval gate between stage and production">
+    <g fill="none" stroke="#334EAC" stroke-width="1.5">
+      <rect x="8" y="48" width="56" height="40" rx="5"/><rect x="88" y="48" width="56" height="40" rx="5"/>
+      <rect x="168" y="48" width="56" height="40" rx="5"/></g>
+    <g font-size="9" font-weight="800" fill="#081F5C" text-anchor="middle">
+      <text x="36" y="66">DEV</text><text x="116" y="66">STAGE</text><text x="196" y="66">PROD</text></g>
+    <g font-size="7" fill="rgba(8,31,92,.62)" text-anchor="middle">
+      <text x="36" y="79">synthetic</text><text x="116" y="79">masked copy</text><text x="196" y="79">real data</text></g>
+    <g fill="none" stroke="#334EAC" stroke-width="1.4" marker-end="url(#a)">
+      <path d="M64 68 L84 68"/><path d="M144 68 L164 68"/></g>
+    <path d="M156 24 L166 34 L156 44 L146 34 Z" fill="#FFFDFA" stroke="#334EAC" stroke-width="1.3"/>
+    <path d="M156 44 L156 62" fill="none" stroke="#334EAC" stroke-width="1.2" stroke-dasharray="3 2"/>
+    <text x="156" y="18" font-size="7.5" font-weight="700" fill="#081F5C" text-anchor="middle">approval</text>
+    <text x="115" y="110" font-size="7.5" fill="rgba(8,31,92,.62)" text-anchor="middle">one row per environment · the gate is the content</text>
+  </svg>
+  <dl class="kv"><dt>Box is</dt><dd>One environment</dd><dt>Diamond is</dt><dd>A gate: who approves, and on what</dd></dl>
+  <p class="io inc"><b>Include</b> every environment · what data each holds · every gate and who owns it · what is <i>not</i> promoted (config, secrets).</p>
+  <p class="io exc"><b>Leave out</b> the build steps. Those are E1.</p>
+  <div class="when"><p class="yes"><b>Use when</b> an auditor asks how code reaches production, or a release keeps surprising people.</p>
+    <p class="no"><b>Not when</b> you have one environment. Many teams fold this into the deployment pipeline (E1) rather than drawing it separately.</p></div>
+</div>
+</div>
+
+<!-- ══════════════════ C · BEHAVIOUR ══════════════════ -->
+<h2>C · Behaviour — what happens <span class="cnt">8 types</span></h2>
+<p class="famnote">Time is in the picture. Each type puts it somewhere different: down a lifeline (C1),
+along an arrow (C3), as a numbered label (C2), or on an axis (C6). Behaviour diagrams say nothing
+about structure — if a reader needs to know what contains what, they need a family A diagram too.</p>
+<div class="grid">
+
+<div class="card" id="c1"><div class="hd"><h3>C1 · Sequence</h3><span class="freq"><i>●●●</i></span></div>
+  <p class="alt">Sequence diagram · UML</p>
+  <svg viewBox="0 0 230 132" role="img" aria-label="Three vertical lifelines with four numbered messages between them, replies dashed">
+    <g fill="none" stroke="#334EAC" stroke-width="1.5">
+      <rect x="8" y="8" width="50" height="22" rx="4"/><rect x="90" y="8" width="50" height="22" rx="4"/><rect x="172" y="8" width="50" height="22" rx="4"/></g>
+    <g font-size="8" font-weight="800" fill="#081F5C" text-anchor="middle">
+      <text x="33" y="23">CLIENT</text><text x="115" y="23">API</text><text x="197" y="23">STORE</text></g>
+    <g stroke="rgba(8,31,92,.34)" stroke-width="1" stroke-dasharray="3 3">
+      <path d="M33 30 L33 126"/><path d="M115 30 L115 126"/><path d="M197 30 L197 126"/></g>
+    <g fill="none" stroke="#334EAC" stroke-width="1.4" marker-end="url(#a)"><path d="M33 48 L109 48"/><path d="M115 72 L191 72"/></g>
+    <g fill="none" stroke="#7096D1" stroke-width="1.4" stroke-dasharray="3 2.4" marker-end="url(#b)"><path d="M197 94 L121 94"/><path d="M115 116 L39 116"/></g>
+    <g font-size="7.5" fill="rgba(8,31,92,.62)">
+      <text x="40" y="43">1 · request</text><text x="122" y="67">2 · read</text>
+      <text x="190" y="89" text-anchor="end">3 · record</text><text x="108" y="111" text-anchor="end">4 · reply</text></g>
+  </svg>
+  <dl class="kv"><dt>Box is</dt><dd>A participant, across the top</dd><dt>Line down</dt><dd>Its lifeline. Time runs down</dd>
+    <dt>Arrow is</dt><dd>One message, left or right</dd></dl>
+  <p class="io inc"><b>Include</b> every participant that sends or receives · one row per message, in order · the reply when it matters · the condition on a branch.</p>
+  <p class="io exc"><b>Leave out</b> structure. Stop at about 12 messages.</p>
+  <div class="when"><p class="yes"><b>Use when</b> order is the content: a handshake, a token exchange, a retry, a race.</p>
+    <p class="no"><b>Not when</b> the reader needs to know what the system <i>is</i>.</p></div>
+</div>
+
+<div class="card" id="c2"><div class="hd"><h3>C2 · Communication</h3><span class="freq"><i>●</i>○○</span></div>
+  <p class="alt">Communication diagram · UML · “collaboration” in UML 1.x</p>
+  <svg viewBox="0 0 230 138" role="img" aria-label="Three nodes in a triangle with numbered messages on the links between them">
+    <g fill="none" stroke="#334EAC" stroke-width="1.5">
+      <rect x="84" y="12" width="62" height="26" rx="5"/><rect x="12" y="92" width="62" height="26" rx="5"/><rect x="156" y="92" width="62" height="26" rx="5"/></g>
+    <g font-size="8" font-weight="800" fill="#081F5C" text-anchor="middle">
+      <text x="115" y="29">API</text><text x="43" y="109">CLIENT</text><text x="187" y="109">STORE</text></g>
+    <g fill="none" stroke="#334EAC" stroke-width="1.4" marker-end="url(#a)">
+      <path d="M52 92 L92 42"/><path d="M142 44 L178 90"/><path d="M156 105 L78 105"/></g>
+    <g font-size="7.5" fill="rgba(8,31,92,.62)">
+      <text x="48" y="64">1 · request</text><text x="152" y="66">2 · read</text><text x="117" y="100" text-anchor="middle">3 · reply</text></g>
+    <text x="115" y="134" font-size="7" fill="rgba(8,31,92,.34)" text-anchor="middle">same facts as C1 — the number carries time, not the layout</text>
+  </svg>
+  <dl class="kv"><dt>Box is</dt><dd>A participant, placed anywhere</dd><dt>Arrow is</dt><dd>A message, numbered for order</dd></dl>
+  <p class="io inc"><b>Include</b> the same messages a sequence diagram would carry, numbered.</p>
+  <p class="io exc"><b>Leave out</b> more than about 8 messages. Without lifelines, order gets hard to follow fast.</p>
+  <div class="when"><p class="yes"><b>Use when</b> who-talks-to-whom matters more than exact ordering, and the topology is not a line.</p>
+    <p class="no"><b>Not when</b> C1 fits. It almost always fits, and it reads faster.</p>
+    <p class="ex">Example: a checkout request as three numbered steps (client, API, store), solid = call, dashed = reply, boxes placed by where they run. C4 calls this a dynamic diagram.</p></div>
+</div>
+
+<div class="card" id="c3"><div class="hd"><h3>C3 · Activity / flowchart</h3><span class="freq"><i>●●●</i></span></div>
+  <p class="alt">Activity diagram · UML · flowchart</p>
+  <svg viewBox="0 0 230 132" role="img" aria-label="A step leading to a diamond decision with two labelled exits ending in two terminal states">
+    <rect x="82" y="8" width="64" height="24" rx="5" fill="none" stroke="#334EAC" stroke-width="1.5"/>
+    <text x="114" y="24" font-size="9" font-weight="800" fill="#081F5C" text-anchor="middle">CHECK</text>
+    <path d="M114 46 L152 68 L114 90 L76 68 Z" fill="none" stroke="#334EAC" stroke-width="1.5"/>
+    <text x="114" y="71" font-size="8" font-weight="700" fill="#081F5C" text-anchor="middle">order found?</text>
+    <g fill="none" stroke="#334EAC" stroke-width="1.5"><rect x="8" y="100" width="58" height="24" rx="5"/><rect x="162" y="100" width="58" height="24" rx="5"/></g>
+    <g font-size="9" font-weight="800" text-anchor="middle"><text x="37" y="116" fill="#B3453A">404</text><text x="191" y="116" fill="#3E7A4E">200</text></g>
+    <g fill="none" stroke="#334EAC" stroke-width="1.4" marker-end="url(#a)">
+      <path d="M114 32 L114 42"/><path d="M76 68 L37 68 L37 96"/><path d="M152 68 L191 68 L191 96"/></g>
+    <g font-size="7.5" fill="rgba(8,31,92,.62)"><text x="50" y="63">no</text><text x="166" y="63">yes</text></g>
+  </svg>
+  <dl class="kv"><dt>Box is</dt><dd>A step the code takes</dd><dt>Diamond is</dt><dd>A decision, every exit labelled</dd>
+    <dt>Arrow is</dt><dd>“next”</dd></dl>
+  <p class="io inc"><b>Include</b> every branch that changes the outcome · terminal states named (<code>404</code>, <code>200</code>) · lanes when two entries share a tail.</p>
+  <p class="io exc"><b>Leave out</b> who owns each step. A flowchart has no owners — if you need them, use C8. A dashed box may say <i>where</i> a step runs; that is a boundary, not an owner.</p>
+  <div class="when"><p class="yes"><b>Use when</b> the logic is the content — an authorisation check, a validation chain.</p>
+    <p class="no"><b>Not when</b> nothing branches. A straight line of six steps is a list.</p>
+    <p class="ex">Example: a dashed box around API Gateway shows that the <code>401</code> happens there, before your code runs.</p></div>
+</div>
+
+<div class="card" id="c4"><div class="hd"><h3>C4 · State machine</h3><span class="freq"><i>●●</i>○</span></div>
+  <p class="alt">State machine diagram · UML · statechart</p>
+  <svg viewBox="0 0 230 132" role="img" aria-label="A start dot leading to an issued state, which transitions to used or to expired">
+    <circle cx="16" cy="66" r="6" fill="#081F5C"/>
+    <g fill="none" stroke="#334EAC" stroke-width="1.5">
+      <rect x="42" y="50" width="62" height="32" rx="16"/><rect x="152" y="12" width="68" height="30" rx="15"/><rect x="152" y="90" width="68" height="30" rx="15"/></g>
+    <g font-size="9" font-weight="800" fill="#081F5C" text-anchor="middle">
+      <text x="73" y="70">ISSUED</text><text x="186" y="31">USED</text><text x="186" y="109">EXPIRED</text></g>
+    <g fill="none" stroke="#334EAC" stroke-width="1.4" marker-end="url(#a)">
+      <path d="M22 66 L38 66"/><path d="M104 60 L126 60 L126 27 L148 27"/><path d="M104 72 L126 72 L126 105 L148 105"/></g>
+    <g font-size="7.5" fill="rgba(8,31,92,.62)" text-anchor="end" style="paint-order:stroke;stroke:#FFFDFA;stroke-width:3.5px">
+      <text x="122" y="45">link opened</text><text x="122" y="92">1 h passes</text></g>
+  </svg>
+  <dl class="kv"><dt>Box is</dt><dd>A state the thing can be in</dd><dt>Arrow is</dt><dd>A transition, labelled with its event</dd></dl>
+  <p class="io inc"><b>Include</b> every state · the start state · the terminal states · the guard on a conditional transition.</p>
+  <p class="io exc"><b>Leave out</b> the implementation. States are observable facts, not functions.</p>
+  <div class="when"><p class="yes"><b>Use when</b> one thing has a lifecycle with rules.</p>
+    <p class="no"><b>Not when</b> the thing has two states. A sentence does that better.</p>
+    <p class="ex">Example: a password-reset token — issued, then used or expired.</p></div>
+</div>
+
+<div class="card" id="c5"><div class="hd"><h3>C5 · Use case</h3><span class="freq"><i>●</i>○○</span></div>
+  <p class="alt">Use case diagram · UML</p>
+  <svg viewBox="0 0 230 132" role="img" aria-label="Two stick actors outside a system boundary containing three use case ellipses">
+    <rect x="72" y="14" width="124" height="104" rx="6" fill="none" stroke="#334EAC" stroke-width="1.4" stroke-dasharray="5 4"/>
+    <text x="134" y="28" font-size="7.5" font-weight="700" fill="rgba(8,31,92,.62)" text-anchor="middle" letter-spacing=".1em">ONLINE SHOP</text>
+    <g fill="none" stroke="#334EAC" stroke-width="1.4">
+      <ellipse cx="134" cy="48" rx="50" ry="13"/><ellipse cx="134" cy="78" rx="50" ry="13"/><ellipse cx="134" cy="106" rx="50" ry="13"/></g>
+    <g font-size="8" fill="#081F5C" text-anchor="middle"><text x="134" y="51">place an order</text><text x="134" y="81">track an order</text><text x="134" y="109">issue a refund</text></g>
+    <g fill="none" stroke="#334EAC" stroke-width="1.3">
+      <circle cx="28" cy="40" r="6"/><path d="M28 46 v16 M18 52 h20 M28 62 l-7 10 M28 62 l7 10"/>
+      <circle cx="28" cy="94" r="6"/><path d="M28 100 v16 M18 106 h20 M28 116 l-7 10 M28 116 l7 10"/></g>
+    <g font-size="7" fill="rgba(8,31,92,.62)" text-anchor="middle"><text x="28" y="22">CUSTOMER</text><text x="28" y="86">SUPPORT</text></g>
+    <g fill="none" stroke="#334EAC" stroke-width="1.2"><path d="M40 52 L86 50"/><path d="M40 58 L88 76"/><path d="M40 104 L86 105"/></g>
+  </svg>
+  <dl class="kv"><dt>Ellipse is</dt><dd>A goal a user has</dd><dt>Stick figure</dt><dd>An actor — a role, not a person</dd>
+    <dt>Box is</dt><dd>The system boundary: what is in scope</dd></dl>
+  <p class="io inc"><b>Include</b> every actor · every goal in scope · the boundary line, which is the real content.</p>
+  <p class="io exc"><b>Leave out</b> steps, screens and order. A use case is a goal, not a flow.</p>
+  <div class="when"><p class="yes"><b>Use when</b> you negotiate scope with a stakeholder and need “in” and “out” on one page.</p>
+    <p class="no"><b>Not when</b> you have a backlog. User stories carry the same facts and stay current.</p></div>
+</div>
+
+<div class="card" id="c6"><div class="hd"><h3>C6 · Timing</h3><span class="freq"><i>●</i>○○</span></div>
+  <p class="alt">Timing diagram · UML</p>
+  <svg viewBox="0 0 230 132" role="img" aria-label="Two horizontal signal tracks stepping between states over a shared time axis">
+    <g font-size="7.5" font-weight="700" fill="rgba(8,31,92,.62)"><text x="6" y="30">REQUEST</text><text x="6" y="82">WORKER</text></g>
+    <g fill="none" stroke="#334EAC" stroke-width="1.6">
+      <path d="M52 36 L104 36 L104 18 L150 18 L150 36 L214 36"/>
+      <path d="M52 88 L80 88 L80 68 L128 68 L128 88 L214 88"/></g>
+    <g font-size="7" fill="rgba(8,31,92,.62)">
+      <text x="60" y="48">queued</text><text x="112" y="14">served</text><text x="162" y="48">closed</text>
+      <text x="56" y="100">idle</text><text x="90" y="64">running</text><text x="150" y="100">idle</text></g>
+    <path d="M52 112 L214 112" fill="none" stroke="rgba(8,31,92,.34)" stroke-width="1" marker-end="url(#a)"/>
+    <g font-size="7" fill="rgba(8,31,92,.34)"><text x="52" y="124">0 s</text><text x="196" y="124">60 s</text></g>
+    <g stroke="rgba(8,31,92,.16)" stroke-width="1" stroke-dasharray="2 3"><path d="M104 18 L104 112"/><path d="M150 36 L150 112"/></g>
+  </svg>
+  <dl class="kv"><dt>Track is</dt><dd>One participant’s state over time</dd><dt>Step is</dt><dd>A change of state at an instant</dd>
+    <dt>Axis is</dt><dd>Real time, shared by every track</dd></dl>
+  <p class="io inc"><b>Include</b> every participant whose timing interacts · the real durations · the constraint you are proving (“under 60 s”).</p>
+  <p class="io exc"><b>Leave out</b> anything untimed. If no deadline matters, this type has no content.</p>
+  <div class="when"><p class="yes"><b>Use when</b> a deadline, a timeout or a race is the design problem.</p>
+    <p class="no"><b>Not when</b> order alone is the point. C1 says that with far less machinery.</p></div>
+</div>
+
+<div class="card" id="c7"><div class="hd"><h3>C7 · Interaction overview</h3><span class="freq"><i>●</i>○○</span></div>
+  <p class="alt">Interaction overview diagram · UML</p>
+  <svg viewBox="0 0 230 132" role="img" aria-label="An activity flow whose nodes are references to other sequence diagrams">
+    <g fill="none" stroke="#334EAC" stroke-width="1.4">
+      <rect x="76" y="8" width="78" height="26" rx="2"/><rect x="8" y="80" width="78" height="26" rx="2"/><rect x="144" y="80" width="78" height="26" rx="2"/></g>
+    <g font-size="7" font-weight="800" fill="rgba(8,31,92,.62)"><text x="80" y="18">ref</text><text x="12" y="90">ref</text><text x="148" y="90">ref</text></g>
+    <g font-size="8" font-weight="700" fill="#081F5C" text-anchor="middle">
+      <text x="115" y="28">sd: checkout</text><text x="47" y="100">sd: decline</text><text x="183" y="100">sd: confirm</text></g>
+    <path d="M115 48 L140 60 L115 72 L90 60 Z" fill="none" stroke="#334EAC" stroke-width="1.4"/>
+    <text x="115" y="63" font-size="7" font-weight="700" fill="#081F5C" text-anchor="middle">paid?</text>
+    <g fill="none" stroke="#334EAC" stroke-width="1.4" marker-end="url(#a)">
+      <path d="M115 34 L115 44"/><path d="M90 60 L47 60 L47 76"/><path d="M140 60 L183 60 L183 76"/></g>
+    <g font-size="7" fill="rgba(8,31,92,.62)"><text x="62" y="55">no</text><text x="152" y="55">yes</text></g>
+  </svg>
+  <dl class="kv"><dt>Node is</dt><dd>A whole sequence diagram, referenced by name</dd><dt>Diamond is</dt><dd>Which sequence runs next</dd></dl>
+  <p class="io inc"><b>Include</b> only the <code>ref</code> frames and the decisions between them.</p>
+  <p class="io exc"><b>Leave out</b> the messages themselves. They live in the diagram each frame points at.</p>
+  <div class="when"><p class="yes"><b>Use when</b> you have five or more sequence diagrams and need an index showing which runs when.</p>
+    <p class="no"><b>Not when</b> you have three. A sentence links them better.</p></div>
+</div>
+
+<div class="card" id="c8"><div class="hd"><h3>C8 · Swimlane / BPMN</h3><span class="freq"><i>●●</i>○</span></div>
+  <p class="alt">BPMN process diagram · swimlane · cross-functional flowchart</p>
+  <svg viewBox="0 0 230 132" role="img" aria-label="Three horizontal lanes labelled customer, warehouse and courier, with steps in each and arrows crossing between lanes">
+    <g stroke="rgba(8,31,92,.16)" stroke-width="1"><path d="M48 10 h174 M48 48 h174 M48 86 h174 M48 122 h174"/><path d="M48 10 v112"/></g>
+    <g font-size="7.5" font-weight="700" fill="rgba(8,31,92,.62)" text-anchor="middle">
+      <text x="27" y="32">CUSTOMER</text><text x="27" y="70">WAREHOUSE</text><text x="27" y="108">COURIER</text></g>
+    <g fill="none" stroke="#334EAC" stroke-width="1.4">
+      <rect x="60" y="18" width="52" height="22" rx="4"/><rect x="128" y="56" width="52" height="22" rx="4"/><rect x="60" y="94" width="52" height="22" rx="4"/></g>
+    <g font-size="7.5" font-weight="700" fill="#081F5C" text-anchor="middle">
+      <text x="86" y="33">order</text><text x="154" y="71">pack</text><text x="86" y="109">deliver</text></g>
+    <g fill="none" stroke="#334EAC" stroke-width="1.4" marker-end="url(#a)">
+      <path d="M112 29 L154 29 L154 52"/><path d="M154 78 L154 105 L116 105"/></g>
+  </svg>
+  <dl class="kv"><dt>Lane is</dt><dd>Who does it — a team, a role, a system</dd><dt>Box is</dt><dd>A step that lane performs</dd>
+    <dt>Crossing</dt><dd>A handover — the thing this type exists to expose</dd></dl>
+  <p class="io inc"><b>Include</b> one lane per actor · every step in its owner’s lane · every handover · the waits, if the process is slow.</p>
+  <p class="io exc"><b>Leave out</b> technical calls. A lane is a <i>who</i>, not a service.</p>
+  <div class="when"><p class="yes"><b>Use when</b> a process crosses teams and nobody agrees who owns which step.</p>
+    <p class="no"><b>Not when</b> one team does everything. Then C3 is simpler.</p></div>
+</div>
+</div>
+
+<!-- ══════════════════ D · DATA ══════════════════ -->
+<h2>D · Data — what it holds and where it came from <span class="cnt">6 types</span></h2>
+<p class="famnote">An arrow here means <b>data moved</b>, never that something was called. That single
+rule separates this family from C, and mixing the two is the most common error in data diagrams.</p>
+<div class="grid">
+
+<div class="card" id="d1"><div class="hd"><h3>D1 · ERD</h3><span class="freq"><i>●●</i>○</span></div>
+  <p class="alt">Entity–relationship diagram · ERD · crow’s-foot notation</p>
+  <svg viewBox="0 0 230 128" role="img" aria-label="Two entity boxes with attribute rows joined by a one-to-many crow's foot line">
+    <g fill="none" stroke="#334EAC" stroke-width="1.4">
+      <rect x="10" y="22" width="84" height="62" rx="3"/><path d="M10 38 h84"/>
+      <rect x="136" y="22" width="84" height="62" rx="3"/><path d="M136 38 h84"/></g>
+    <g font-size="8.5" font-weight="800" fill="#081F5C" text-anchor="middle"><text x="52" y="34">customer</text><text x="178" y="34">order</text></g>
+    <g font-size="7" fill="rgba(8,31,92,.62)">
+      <text x="16" y="52">PK id</text><text x="16" y="64">name</text><text x="16" y="76">email</text>
+      <text x="142" y="52">PK id</text><text x="142" y="64">FK cust_id</text><text x="142" y="76">date</text></g>
+    <path d="M94 53 L128 53" fill="none" stroke="#334EAC" stroke-width="1.4"/>
+    <g fill="none" stroke="#334EAC" stroke-width="1.3"><path d="M128 53 L136 46 M128 53 L136 53 M128 53 L136 60"/><path d="M102 48 v10"/></g>
+    <g font-size="7" fill="rgba(8,31,92,.62)" text-anchor="middle"><text x="111" y="44">1</text><text x="124" y="70">many</text></g>
+  </svg>
+  <dl class="kv"><dt>Box is</dt><dd>A table or entity, with its key columns</dd><dt>Line is</dt><dd>A relationship; the foot marks cardinality</dd></dl>
+  <p class="io inc"><b>Include</b> primary and foreign keys · cardinality on every line · the columns that carry meaning.</p>
+  <p class="io exc"><b>Leave out</b> every column. Audit timestamps on 30 tables teach nothing.</p>
+  <div class="when"><p class="yes"><b>Use when</b> you design a schema, or explain a join someone keeps getting wrong.</p>
+    <p class="no"><b>Not when</b> the data is one document per key, as in a key-value store. There are no relationships to draw.</p></div>
+</div>
+
+<div class="card" id="d2"><div class="hd"><h3>D2 · Dimensional / star schema</h3><span class="freq"><i>●●</i>○</span></div>
+  <p class="alt">Dimensional model · star schema · Kimball</p>
+  <svg viewBox="0 0 230 128" role="img" aria-label="A central fact table with four dimension tables radiating from it in a star">
+    <rect x="86" y="50" width="58" height="30" rx="3" fill="#081F5C"/>
+    <text x="115" y="69" font-size="8.5" font-weight="800" fill="#F7F2EB" text-anchor="middle">FACT</text>
+    <g fill="none" stroke="#334EAC" stroke-width="1.4">
+      <rect x="10" y="10" width="56" height="24" rx="3"/><rect x="164" y="10" width="56" height="24" rx="3"/>
+      <rect x="10" y="96" width="56" height="24" rx="3"/><rect x="164" y="96" width="56" height="24" rx="3"/></g>
+    <g font-size="7.5" font-weight="700" fill="#081F5C" text-anchor="middle">
+      <text x="38" y="26">dim_date</text><text x="192" y="26">dim_customer</text><text x="38" y="112">dim_product</text><text x="192" y="112">dim_store</text></g>
+    <g fill="none" stroke="#334EAC" stroke-width="1.2"><path d="M60 34 L90 52"/><path d="M170 34 L140 52"/><path d="M60 96 L90 78"/><path d="M170 96 L140 78"/></g>
+  </svg>
+  <dl class="kv"><dt>Centre is</dt><dd>The fact table: measures and foreign keys</dd><dt>Point is</dt><dd>A dimension: how you slice it</dd></dl>
+  <p class="io inc"><b>Include</b> the grain of the fact table, stated in words · every dimension · the measures.</p>
+  <p class="io exc"><b>Leave out</b> staging and raw tables. This type describes the model, not the pipeline — that is D5.</p>
+  <div class="when"><p class="yes"><b>Use when</b> you design a warehouse or a BI layer, and “what can I group by” is the question.</p>
+    <p class="no"><b>Not when</b> you are modelling transactions. Use D1.</p></div>
+</div>
+
+<div class="card" id="d3"><div class="hd"><h3>D3 · Data flow diagram</h3><span class="freq"><i>●●</i>○</span></div>
+  <p class="alt">Data flow diagram · DFD · the STRIDE threat-model shape</p>
+  <svg viewBox="0 0 230 128" role="img" aria-label="An external entity, a circular process and an open-ended data store, with a dashed trust boundary crossing the flows">
+    <rect x="8" y="48" width="44" height="26" rx="3" fill="none" stroke="#334EAC" stroke-width="1.4"/>
+    <text x="30" y="65" font-size="7.5" font-weight="700" fill="#081F5C" text-anchor="middle">USER</text>
+    <circle cx="124" cy="61" r="26" fill="none" stroke="#334EAC" stroke-width="1.5"/>
+    <text x="124" y="59" font-size="7.5" font-weight="800" fill="#081F5C" text-anchor="middle">1.0</text>
+    <text x="124" y="70" font-size="7" fill="rgba(8,31,92,.62)" text-anchor="middle">checkout</text>
+    <g fill="none" stroke="#334EAC" stroke-width="1.4"><path d="M182 44 h40 M182 68 h40"/></g>
+    <text x="202" y="60" font-size="7.5" font-weight="700" fill="#081F5C" text-anchor="middle">D1 orders</text>
+    <g fill="none" stroke="#334EAC" stroke-width="1.4" marker-end="url(#a)"><path d="M52 61 L94 61"/><path d="M150 56 L178 56"/></g>
+    <path d="M178 66 L152 66" fill="none" stroke="#334EAC" stroke-width="1.4" marker-end="url(#a)"/>
+    <path d="M74 14 L74 114" fill="none" stroke="#B3453A" stroke-width="1.4" stroke-dasharray="5 4"/>
+    <text x="74" y="124" font-size="7" font-weight="700" fill="#B3453A" text-anchor="middle">trust boundary</text>
+  </svg>
+  <dl class="kv"><dt>Circle is</dt><dd>A process that transforms data</dd><dt>Open bars</dt><dd>A data store</dd>
+    <dt>Dashed line</dt><dd>A trust boundary — where the threats live</dd></dl>
+  <p class="io inc"><b>Include</b> every flow crossing a boundary, labelled with what data · every store · the external entities.</p>
+  <p class="io exc"><b>Leave out</b> order and timing. Nothing here says “first”.</p>
+  <div class="when"><p class="yes"><b>Use when</b> you threat-model. Every STRIDE method starts by drawing this.</p>
+    <p class="no"><b>Not when</b> you want control flow. An arrow here means data moved, not that something was called.</p></div>
+</div>
+
+<div class="card" id="d4"><div class="hd"><h3>D4 · Lineage</h3><span class="freq"><i>●●</i>○</span></div>
+  <p class="alt">Data lineage diagram</p>
+  <svg viewBox="0 0 230 128" role="img" aria-label="Four sources on the left fanning into two outputs on the right, with one feed drawn dashed red to mark it as cut">
+    <g fill="none" stroke="#334EAC" stroke-width="1.3">
+      <rect x="8" y="10" width="58" height="20" rx="4"/><rect x="8" y="40" width="58" height="20" rx="4"/>
+      <rect x="8" y="70" width="58" height="20" rx="4"/><rect x="8" y="100" width="58" height="20" rx="4"/>
+      <rect x="164" y="28" width="58" height="26" rx="4"/><rect x="164" y="78" width="58" height="26" rx="4"/></g>
+    <g font-size="7.5" font-weight="700" fill="#081F5C" text-anchor="middle">
+      <text x="37" y="24">SOURCE A</text><text x="37" y="54">SOURCE B</text><text x="37" y="84">SOURCE C</text><text x="37" y="114">SOURCE D</text>
+      <text x="193" y="45">OUTPUT 1</text><text x="193" y="95">OUTPUT 2</text></g>
+    <g fill="none" stroke="#334EAC" stroke-width="1.1" opacity=".85">
+      <path d="M66 20 L164 38"/><path d="M66 50 L164 42"/><path d="M66 80 L164 88"/><path d="M66 110 L164 96"/><path d="M66 50 L164 92"/></g>
+    <path d="M66 80 L164 48" fill="none" stroke="#B3453A" stroke-width="1.3" stroke-dasharray="4 3"/>
+    <text x="115" y="126" font-size="7" fill="#B3453A" text-anchor="middle">dashed = the feed this diagram argues to cut</text>
+  </svg>
+  <dl class="kv"><dt>Box is</dt><dd>A source or an output</dd><dt>Line is</dt><dd>One feed: this field reaches that output</dd></dl>
+  <p class="io inc"><b>Include</b> every feed that exists today · the ones you propose to cut, drawn differently · the field names when the question is field-level.</p>
+  <p class="io exc"><b>Leave out</b> the machinery that moves the data. That is D5.</p>
+  <div class="when"><p class="yes"><b>Use when</b> someone asks “where did this number come from?”, or you argue to remove a dependency.</p>
+    <p class="no"><b>Not when</b> there are more than ~30 feeds. Past that it is a hairball — filter to one output.</p></div>
+</div>
+
+<div class="card" id="d5"><div class="hd"><h3>D5 · Pipeline DAG</h3><span class="freq"><i>●●</i>○</span></div>
+  <p class="alt">Directed acyclic graph · DAG · workflow diagram</p>
+  <svg viewBox="0 0 230 128" role="img" aria-label="A task graph that forks into three parallel branches and merges back into one final task">
+    <g fill="none" stroke="#334EAC" stroke-width="1.4">
+      <rect x="6" y="52" width="44" height="24" rx="4"/>
+      <rect x="78" y="12" width="52" height="22" rx="4"/><rect x="78" y="52" width="52" height="22" rx="4"/><rect x="78" y="92" width="52" height="22" rx="4"/>
+      <rect x="158" y="52" width="60" height="24" rx="4"/></g>
+    <g font-size="7.5" font-weight="700" fill="#081F5C" text-anchor="middle">
+      <text x="28" y="67">load</text><text x="104" y="26">region 1</text><text x="104" y="66">region 2</text><text x="104" y="106">region 3</text><text x="188" y="67">report</text></g>
+    <g fill="none" stroke="#334EAC" stroke-width="1.3" marker-end="url(#a)">
+      <path d="M50 60 L64 60 L64 23 L74 23"/><path d="M50 64 L74 64"/><path d="M50 68 L64 68 L64 103 L74 103"/>
+      <path d="M130 23 L144 23 L144 60 L154 60"/><path d="M130 64 L154 64"/><path d="M130 103 L144 103 L144 68 L154 68"/></g>
+    <text x="104" y="126" font-size="7" fill="rgba(8,31,92,.34)" text-anchor="middle">fan-out, then fan-in — the width is the parallelism</text>
+  </svg>
+  <dl class="kv"><dt>Box is</dt><dd>A task</dd><dt>Arrow is</dt><dd>“must finish before”</dd></dl>
+  <p class="io inc"><b>Include</b> every task · the fan-out width (how many run at once) · retries and the failure path, if they differ per task.</p>
+  <p class="io exc"><b>Leave out</b> the data shape. What flows is D4; what runs is here.</p>
+  <div class="when"><p class="yes"><b>Use when</b> a job has parallelism, a join, or a step people keep running out of order.</p>
+    <p class="no"><b>Not when</b> the pipeline is a straight line. Write the six commands instead.</p>
+    <p class="ex">Example: a nightly sales report — load the orders, total each region in parallel, then merge.</p></div>
+</div>
+
+<div class="card" id="matrix"><div class="hd"><h3>D6 · Matrix</h3><span class="freq"><i>●●</i>○</span></div>
+  <p class="alt">Access matrix / responsibility grid · a table, not a diagram</p>
+  <svg viewBox="0 0 230 128" role="img" aria-label="A grid with four roles down the side and four fields across the top; each cell is dark for can read, pale for masked, or empty for no access">
+    <text x="8" y="22" font-size="6.8" fill="rgba(8,31,92,.34)">role \ field</text>
+    <g font-size="7.5" font-weight="700" fill="#081F5C" text-anchor="middle">
+      <text x="94" y="22">name</text><text x="131" y="22">email</text><text x="168" y="22">address</text><text x="204" y="22">card</text></g>
+    <g stroke="rgba(8,31,92,.16)" stroke-width="1"><path d="M8 28 h214 M8 48 h214 M8 68 h214 M8 88 h214 M8 108 h214"/><path d="M76 12 v96"/></g>
+    <g font-size="7.5" font-weight="700" fill="rgba(8,31,92,.62)" text-anchor="end">
+      <text x="68" y="41">SUPPORT</text><text x="68" y="61">WAREHOUSE</text><text x="68" y="81">FINANCE</text><text x="68" y="101">ADMIN</text></g>
+    <g fill="#334EAC">
+      <rect x="81" y="31" width="26" height="14" rx="2"/><rect x="118" y="31" width="26" height="14" rx="2"/>
+      <rect x="81" y="51" width="26" height="14" rx="2"/><rect x="155" y="51" width="26" height="14" rx="2"/>
+      <rect x="81" y="71" width="26" height="14" rx="2"/><rect x="118" y="71" width="26" height="14" rx="2"/>
+      <rect x="81" y="91" width="26" height="14" rx="2"/><rect x="118" y="91" width="26" height="14" rx="2"/><rect x="155" y="91" width="26" height="14" rx="2"/></g>
+    <g fill="#7096D1">
+      <rect x="155" y="31" width="26" height="14" rx="2"/><rect x="191" y="71" width="26" height="14" rx="2"/><rect x="191" y="91" width="26" height="14" rx="2"/></g>
+    <g fill="none" stroke="rgba(8,31,92,.34)" stroke-width="1">
+      <rect x="191.5" y="31.5" width="25" height="13" rx="2"/><rect x="118.5" y="51.5" width="25" height="13" rx="2"/>
+      <rect x="191.5" y="51.5" width="25" height="13" rx="2"/><rect x="155.5" y="71.5" width="25" height="13" rx="2"/></g>
+    <text x="115" y="124" font-size="7" fill="rgba(8,31,92,.62)" text-anchor="middle">dark = can read · pale = masked · empty = no access</text>
+  </svg>
+  <dl class="kv"><dt>Row is</dt><dd>A role, or a kind of person</dd><dt>Column is</dt><dd>A field, or an action</dd>
+    <dt>Cell is</dt><dd>One value: allowed, masked or denied</dd></dl>
+  <p class="io inc"><b>Include</b> every role · every field or action the question covers · a legend for each cell value · the default for anything not listed.</p>
+  <p class="io exc"><b>Leave out</b> arrows and order. How a request reaches the check is C1 or C3.</p>
+  <div class="when"><p class="yes"><b>Use when</b> a reviewer must check the rows one at a time — who reads which field, or who owns which task.</p>
+    <p class="no"><b>Not when</b> the content has a shape: what calls what, or what happens first. Draw that instead.</p>
+    <p class="ex">A responsibility grid (RACI) is the same table: tasks down the side, people across the top.</p></div>
+</div>
+</div>
+
+<!-- ══════════════════ E · DELIVERY ══════════════════ -->
+<h2>E · Delivery &amp; operations — how it ships and how it breaks <span class="cnt">3 types</span></h2>
+<p class="famnote">These describe the machinery around the system rather than the system. They go stale
+faster than anything else on this page, so keep them small and date them.</p>
+<div class="grid">
+
+<div class="card" id="e1"><div class="hd"><h3>E1 · CI/CD pipeline</h3><span class="freq"><i>●●</i>○</span></div>
+  <p class="alt">Deployment pipeline · Humble &amp; Farley · “CI/CD pipeline”</p>
+  <svg viewBox="0 0 230 112" role="img" aria-label="Five build stages in a row with a gate before deploy and a failure path returning to the start">
+    <g fill="none" stroke="#334EAC" stroke-width="1.4">
+      <rect x="4" y="34" width="40" height="24" rx="4"/><rect x="56" y="34" width="40" height="24" rx="4"/>
+      <rect x="108" y="34" width="40" height="24" rx="4"/><rect x="186" y="34" width="40" height="24" rx="4"/></g>
+    <g font-size="7.5" font-weight="700" fill="#081F5C" text-anchor="middle">
+      <text x="24" y="49">commit</text><text x="76" y="49">build</text><text x="128" y="49">test</text><text x="206" y="49">deploy</text></g>
+    <path d="M167 34 L178 46 L167 58 L156 46 Z" fill="#FFFDFA" stroke="#334EAC" stroke-width="1.3"/>
+    <text x="167" y="26" font-size="7" font-weight="700" fill="#081F5C" text-anchor="middle">gate</text>
+    <g fill="none" stroke="#334EAC" stroke-width="1.4" marker-end="url(#a)">
+      <path d="M44 46 L52 46"/><path d="M96 46 L104 46"/><path d="M148 46 L152 46"/><path d="M178 46 L182 46"/></g>
+    <path d="M128 58 L128 78 L24 78 L24 62" fill="none" stroke="#B3453A" stroke-width="1.3" stroke-dasharray="4 3" marker-end="url(#r)"/>
+    <text x="76" y="90" font-size="7" fill="#B3453A" text-anchor="middle">red = what happens when it fails</text>
+  </svg>
+  <dl class="kv"><dt>Box is</dt><dd>A stage</dd><dt>Diamond is</dt><dd>A gate: automatic or human</dd>
+    <dt>Red path</dt><dd>What happens on failure</dd></dl>
+  <p class="io inc"><b>Include</b> every stage · every gate and who owns it · the failure path · roughly how long each stage takes.</p>
+  <p class="io exc"><b>Leave out</b> the environments. Those are B3 — one shows stages, the other shows targets.</p>
+  <div class="when"><p class="yes"><b>Use when</b> onboarding, or when the pipeline has a gate people do not know about.</p>
+    <p class="no"><b>Not when</b> it is push-to-deploy with no gates. One sentence covers it.</p></div>
+</div>
+
+<div class="card" id="e2"><div class="hd"><h3>E2 · Event-driven architecture</h3><span class="freq"><i>●●</i>○</span></div>
+  <p class="alt">Event-driven architecture diagram · pub/sub topology</p>
+  <svg viewBox="0 0 230 112" role="img" aria-label="Two producers writing to a topic bar, with three consumers reading from it and one dead letter queue">
+    <g fill="none" stroke="#334EAC" stroke-width="1.4">
+      <rect x="4" y="16" width="48" height="22" rx="4"/><rect x="4" y="56" width="48" height="22" rx="4"/></g>
+    <g font-size="7.5" font-weight="700" fill="#081F5C" text-anchor="middle"><text x="28" y="31">api</text><text x="28" y="71">batch</text></g>
+    <rect x="86" y="12" width="26" height="76" rx="4" fill="#081F5C"/>
+    <text x="99" y="54" font-size="8" font-weight="800" fill="#F7F2EB" text-anchor="middle" transform="rotate(-90 99 54)">TOPIC</text>
+    <g fill="none" stroke="#334EAC" stroke-width="1.4">
+      <rect x="148" y="8" width="52" height="20" rx="4"/><rect x="148" y="40" width="52" height="20" rx="4"/><rect x="148" y="72" width="52" height="20" rx="4"/></g>
+    <g font-size="7.5" font-weight="700" fill="#081F5C" text-anchor="middle">
+      <text x="174" y="22">indexer</text><text x="174" y="54">mailer</text><text x="174" y="86">audit</text></g>
+    <g fill="none" stroke="#334EAC" stroke-width="1.3" marker-end="url(#a)">
+      <path d="M52 27 L82 27"/><path d="M52 67 L82 67"/>
+      <path d="M112 24 L144 18"/><path d="M112 50 L144 50"/><path d="M112 76 L144 82"/></g>
+    <text x="115" y="104" font-size="7" fill="rgba(8,31,92,.34)" text-anchor="middle">producers never know their consumers — that is the point</text>
+  </svg>
+  <dl class="kv"><dt>Bar is</dt><dd>A topic or queue</dd><dt>Box is</dt><dd>A producer or a consumer</dd>
+    <dt>Arrow is</dt><dd>Publish, or subscribe</dd></dl>
+  <p class="io inc"><b>Include</b> every topic by its real name · each consumer group · the dead-letter queue · ordering and delivery guarantees, in small type.</p>
+  <p class="io exc"><b>Leave out</b> request/response calls. Those belong on A2 — mixing them hides which paths are asynchronous.</p>
+  <div class="when"><p class="yes"><b>Use when</b> the system is event-driven and nobody can list who consumes what.</p>
+    <p class="no"><b>Not when</b> you have no broker.</p></div>
+</div>
+
+<div class="card" id="e3"><div class="hd"><h3>E3 · Incident / runbook flow</h3><span class="freq"><i>●</i>○○</span></div>
+  <p class="alt">No standard name — an activity diagram used as a runbook</p>
+  <svg viewBox="0 0 230 112" role="img" aria-label="An alert leading to a triage decision with two labelled outcomes, one escalating and one resolving">
+    <rect x="80" y="4" width="68" height="22" rx="11" fill="#B3453A"/>
+    <text x="114" y="19" font-size="8" font-weight="800" fill="#FFFDFA" text-anchor="middle">ALERT FIRES</text>
+    <path d="M114 36 L152 56 L114 76 L76 56 Z" fill="none" stroke="#334EAC" stroke-width="1.4"/>
+    <text x="114" y="55" font-size="7.5" font-weight="700" fill="#081F5C" text-anchor="middle">5xx rate</text>
+    <text x="114" y="64" font-size="7" fill="rgba(8,31,92,.62)" text-anchor="middle">over 1%?</text>
+    <g fill="none" stroke="#334EAC" stroke-width="1.4"><rect x="4" y="82" width="68" height="22" rx="4"/><rect x="158" y="82" width="68" height="22" rx="4"/></g>
+    <g font-size="7.5" font-weight="700" text-anchor="middle"><text x="38" y="97" fill="#334EAC">watch 15 min</text><text x="192" y="97" fill="#B3453A">page the owner</text></g>
+    <g fill="none" stroke="#334EAC" stroke-width="1.4" marker-end="url(#a)">
+      <path d="M114 26 L114 32"/><path d="M76 56 L38 56 L38 78"/><path d="M152 56 L192 56 L192 78"/></g>
+    <g font-size="7" fill="rgba(8,31,92,.62)"><text x="50" y="51">no</text><text x="158" y="51">yes</text></g>
+  </svg>
+  <dl class="kv"><dt>Box is</dt><dd>An action the responder takes</dd><dt>Diamond is</dt><dd>A check, with a real threshold</dd></dl>
+  <p class="io inc"><b>Include</b> the alert that starts it · real numeric thresholds · who to page, by role · the stop condition.</p>
+  <p class="io exc"><b>Leave out</b> the architecture. At 3 a.m. nobody wants to read a component diagram.</p>
+  <div class="when"><p class="yes"><b>Use when</b> an alert is noisy, or a new on-call rotation starts.</p>
+    <p class="no"><b>Not when</b> the response is “read the dashboard and think”. A diagram cannot help there.</p></div>
+</div>
+</div>
+
+<!-- ══════════════════ F · BUSINESS ══════════════════ -->
+<h2>F · Business &amp; strategy — why it is shaped this way <span class="cnt">5 types</span></h2>
+<p class="famnote">Boxes here are not code. They are domains, capabilities or steps in a value chain.
+These diagrams are for deciding where to invest, not for building — and they age in quarters, not
+sprints.</p>
+<div class="grid">
+
+<div class="card" id="f1"><div class="hd"><h3>F1 · Context map</h3><span class="freq"><i>●●</i>○</span></div>
+  <p class="alt">Context map · domain-driven design · Evans</p>
+  <svg viewBox="0 0 230 118" role="img" aria-label="Three bounded contexts joined by labelled relationships marked upstream and downstream">
+    <g fill="none" stroke="#334EAC" stroke-width="1.5">
+      <rect x="8" y="16" width="74" height="34" rx="16"/><rect x="146" y="16" width="76" height="34" rx="16"/><rect x="76" y="72" width="80" height="34" rx="16"/></g>
+    <g font-size="8" font-weight="800" fill="#081F5C" text-anchor="middle">
+      <text x="45" y="37">Orders</text><text x="184" y="37">Billing</text><text x="116" y="93">Shipping</text></g>
+    <g fill="none" stroke="#334EAC" stroke-width="1.3"><path d="M82 33 L146 33"/><path d="M60 50 L96 70"/><path d="M172 50 L140 70"/></g>
+    <g font-size="7" font-weight="700" fill="rgba(8,31,92,.62)" text-anchor="middle">
+      <text x="114" y="28">U → D</text><text x="114" y="44">shared kernel</text>
+      <text x="62" y="68">conformist</text><text x="172" y="68">anti-corruption</text></g>
+  </svg>
+  <dl class="kv"><dt>Blob is</dt><dd>A bounded context — a model with its own language</dd>
+    <dt>Line is</dt><dd>A relationship pattern, named</dd></dl>
+  <p class="io inc"><b>Include</b> every context · who is upstream (U) and downstream (D) · the integration pattern on each link · the team that owns each context.</p>
+  <p class="io exc"><b>Leave out</b> services and databases. A context is a model, not a deployment.</p>
+  <div class="when"><p class="yes"><b>Use when</b> several teams share concepts and the word “customer” means different things to each.</p>
+    <p class="no"><b>Not when</b> one team owns one domain. You have one context.</p></div>
+</div>
+
+<div class="card" id="f2"><div class="hd"><h3>F2 · Capability map</h3><span class="freq"><i>●</i>○○</span></div>
+  <p class="alt">Business capability map · ArchiMate · BIZBOK</p>
+  <svg viewBox="0 0 230 118" role="img" aria-label="Three top-level capability blocks each containing smaller sub-capabilities, two of them shaded to show investment">
+    <g fill="none" stroke="#334EAC" stroke-width="1.4">
+      <rect x="6" y="14" width="70" height="92" rx="4"/><rect x="82" y="14" width="66" height="92" rx="4"/><rect x="154" y="14" width="70" height="92" rx="4"/></g>
+    <g font-size="7.5" font-weight="800" fill="#081F5C" text-anchor="middle">
+      <text x="41" y="27">ACQUIRE</text><text x="115" y="27">SERVE</text><text x="189" y="27">RETAIN</text></g>
+    <g fill="#F7F2EB" stroke="rgba(8,31,92,.34)" stroke-width="1">
+      <rect x="12" y="34" width="58" height="20" rx="3"/><rect x="12" y="60" width="58" height="20" rx="3"/>
+      <rect x="88" y="60" width="54" height="20" rx="3"/>
+      <rect x="160" y="34" width="58" height="20" rx="3"/><rect x="160" y="60" width="58" height="20" rx="3"/><rect x="160" y="86" width="58" height="16" rx="3"/></g>
+    <rect x="88" y="34" width="54" height="20" rx="3" fill="#081F5C"/>
+    <text x="115" y="47" font-size="7" font-weight="800" fill="#F7F2EB" text-anchor="middle">checkout</text>
+    <g font-size="6.8" fill="rgba(8,31,92,.62)" text-anchor="middle">
+      <text x="41" y="47">lead gen</text><text x="41" y="73">onboarding</text><text x="115" y="73">support</text>
+      <text x="189" y="47">loyalty</text><text x="189" y="73">renewal</text><text x="189" y="97">win-back</text></g>
+    <text x="115" y="114" font-size="6.8" fill="rgba(8,31,92,.34)" text-anchor="middle">dark = where this year’s money goes</text>
+  </svg>
+  <dl class="kv"><dt>Box is</dt><dd>A capability — something the business can <i>do</i></dd>
+    <dt>Nesting is</dt><dd>Level 1 contains level 2</dd><dt>Shading is</dt><dd>Investment, maturity, or pain</dd></dl>
+  <p class="io inc"><b>Include</b> capabilities as nouns (“order fulfilment”), not teams or systems · two levels at most · one shading scale, with its key.</p>
+  <p class="io exc"><b>Leave out</b> arrows. A capability map has no flow — if you draw arrows, you wanted F3.</p>
+  <div class="when"><p class="yes"><b>Use when</b> you argue for budget and need to show where a system sits in the business.</p>
+    <p class="no"><b>Not when</b> engineers are the audience. It tells them nothing they can act on.</p></div>
+</div>
+
+<div class="card" id="f3"><div class="hd"><h3>F3 · Value stream map</h3><span class="freq"><i>●</i>○○</span></div>
+  <p class="alt">Value stream map · two different senses — see below</p>
+  <svg viewBox="0 0 230 118" role="img" aria-label="Five process steps in a row with a saw-tooth timeline underneath showing that waiting dominates the elapsed time">
+    <g fill="none" stroke="#334EAC" stroke-width="1.4">
+      <rect x="6" y="14" width="40" height="24" rx="3"/><rect x="60" y="14" width="40" height="24" rx="3"/>
+      <rect x="114" y="14" width="40" height="24" rx="3"/><rect x="168" y="14" width="44" height="24" rx="3"/></g>
+    <g font-size="7" font-weight="700" fill="#081F5C" text-anchor="middle">
+      <text x="26" y="29">request</text><text x="80" y="29">approve</text><text x="134" y="29">build</text><text x="190" y="29">release</text></g>
+    <g fill="none" stroke="#334EAC" stroke-width="1.3" marker-end="url(#a)">
+      <path d="M46 26 L56 26"/><path d="M100 26 L110 26"/><path d="M154 26 L164 26"/></g>
+    <path d="M6 62 h40 v18 h14 v-18 h40 v18 h14 v-18 h40 v18 h14 v-18 h44" fill="none" stroke="#334EAC" stroke-width="1.4"/>
+    <g font-size="6.8" fill="rgba(8,31,92,.62)" text-anchor="middle">
+      <text x="26" y="58">2 h</text><text x="80" y="58">1 h</text><text x="134" y="58">4 h</text><text x="190" y="58">1 h</text>
+      <text x="53" y="92">3 d</text><text x="107" y="92">2 d</text><text x="161" y="92">1 d</text></g>
+    <text x="115" y="110" font-size="7" fill="#B3453A" text-anchor="middle">8 h of work inside 6 days of elapsed time — the gaps are the finding</text>
+  </svg>
+  <dl class="kv"><dt>Box is</dt><dd>A step someone performs</dd><dt>Low line</dt><dd>Waiting</dd><dt>High line</dt><dd>Working</dd></dl>
+  <p class="io inc"><b>Include</b> real measured times for both work and wait · the total of each · who performs each step.</p>
+  <p class="io exc"><b>Leave out</b> estimates. A value stream map built on guesses proves whatever you already believed.</p>
+  <p class="io exc"><b>Two senses, one name.</b> The Lean/Toyota one is drawn here: material and information flow, hunting waste. TOGAF and ArchiMate use <i>value stream</i> for the end-to-end activities that create value, named from the recipient’s side. Say which you mean.</p>
+  <div class="when"><p class="yes"><b>Use when</b> a process is slow and you need to show that the delay is queueing, not effort.</p>
+    <p class="no"><b>Not when</b> you have no measurements yet. Measure first.</p></div>
+</div>
+
+<div class="card" id="f4"><div class="hd"><h3>F4 · Wardley map</h3><span class="freq"><i>●</i>○○</span></div>
+  <p class="alt">Wardley map · Simon Wardley</p>
+  <svg viewBox="0 0 230 118" role="img" aria-label="A value chain plotted against an evolution axis, with components positioned from genesis to commodity">
+    <g stroke="rgba(8,31,92,.34)" stroke-width="1" fill="none"><path d="M26 8 L26 96 L222 96"/></g>
+    <text x="14" y="52" font-size="6.8" fill="rgba(8,31,92,.62)" transform="rotate(-90 14 52)" text-anchor="middle">visible to user</text>
+    <g font-size="6.5" fill="rgba(8,31,92,.34)" text-anchor="middle">
+      <text x="56" y="108">genesis</text><text x="104" y="108">custom</text><text x="152" y="108">product</text><text x="202" y="108">commodity</text></g>
+    <g stroke="rgba(8,31,92,.16)" stroke-width="1" stroke-dasharray="2 3"><path d="M80 8 L80 96"/><path d="M128 8 L128 96"/><path d="M176 8 L176 96"/></g>
+    <g fill="none" stroke="#334EAC" stroke-width="1.2"><path d="M60 20 L108 44"/><path d="M108 44 L150 64"/><path d="M108 44 L196 78"/></g>
+    <g fill="#081F5C"><circle cx="60" cy="20" r="4"/><circle cx="108" cy="44" r="4"/></g>
+    <g fill="#FFFDFA" stroke="#334EAC" stroke-width="1.4"><circle cx="150" cy="64" r="4"/><circle cx="196" cy="78" r="4"/></g>
+    <g font-size="6.8" font-weight="700" fill="#081F5C">
+      <text x="36" y="17">online shop</text><text x="86" y="38">recommend</text><text x="128" y="78">payments</text><text x="174" y="92">storage</text></g>
+  </svg>
+  <dl class="kv"><dt>Up is</dt><dd>Closer to the user’s need</dd><dt>Right is</dt><dd>More evolved: genesis → commodity</dd>
+    <dt>Line is</dt><dd>“depends on”</dd></dl>
+  <p class="io inc"><b>Include</b> the user need at the very top · every component the chain depends on · its honest position on the evolution axis.</p>
+  <p class="io exc"><b>Leave out</b> time. The horizontal axis is maturity, not a schedule — the single most common misreading.</p>
+  <div class="when"><p class="yes"><b>Use when</b> you argue build versus buy, and you want to show that something is now a commodity.</p>
+    <p class="no"><b>Not when</b> the audience has not seen one before. It needs ten minutes of explanation.</p></div>
+</div>
+
+<div class="card" id="f5"><div class="hd"><h3>F5 · Object diagram</h3><span class="freq"><i>●</i>○○</span></div>
+  <p class="alt">Object diagram · UML</p>
+  <svg viewBox="0 0 230 118" role="img" aria-label="Three object boxes with underlined instance names and concrete attribute values, linked together">
+    <g fill="none" stroke="#334EAC" stroke-width="1.4">
+      <rect x="8" y="16" width="86" height="42" rx="2"/><path d="M8 32 h86"/>
+      <rect x="128" y="16" width="86" height="42" rx="2"/><path d="M128 32 h86"/>
+      <rect x="68" y="76" width="86" height="34" rx="2"/><path d="M68 92 h86"/></g>
+    <g font-size="7.5" font-weight="800" fill="#081F5C" text-anchor="middle" text-decoration="underline">
+      <text x="51" y="28">c1 : Customer</text><text x="171" y="28">o7 : Order</text><text x="111" y="88">p2 : Payment</text></g>
+    <g font-size="6.8" fill="rgba(8,31,92,.62)">
+      <text x="14" y="44">id = "C-1001"</text><text x="14" y="54">tier = "gold"</text>
+      <text x="134" y="44">date = 2026-03-04</text><text x="134" y="54">total = 42.50</text>
+      <text x="74" y="104">status = "paid"</text></g>
+    <g fill="none" stroke="#334EAC" stroke-width="1.2"><path d="M94 37 L128 37"/><path d="M60 58 L96 74"/></g>
+  </svg>
+  <dl class="kv"><dt>Box is</dt><dd>One <i>instance</i>, with real values</dd><dt>Line is</dt><dd>A link that exists at this instant</dd></dl>
+  <p class="io inc"><b>Include</b> concrete values · the instance names, underlined · only the objects in the case you are explaining.</p>
+  <p class="io exc"><b>Leave out</b> anything general. If you write a type without a value, you wanted A4.</p>
+  <div class="when"><p class="yes"><b>Use when</b> a class diagram is correct and still confusing, and one worked example would settle it.</p>
+    <p class="no"><b>Not when</b> a JSON snippet would do. It usually would.</p></div>
+</div>
+</div>
+
+<!-- ══════════════════ crosswalk ══════════════════ -->
+<h2>Framework crosswalk</h2>
+<p class="famnote">No framework defines “all the types”. Three try, and they overlap. This page is
+organised by the question you are asking, which is why it matches none of them exactly.</p>
+<table>
+  <tr><th style="width:17%">Framework</th><th style="width:11%">Defines</th><th>What it covers, in this page’s terms</th></tr>
+  <tr><td><b>C4</b> <span style="color:rgba(8,31,92,.34)">Simon Brown</span></td><td>4 levels</td>
+      <td>A1, A2, A3, A4, plus B1 (its deployment diagram) and the dynamic diagram (C2 drawn over A2 or A3 boxes). Nothing about data or delivery. The best starting point.</td></tr>
+  <tr><td><b>UML 2.5</b></td><td>14 types</td>
+      <td>7 structural (A4, F5, A6, A3, A7, B1, profile) and 7 behavioural (C5, C3, C4, C1, C2, C7, C6). Formal and complete; mostly unused outside enterprise work. The only one here this page omits is the <i>profile</i> diagram, which describes UML itself.</td></tr>
+  <tr><td><b>4+1 views</b> <span style="color:rgba(8,31,92,.34)">Kruchten</span></td><td>5 views</td>
+      <td>Logical (A3), process (C1, C3), development (A5, A6), physical (B1), plus scenarios that tie them together. A way to decide <i>which</i> diagrams a system needs — not a type itself.</td></tr>
+  <tr><td><b>ArchiMate 3</b> <span style="color:rgba(8,31,92,.34)">The Open Group</span></td><td>26 viewpoints</td>
+      <td>The enterprise-architecture standard, and the one this page leaned on without naming it. Its strategy layer defines F2 (capability map) and F3 (value stream) as formal viewpoints; its layered viewpoint is A5; its business, application and technology layers cover A2 and B1. Use its vocabulary when the audience is an enterprise architect.</td></tr>
+  <tr><td><b>arc42</b></td><td>12 sections</td>
+      <td>A documentation template, not a diagram language. Its sections 3, 5, 6 and 7 ask for A1, A3, C1/C3 and B1 respectively.</td></tr>
+</table>
+
+<h2>Three mistakes, all from the wrong type</h2>
+<ol class="mistakes">
+  <li><b>Structure drawn as sequence.</b> The arrows are numbered 1 to 9, and the reader still cannot say what the system contains. Order is not shape. Draw both, separately.</li>
+  <li><b>Two altitudes in one picture.</b> A bucket beside a Python function. The reader cannot tell which boxes are peers, so they trust none of them.</li>
+  <li><b>A deployment diagram asked to carry a policy.</b> Icons name services. A rule about <i>which route</i> needs a token lives in A3 or C3, never in an icon.</li>
+</ol>
+
+<h2>What rarely earns a diagram</h2>
+<table>
+  <tr><td style="width:46%">A linear process with no branch</td><td>Write the list.</td></tr>
+  <tr><td>A thing with two states</td><td>Write the sentence.</td></tr>
+  <tr><td>Error handling that is the same everywhere</td><td>Say so once, in prose.</td></tr>
+  <tr><td>Anything a table states more precisely</td><td>A figure carries shape; a table carries detail.</td></tr>
+  <tr><td>Anything a tool can generate from the code</td><td>Generate it. A hand-drawn dependency graph is stale by Friday.</td></tr>
+</table>
+
+<h2>The two checks that catch most problems</h2>
+<table>
+  <tr><td style="width:46%"><b>1 · Can you state the question in one sentence, without “and”?</b></td><td>If not, split the diagram.</td></tr>
+  <tr><td><b>2 · Does any visual property carry two meanings?</b></td><td>Dashed cannot mean both “reply” and “optional”. Pick one, and use a second property for the other.</td></tr>
+</table>
+
+<p class="foot"><b>What is standard here, and what is not.</b> The <i>types</i> are standard: UML 2.5
+defines 14 of them (7 structural, 7 behavioural); C4 defines levels 1–4 plus a system landscape, a
+deployment and a dynamic diagram; Kruchten’s 4+1 defines the five views; ArchiMate 3 defines 26
+viewpoints including the capability map and value stream; DFD shapes follow the STRIDE threat-modelling
+convention. The <i>grouping</i> is not standard: the six families and the codes
+<code>A1</code>…<code>F5</code> are this page’s own, built around the question you are asking rather
+than around any one framework. Two cards say “no standard name” because none exists.</p>
+
+</div>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <marker id="a" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5.4" markerHeight="5.4" orient="auto-start-reverse">
+    <path d="M0 0 L8 4 L0 8 z" fill="#334EAC"/></marker>
+  <marker id="b" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5.4" markerHeight="5.4" orient="auto-start-reverse">
+    <path d="M0 0 L8 4 L0 8 z" fill="#7096D1"/></marker>
+  <marker id="r" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5.4" markerHeight="5.4" orient="auto-start-reverse">
+    <path d="M0 0 L8 4 L0 8 z" fill="#B3453A"/></marker>
+</defs></svg>
+</body></html>
