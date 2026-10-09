@@ -6,6 +6,8 @@ Works with **Claude Code**, **Tencent CodeBuddy**, **GitHub Copilot** and **Open
 
 ![AWS VPC web deployment, drawn by the skill](skills/tech-design-doc/examples/deployment/aws-vpc-web.png)
 
+**Guide:** [How to write a design doc](https://whitewhiteqq.github.io/tech-design-doc/) — eight doc skeletons, and a preview of the right diagram for each section ([diagram catalogue](https://whitewhiteqq.github.io/tech-design-doc/diagram-types.html)).
+
 ## What it does
 
 Ask your agent for a design doc, an architecture diagram or a cloud deployment diagram. The skill:
@@ -92,6 +94,7 @@ The skill asks one question when the output format is unclear: Markdown, HTML or
 tech-design-doc/
 ├── .claude-plugin/              # Plugin and marketplace manifests (Claude Code; CodeBuddy reads plugin.json here)
 ├── .codebuddy-plugin/           # Marketplace manifest for CodeBuddy (a copy of .claude-plugin/marketplace.json)
+├── docs/                        # The GitHub Pages guide: doc skeletons and the diagram catalogue
 └── skills/tech-design-doc/
     ├── SKILL.md                 # The skill: what the agent reads first
     ├── reference/               # Doc skeletons, diagram types, cloud diagram spec, fixes

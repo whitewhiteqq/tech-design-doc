@@ -82,6 +82,26 @@ tech-design-doc/
     └── vendor-js/                   # Mermaid bundle (MIT) and its licence
 ```
 
+## Changing the Guide (GitHub Pages)
+
+`docs/` is the public guide, served from `main` at
+<https://whitewhiteqq.github.io/tech-design-doc/>.
+
+- `docs/index.html`: doc skeletons. Each diagram badge is a link
+  `diagram-types.html#<id>` with `data-card="<id>"`; a small inline script opens
+  that card in a preview dialog.
+- `docs/diagram-types.html`: one card per diagram type. Each card has an `id`
+  (`a1` … `f5`, `matrix`). A new badge needs a card with that id.
+- `docs/diagram-types.md`: the short Markdown version. Keep its counts and
+  names in step with the HTML.
+- `docs/.nojekyll`: keeps GitHub Pages from turning the `.md` into a second
+  `diagram-types.html`.
+
+Keep both pages self-contained: no web font, no CDN, no external request.
+Use invented, generic examples only; never a real project, client or employer.
+Check a change by opening `docs/index.html` over HTTP
+(`python -m http.server -d docs`) and clicking a badge.
+
 ## Changing the Skill
 
 - `SKILL.md` stays short. Put detail in `reference/` and point to it.
