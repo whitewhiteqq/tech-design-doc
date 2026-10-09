@@ -66,7 +66,7 @@
   }
 </style></head><body><div class="wrap">
 
-<nav class="topnav" aria-label="Site"><a href="index.html">Doc structure</a><a href="diagram-types.html" aria-current="page">Diagram catalogue</a><a href="https://github.com/whitewhiteqq/tech-design-doc">GitHub</a></nav>
+<nav class="topnav" aria-label="Site"><a href="index.html">Doc structure</a><a href="diagram-types.html" aria-current="page">Diagram catalogue</a><a href="skill.html">Use the skill</a><a href="https://github.com/whitewhiteqq/tech-design-doc">GitHub</a></nav>
 
 <h1>Architecture diagrams — the full catalogue</h1>
 <p class="lede">Thirty-two types across six families: thirty-one diagrams and one table. Each one: what a box means, what an arrow means,
@@ -136,7 +136,7 @@ function is the most common beginner error on this page.</p>
   <dl class="kv"><dt>Box is</dt><dd>A separately deployable thing, or a store</dd>
     <dt>Arrow is</dt><dd>A call, with protocol and payload</dd><dt>Size</dt><dd>4–10 boxes</dd></dl>
   <p class="io inc"><b>Include</b> each deployable · each store · the technology in small type · the protocol on each arrow.</p>
-  <p class="io exc"><b>Leave out</b> modules and classes. If <code>orders.pricing</code> appears, you slipped to A3.</p>
+  <p class="io exc"><b>Leave out</b> modules and classes. If a module name such as <code>orders.pricing</code> (the pricing code in the Orders service) appears, you slipped to A3.</p>
   <div class="when"><p class="yes"><b>Use when</b> you plan a deployment, estimate cost, or hand over to ops.</p>
     <p class="no"><b>Not when</b> the question is how the code is organised.</p>
     <p class="ex">Close, but not this: vendor icons and an account boundary make a diagram B1.</p></div>

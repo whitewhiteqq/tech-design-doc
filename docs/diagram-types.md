@@ -79,7 +79,8 @@ answers no question they have.
 **Include:** each deployable (a Lambda, a Batch job, a web app) · each store (a bucket, a database,
 a queue) · the technology in each box, in small type · arrows with protocol: "HTTPS, JSON".
 
-**Leave out:** modules and classes. If `orders.pricing` appears here, you have slipped to level 3.
+**Leave out:** modules and classes. If a module name such as `orders.pricing` (the pricing code in the Orders
+service) appears here, you have slipped to level 3.
 
 **Use when** you plan a deployment, estimate cost, or hand the system to an ops team.
 
