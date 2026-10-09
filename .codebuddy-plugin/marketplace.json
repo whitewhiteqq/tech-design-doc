@@ -11,7 +11,7 @@
       "name": "tech-design-doc",
       "source": "./",
       "description": "Writes design docs in Markdown or HTML and draws cloud diagrams with the official vendor icons.",
-      "version": "0.2.0"
+      "version": "0.2.1"
     }
   ]
 }
