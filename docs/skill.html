@@ -2,6 +2,15 @@
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Let the skill write the first draft</title>
+<meta name="description" content="The tech-design-doc agent skill picks an outline, writes the design doc in Markdown or HTML, draws the diagrams, and checks each one in headless Chrome.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Let the skill write the first draft">
+<meta property="og:description" content="The tech-design-doc agent skill picks an outline, writes the design doc in Markdown or HTML, draws the diagrams, and checks each one in headless Chrome.">
+<meta property="og:url" content="https://whitewhiteqq.github.io/tech-design-doc/skill.html">
+<meta property="og:image" content="https://whitewhiteqq.github.io/tech-design-doc/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="data:,">
 <!-- How the tech-design-doc skill applies the guide in index.html and diagram-types.html.
      Self-contained: no font, no CDN, no script, no external request. -->
@@ -101,8 +110,8 @@ section. Here is how each part of the guide shows up in the doc you get.</p>
   </div>
   <div class="card">
     <h3>A check before you see it</h3>
-    <p>The skill opens every diagram in a hidden Chrome window and measures it. It looks for boxes that overlap, labels with no room, and icons cut off at the edge.</p>
-    <p>It fixes each problem and runs the check again. It stops at “0 FAIL” and tells you how many diagrams it checked.</p>
+    <p>The skill has the agent open every diagram in a hidden Chrome window and measure it. The check looks for boxes that overlap, labels with no room, and icons cut off at the edge.</p>
+    <p>The agent fixes each problem and re-runs the check until it prints “0 FAIL”. Then it tells you how many diagrams it checked.</p>
   </div>
   <div class="card">
     <h3>An HTML page, if you want one</h3>
@@ -117,7 +126,7 @@ section. Here is how each part of the guide shows up in the doc you get.</p>
   <li><b>The decision, and what you rejected.</b> Give the one fact that ruled out each option. “Kafka needs a team to run it, and we have two engineers” is enough.</li>
   <li><b>The numbers.</b> Budget, latency targets, data volume, cost per month. The skill can’t invent them, and reviewers will ask.</li>
   <li><b>Owners for open questions.</b> A name and a date for each one.</li>
-  <li><b>A real review.</b> The check makes sure every diagram is readable. It can’t tell you if a diagram is correct. Read it as your reviewers will.</li>
+  <li><b>A real review.</b> The check finds overlaps, cramped labels and cut-off icons. It can’t tell you if a diagram is correct. Read it as your reviewers will.</li>
 </ul>
 
 <!-- ══════════════ try it ══════════════ -->
@@ -128,7 +137,10 @@ claude plugin install tech-design-doc@tech-design-doc</code></pre>
 <p class="note">For CodeBuddy, Copilot or a manual copy, see the
 <a href="https://github.com/whitewhiteqq/tech-design-doc#install">install steps in the README</a>.
 For Codex, use option 3 there, <code>npx skills add</code>.
-Cloud diagrams also need the vendor icon packs, a one-time download.</p>
+Cloud diagrams also need the vendor icon packs, a one-time download. Save them in
+<code>~/.tech-design-doc/icons/</code>: that folder works for every install method and survives plugin updates.
+The <a href="https://github.com/whitewhiteqq/tech-design-doc#add-the-cloud-icon-packs-one-time">README</a>
+lists the six downloads.</p>
 <p class="note">Then ask in plain words. Each prompt below leads to one of the eight outlines. Put your
 decision in the prompt, and the first draft gets much better.</p>
 <table>
@@ -160,6 +172,9 @@ decision in the prompt, and the first draft gets much better.</p>
   <li><b>A check result</b> in the agent’s reply, such as “6 diagrams checked, 0 FAIL”.</li>
   <li><b>An HTML page</b>, only if you asked for one.</li>
 </ul>
+<p class="note">See a finished example:
+<a href="https://github.com/whitewhiteqq/tech-design-doc/blob/main/skills/tech-design-doc/examples/design-doc/checkout-queue.md">checkout-queue.md</a>,
+a feature change with four Mermaid diagrams and an AWS deployment diagram in its <code>img/</code> folder.</p>
 
 <p class="foot">The skill is open source under Apache-2.0. Source, examples and install steps:
 <a href="https://github.com/whitewhiteqq/tech-design-doc">github.com/whitewhiteqq/tech-design-doc</a>.
