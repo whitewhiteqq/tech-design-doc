@@ -1,10 +1,19 @@
 # tech-design-doc
 
-An agent skill that writes technical design documents with diagrams that are checked before delivery.
+An agent skill that writes technical design documents. It has the agent render and check every diagram before it hands the doc back.
 
 Works with **Claude Code**, **Tencent CodeBuddy**, **GitHub Copilot** and **OpenAI Codex**.
 
 ![AWS VPC web deployment, drawn by the skill](skills/tech-design-doc/examples/deployment/aws-vpc-web.png)
+
+**Why not just ask the AI?**
+
+- **Official vendor icons, not generic boxes.** Cloud diagrams use the icon packs from AWS, Microsoft and Google Cloud.
+- **One spec, four outputs.** One JSON spec gives an SVG, a PNG, an editable draw.io file and a Mermaid version.
+- **A render check.** The skill tells the agent to render every diagram in headless Chrome, fix overlaps and cramped labels, and re-run the check until it prints `0 FAIL`.
+- **A fixed outline.** The doc leads with the decision and follows one of eight outlines from the guide.
+
+**See a finished doc:** [`examples/design-doc/checkout-queue.md`](skills/tech-design-doc/examples/design-doc/checkout-queue.md), a feature change with four Mermaid diagrams and an AWS deployment diagram.
 
 **Guide:** [How to write a design doc](https://whitewhiteqq.github.io/tech-design-doc/) — eight doc outlines, and a preview of the right diagram for each section ([diagram catalogue](https://whitewhiteqq.github.io/tech-design-doc/diagram-types.html)), and [how the skill applies it](https://whitewhiteqq.github.io/tech-design-doc/skill.html).
 
@@ -15,7 +24,7 @@ Ask your agent for a design doc, an architecture diagram or a cloud deployment d
 - **Writes the doc in Markdown** (Confluence-ready), as an **HTML** page, or both. The doc leads with the decision.
 - **Picks one diagram type per question**: system context, sequence, state, data model, deployment.
 - **Draws cloud deployment diagrams with the official vendor icons** for AWS, Azure, Microsoft Entra, Power Platform and Google Cloud. One JSON spec gives SVG, PNG, an editable draw.io file, a Mermaid twin and the Markdown snippet.
-- **Checks every diagram in headless Chrome** for overlaps, cramped labels and cut-off marks. It delivers nothing until the check prints `0 FAIL`.
+- **Checks every diagram in headless Chrome** for overlaps, cramped labels and cut-off marks. The skill has the agent re-run the check until it prints `0 FAIL`.
 
 ## Requirements
 
@@ -56,6 +65,19 @@ npx skills add whitewhiteqq/tech-design-doc -a codebuddy    # CodeBuddy only (.c
 
 ```bash
 git clone https://github.com/whitewhiteqq/tech-design-doc.git
+```
+
+Windows PowerShell (use `$HOME`, not `~`, as the destination):
+
+```powershell
+Copy-Item -Recurse tech-design-doc\skills\tech-design-doc $HOME\.claude\skills\      # Claude Code
+Copy-Item -Recurse tech-design-doc\skills\tech-design-doc $HOME\.codebuddy\skills\   # Tencent CodeBuddy
+Copy-Item -Recurse tech-design-doc\skills\tech-design-doc .github\skills\            # GitHub Copilot
+```
+
+macOS, Linux or Git Bash:
+
+```bash
 cp -r tech-design-doc/skills/tech-design-doc ~/.claude/skills/      # Claude Code
 cp -r tech-design-doc/skills/tech-design-doc ~/.codebuddy/skills/   # Tencent CodeBuddy
 cp -r tech-design-doc/skills/tech-design-doc .github/skills/        # GitHub Copilot
@@ -65,11 +87,61 @@ cp -r tech-design-doc/skills/tech-design-doc .github/skills/        # GitHub Cop
 
 The repository does not ship the vendor icon packs. Their terms permit the icons in diagrams, not redistribution.
 
-1. Download each pack you need from the table in [`vendor-icons/README.md`](skills/tech-design-doc/vendor-icons/README.md).
-2. Save it in the installed skill's `vendor-icons/` folder, under the file name in that table (for example `aws-icons.zip`).
-3. Run `python scripts/icons.py rebuild` from the skill folder. It prints the number of icons it found.
+1. Create the icon folder. It works for every install method and survives plugin updates.
 
-Without packs, everything works except cloud deployment diagrams and the `services` figure of the HTML kit. The scripts say so when you need a pack.
+   Windows PowerShell:
+   ```powershell
+   New-Item -ItemType Directory -Force "$HOME\.tech-design-doc\icons"
+   ```
+   macOS, Linux or Git Bash:
+   ```bash
+   mkdir -p ~/.tech-design-doc/icons
+   ```
+2. Download each pack you need. Save it in that folder under this file name:
+
+   | File name | Download |
+   |---|---|
+   | `aws-icons.zip` | [AWS Architecture Icons](https://aws.amazon.com/architecture/icons/) ("Icon package") |
+   | `azure-icons.zip` | [Azure Public Service Icons](https://arch-center.azureedge.net/icons/Azure_Public_Service_Icons_V24.zip) |
+   | `entra-icons.zip` | [Microsoft Entra architecture icons](https://learn.microsoft.com/en-us/entra/architecture/architecture-icons) |
+   | `power-platform-icons.zip` | [Microsoft Power Platform icons](https://learn.microsoft.com/en-us/power-platform/guidance/icons) |
+   | `gcp-core-icons.zip` | [Google Cloud core product icons](https://services.google.com/fh/files/misc/core-products-icons.zip) |
+   | `gcp-category-icons.zip` | [Google Cloud product category icons](https://services.google.com/fh/files/misc/category-icons.zip) |
+
+3. Build the icon index. It runs once, after the packs are in place. Run the `icons.py` of the
+   installed skill. Where that is depends on how you installed:
+
+   | Installed with | The script sits at |
+   |---|---|
+   | Option 3, `npx skills add -g` | `~/.claude/skills/tech-design-doc/scripts/icons.py` |
+   | Option 4, manual copy | the folder you copied to, for example `~/.claude/skills/tech-design-doc/scripts/icons.py` |
+   | Option 1, Claude Code plugin | `~/.claude/plugins/cache/tech-design-doc/tech-design-doc/<version>/skills/tech-design-doc/scripts/icons.py` |
+   | Option 2, CodeBuddy plugin | `~/.codebuddy/plugins/cache/tech-design-doc/tech-design-doc/<version>/skills/tech-design-doc/scripts/icons.py` |
+
+   Example, Windows PowerShell with `npx skills add -g`:
+
+   ```powershell
+   python $HOME\.claude\skills\tech-design-doc\scripts\icons.py rebuild
+   ```
+
+   Example, macOS or Linux with the same install:
+
+   ```bash
+   python ~/.claude/skills/tech-design-doc/scripts/icons.py rebuild
+   ```
+
+   The command prints the number of icons it found, such as `1554 icons indexed`. The cache lives
+   next to the packs, so the packs folder must stay writable.
+
+To keep the packs somewhere else, set the environment variable `TECH_DESIGN_DOC_ICONS` to that folder. The scripts use the first of these folders that holds a pack:
+
+1. `TECH_DESIGN_DOC_ICONS`
+2. `~/.tech-design-doc/icons/`
+3. the skill's own `vendor-icons/` folder
+
+Do not save packs inside an installed plugin: a plugin update replaces that folder.
+
+Without packs, everything works except cloud deployment diagrams and the `services` figure of the HTML kit. When a pack is missing, the scripts print the folders they searched and the download links. The terms of each pack are in [`vendor-icons/README.md`](skills/tech-design-doc/vendor-icons/README.md).
 
 ## Use
 
@@ -85,6 +157,7 @@ The skill asks one question when the output format is unclear: Markdown, HTML or
 
 ## Examples
 
+- [`examples/design-doc/checkout-queue.md`](skills/tech-design-doc/examples/design-doc/checkout-queue.md): a finished Markdown design doc (feature change), with its deployment diagram in `img/`.
 - [`examples/deployment/`](skills/tech-design-doc/examples/deployment/): four deployment diagrams (AWS VPC web app, AWS distributed transaction, Azure web app, Google Cloud event pipeline), each with its JSON spec.
 - [`examples/relay-design.html`](skills/tech-design-doc/examples/relay-design.html): a finished HTML design page.
 
@@ -100,7 +173,7 @@ tech-design-doc/
     ├── reference/               # Doc skeletons, diagram types, cloud diagram spec, fixes
     ├── scripts/                 # icons.py, cloud_diagram.py, check_diagrams.py
     ├── kit/                     # HTML page kit: shells, figure templates, build.py
-    ├── examples/                # Finished diagrams and one finished HTML page
+    ├── examples/                # A finished Markdown doc, finished diagrams, a finished HTML page
     ├── vendor-icons/            # README with download links and terms; the zips stay local
     └── vendor-js/               # Mermaid browser bundle (MIT) for the offline check
 ```
