@@ -44,8 +44,9 @@ Mermaid boxes as the deployment diagram.
 5. Paste the lines of `deploy.md` into the doc where the diagram goes. Its links already point
    into `img/`.
 
-The icon packs are zips in `vendor-icons/`, read in place. The repository does not ship them: when
-`icons.py` reports no pack, give the user the download table in `vendor-icons/README.md`. Their terms are in `vendor-icons/README.md`:
+The icon packs are zips, read in place from `$TECH_DESIGN_DOC_ICONS`, `~/.tech-design-doc/icons/` or `vendor-icons/`.
+The repository does not ship them. When `icons.py` reports no pack, show the user its message: the download
+list, and the folder to save them in (`~/.tech-design-doc/icons/`). Their terms are in `vendor-icons/README.md`:
 keep the product name near each mark, keep the credit line, and use a mark only for its own product.
 
 ## 4. HTML (only when asked)

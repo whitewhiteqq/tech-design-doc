@@ -1,4 +1,4 @@
-"""Index and search the official vendor icon packs in ../vendor-icons, read straight from the zips.
+"""Index and search the official vendor icon packs, read straight from the zips.
 
     python icons.py find lambda            # search every vendor
     python icons.py find "function app" --vendor azure
@@ -16,7 +16,14 @@ Google's 2025 system: a core product has its own icon (gcp/cloud-run); every oth
 icon of its category under its own name. So gcp/pubsub resolves to gcp-category/data-analytics with
 the label "Pub/Sub". See GCP_PRODUCTS below.
 
-The zips are never extracted. The index caches to vendor-icons/.index.json and rebuilds when a zip changes.
+Where the packs live. The first of these folders that holds a pack zip wins:
+    1. the folder in the environment variable TECH_DESIGN_DOC_ICONS
+    2. ~/.tech-design-doc/icons/   (recommended: works for every install and survives plugin updates)
+    3. <skill>/vendor-icons/
+PACKS is that folder (None when no folder holds a pack). Other scripts import it from here.
+
+The zips are never extracted. The index caches to .index.json next to the packs (or to the temp
+folder when that folder is read-only) and rebuilds when a zip changes.
 """
 from __future__ import annotations
 
@@ -24,13 +31,79 @@ import argparse
 import difflib
 import hashlib
 import json
+import os
 import re
 import sys
+import tempfile
 import zipfile
 from pathlib import Path
 
-PACKS = Path(__file__).resolve().parent.parent / "vendor-icons"
-CACHE = PACKS / ".index.json"
+ENV_VAR = "TECH_DESIGN_DOC_ICONS"
+SKILL_PACKS = Path(__file__).resolve().parent.parent / "vendor-icons"
+
+# Each pack, its namespaces, and where to download it (the table in vendor-icons/README.md).
+PACK_URLS = {
+    "aws-icons.zip": 'https://aws.amazon.com/architecture/icons/ ("Icon package")',
+    "azure-icons.zip": "https://arch-center.azureedge.net/icons/Azure_Public_Service_Icons_V24.zip",
+    "entra-icons.zip": "https://learn.microsoft.com/en-us/entra/architecture/architecture-icons",
+    "power-platform-icons.zip": "https://learn.microsoft.com/en-us/power-platform/guidance/icons",
+    "gcp-core-icons.zip": "https://services.google.com/fh/files/misc/core-products-icons.zip",
+    "gcp-category-icons.zip": "https://services.google.com/fh/files/misc/category-icons.zip",
+}
+NS_PACK = {
+    "aws": "aws-icons.zip", "aws-res": "aws-icons.zip", "aws-group": "aws-icons.zip",
+    "aws-general": "aws-icons.zip", "azure": "azure-icons.zip", "entra": "entra-icons.zip",
+    "power": "power-platform-icons.zip", "gcp": "gcp-core-icons.zip",
+    "gcp-category": "gcp-category-icons.zip",
+}
+
+
+def user_packs() -> Path:
+    """The recommended folder: ~/.tech-design-doc/icons."""
+    return Path.home() / ".tech-design-doc" / "icons"
+
+
+def pack_folders() -> list[tuple[str, Path | None]]:
+    """The folders to search, in order, each with a label to print."""
+    env = os.environ.get(ENV_VAR, "").strip()
+    return [(ENV_VAR, Path(env).expanduser() if env else None),
+            ("user folder", user_packs()),
+            ("skill folder", SKILL_PACKS)]
+
+
+def has_pack(folder: Path | None) -> bool:
+    return folder is not None and any((folder / p).is_file() for p in PACK_URLS)
+
+
+def find_packs() -> Path | None:
+    """The first folder that holds at least one known pack zip, or None."""
+    return next((f for _, f in pack_folders() if has_pack(f)), None)
+
+
+def no_pack_message() -> str:
+    """What to tell the user when no folder holds a pack."""
+    lines = ["no icon pack found. These folders were searched, in this order:"]
+    for i, (label, folder) in enumerate(pack_folders(), 1):
+        if folder is None:
+            lines.append(f"  {i}. {label}: not set")
+        else:
+            state = "holds no pack zip" if folder.is_dir() else "no such folder"
+            lines.append(f"  {i}. {label}: {folder}  ({state})")
+    lines.append("Download the packs you need. Keep these file names:")
+    lines += [f"  {name:26} {url}" for name, url in PACK_URLS.items()]
+    lines.append(f"Save them in {user_packs()}")
+    lines.append("  (recommended: works for every install and survives plugin updates),")
+    lines.append(f"or set {ENV_VAR} to the folder that holds them. Then run this again.")
+    return "\n".join(lines)
+
+
+PACKS = find_packs()
+
+
+def _cache_files() -> list[Path]:
+    """Next to the packs first; the temp folder when the packs folder is read-only."""
+    tag = hashlib.sha1(str(PACKS).encode("utf-8")).hexdigest()[:12]
+    return [PACKS / ".index.json", Path(tempfile.gettempdir()) / "tech-design-doc" / f"index-{tag}.json"]
 
 # Short names people type. Each maps to a full key.
 ALIASES = {
@@ -176,23 +249,45 @@ def build_index() -> dict:
 
 
 def load_index() -> dict:
-    if not any((PACKS / p).exists() for p, _ in PARSERS):
-        raise SystemExit(f"no icon pack in {PACKS}. The packs are not in the repository: download "
-                         f"them as {PACKS / 'README.md'} says, then run this again.")
+    if PACKS is None:
+        raise SystemExit(no_pack_message())
     stamp = _stamp()
-    if CACHE.exists():
-        cached = json.loads(CACHE.read_text(encoding="utf-8"))
+    for cache in _cache_files():
+        try:
+            cached = json.loads(cache.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            continue
         if cached.get("stamp") == stamp:
             return cached["icons"]
     icons = build_index()
-    CACHE.write_text(json.dumps({"stamp": stamp, "icons": icons}, indent=0), encoding="utf-8")
+    text = json.dumps({"stamp": stamp, "icons": icons}, indent=0)
+    for cache in _cache_files():
+        try:
+            cache.parent.mkdir(parents=True, exist_ok=True)
+            cache.write_text(text, encoding="utf-8")
+            break
+        except OSError:
+            continue   # read-only: try the next place; without a cache the index still works
     return icons
+
+
+def _missing_pack(key: str) -> str:
+    """The pack zip a key needs when that zip is not in PACKS, else an empty string."""
+    ns, _, name = key.partition("/")
+    pack = "gcp-category-icons.zip" if ns == "gcp" and name in GCP_PRODUCTS else NS_PACK.get(ns)
+    if pack and PACKS is not None and not (PACKS / pack).is_file():
+        return pack
+    return ""
 
 
 def resolve(key: str, index: dict | None = None) -> dict:
     """The index entry of a key, with "title" = the product name to print near the mark."""
     index = index or load_index()
     key = ALIASES.get(key, key)
+    if key not in index and _missing_pack(key):
+        pack = _missing_pack(key)
+        raise KeyError(f"no icon '{key}': it needs {pack}, which is not in {PACKS}. Download it from "
+                       f"{PACK_URLS[pack]}, save it there under that name, and run this again.")
     if key in index:
         return {"key": key, **index[key]}
     ns, _, name = key.partition("/")
@@ -258,7 +353,13 @@ def main(argv=None) -> int:
     a = ap.parse_args(argv)
 
     if a.cmd == "rebuild":
-        CACHE.unlink(missing_ok=True)
+        if PACKS is None:
+            raise SystemExit(no_pack_message())
+        for cache in _cache_files():
+            try:
+                cache.unlink(missing_ok=True)
+            except OSError:
+                pass
         print(f"{len(load_index())} icons indexed")
         return 0
     index = load_index()
@@ -268,6 +369,13 @@ def main(argv=None) -> int:
             print(f"{key:55} {e['title']}")
         if len(hits) > a.n:
             print(f"... {len(hits) - a.n} more (use -n)")
+        if not hits:
+            gone = sorted({p for ns, p in NS_PACK.items() if (not a.vendor or ns.split("-")[0] == a.vendor)
+                           and not (PACKS / p).is_file()})
+            if gone:
+                print(f"no match. These packs are not in {PACKS}:", file=sys.stderr)
+                for p in gone:
+                    print(f"  {p:26} {PACK_URLS[p]}", file=sys.stderr)
         return 0 if hits else 1
     if a.cmd == "list":
         for key in sorted(k for k in index if k.split("/")[0] == a.namespace):
