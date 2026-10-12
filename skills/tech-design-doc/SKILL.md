@@ -27,6 +27,8 @@ Do not ask when the file type is given (rewrite a `.md` as Markdown).
    except the cloud deployment diagram, which uses section 3.
 4. Put each image and `.drawio` file in an `img/` folder next to the doc.
 
+`examples/design-doc/checkout-queue.md` shows a finished doc (skeleton 2, with a deployment diagram).
+
 ## 3. Cloud deployment diagram: always the official icons
 
 Never draw vendor icons by hand. Never use draw.io's built-in `mxgraph.aws4` stencils or plain

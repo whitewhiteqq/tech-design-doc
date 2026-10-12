@@ -1,0 +1,30 @@
+{
+  "title": "Checkout order processing: AWS deployment",
+  "nodes": [
+    {"id": "shop",     "icon": "aws-general/users", "label": "Shoppers",           "sub": "Web and mobile", "at": [0, 0]},
+    {"id": "apigw",    "icon": "aws/api-gateway",   "label": "Amazon API Gateway", "sub": "Checkout API", "at": [1, 0]},
+    {"id": "checkout", "icon": "aws/lambda",        "label": "AWS Lambda",         "sub": "Checkout handler", "at": [2, 0]},
+    {"id": "queue",    "icon": "aws/sqs",           "label": "Amazon SQS",         "sub": "orders-queue", "at": [3, 0]},
+    {"id": "worker",   "icon": "aws/lambda",        "label": "AWS Lambda",         "sub": "Order worker", "at": [4, 0]},
+    {"id": "pay",      "label": "Payments provider", "sub": "Charge API", "at": [5, 0]},
+    {"id": "orders",   "icon": "aws/dynamodb",      "label": "Amazon DynamoDB",    "sub": "orders table", "at": [3, 1]},
+    {"id": "cw",       "icon": "aws/cloudwatch",    "label": "Amazon CloudWatch",  "sub": "DLQ alarm", "at": [3, 2]},
+    {"id": "dlq",      "icon": "aws/sqs",           "label": "Amazon SQS",         "sub": "orders-dlq", "at": [4, 2]}
+  ],
+  "groups": [
+    {"id": "acct",   "style": "aws-account", "label": "AWS account: shop-prod", "contains": ["region"]},
+    {"id": "region", "style": "region",      "label": "eu-west-1", "contains": ["apigw", "checkout", "queue", "worker", "orders", "cw", "dlq"]},
+    {"id": "ext",    "style": "external",    "label": "Payments provider", "contains": ["pay"]}
+  ],
+  "edges": [
+    {"from": "shop",     "to": "apigw",    "step": 1},
+    {"from": "apigw",    "to": "checkout", "step": 2},
+    {"from": "checkout", "to": "orders",   "step": 3, "label": "PENDING", "via": "L2"},
+    {"from": "checkout", "to": "queue",    "step": 4},
+    {"from": "queue",    "to": "worker",   "step": 5, "kind": "async"},
+    {"from": "worker",   "to": "pay",      "step": 6},
+    {"from": "worker",   "to": "orders",   "step": 7, "label": "status", "via": "L2"},
+    {"from": "worker",   "to": "dlq",      "kind": "failure", "label": "after 5 tries", "via": "c"},
+    {"from": "dlq",      "to": "cw",       "kind": "monitor"}
+  ]
+}
