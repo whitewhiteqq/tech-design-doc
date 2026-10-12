@@ -1,0 +1,25 @@
+flowchart LR
+  n_shop["Shoppers<br/><small>Web and mobile</small>"]
+  subgraph n_acct["AWS account: shop-prod"]
+    subgraph n_region["eu-west-1"]
+      n_apigw["Amazon API Gateway<br/><small>Checkout API</small>"]
+      n_checkout["AWS Lambda<br/><small>Checkout handler</small>"]
+      n_queue["Amazon SQS<br/><small>orders-queue</small>"]
+      n_worker["AWS Lambda<br/><small>Order worker</small>"]
+      n_orders["Amazon DynamoDB<br/><small>orders table</small>"]
+      n_cw["Amazon CloudWatch<br/><small>DLQ alarm</small>"]
+      n_dlq["Amazon SQS<br/><small>orders-dlq</small>"]
+    end
+  end
+  subgraph n_ext["Payments provider"]
+    n_pay(["Payments provider<br/><small>Charge API</small>"])
+  end
+  n_shop -->|"1"| n_apigw
+  n_apigw -->|"2"| n_checkout
+  n_checkout -->|"3. PENDING"| n_orders
+  n_checkout -->|"4"| n_queue
+  n_queue -.->|"5"| n_worker
+  n_worker -->|"6"| n_pay
+  n_worker -->|"7. status"| n_orders
+  n_worker -.->|"after 5 tries"| n_dlq
+  n_dlq -.-> n_cw
