@@ -2,6 +2,19 @@
 
 `scripts/icons.py` reads these zips in place with Python `zipfile`. Never extract, commit or redistribute them.
 
+## Where to save the packs
+
+Save the zips in `~/.tech-design-doc/icons/`. That folder works for every install and survives plugin updates.
+A plugin update replaces the skill folder, so zips saved inside it are lost.
+
+The scripts use the first of these folders that holds a pack zip:
+
+1. The folder in the environment variable `TECH_DESIGN_DOC_ICONS`.
+2. `~/.tech-design-doc/icons/` (on Windows, `%USERPROFILE%\.tech-design-doc\icons\`).
+3. This folder, `<skill>/vendor-icons/`. A clone of the repository can keep its packs here.
+
+When no folder holds a pack, `icons.py` prints the folders it searched and the download list, and exits 1.
+
 ## Packs
 
 | File | Pack, release | Icons (namespace) | Download |
@@ -55,12 +68,12 @@ d5abafebbce553690caf7b42dd14b8335bf2c0dfc09f46bd9ac8041187da2c3a  power-platform
 Use `scripts/cloud_diagram.py` for every deployment figure. Find keys with `python <skill>/scripts/icons.py find <word>`.
 `kit/tools/make_icons.py` serves only the HTML kit's `services` figure. It refuses any SVG that holds a `<style>` block, which blocks most GCP icons (13 of 19 core, incl. Cloud Run, GKE, BigQuery).
 The repository does not ship `kit/icons.js`, because it holds raw marks. Make it from `kit/` with
-`python tools/make_icons.py --packs ../vendor-icons --map icons.relay.json --out icons.js`.
+`python tools/make_icons.py --map icons.relay.json --out icons.js`. It reads the packs from the same folder as `icons.py`; `--packs <dir>` overrides it.
 
 ## Update a pack
 
 1. Download the zip from the URL in the table.
-2. Save it here under the same file name.
-3. Run `python ../scripts/icons.py rebuild` from this folder.
+2. Save it under the same file name in your pack folder (see "Where to save the packs").
+3. Run `python <skill>/scripts/icons.py rebuild`.
 4. Replace its hash in the block above (`sha256sum *.zip`).
 5. Change the release string for that zip in `PACK_CREDIT` in `scripts/cloud_diagram.py`.

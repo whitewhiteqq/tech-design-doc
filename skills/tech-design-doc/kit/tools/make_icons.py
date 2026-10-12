@@ -1,9 +1,10 @@
 """Inline official vendor icons into icons.js, so a figure script can draw a vendor mark.
 
-Usage:  python tools/make_icons.py --packs <dir> --map <icons.json> --out <icons.js>
+Usage:  python tools/make_icons.py [--packs <dir>] --map <icons.json> --out <icons.js>
 
   --packs  the folder that holds the vendor packs: each pack is a zip as you downloaded it, or a
-           folder you unzipped. The skill keeps its copies in vendor-icons/ (see its README.md).
+           folder you unzipped. Default: the folder scripts/icons.py finds ($TECH_DESIGN_DOC_ICONS,
+           then ~/.tech-design-doc/icons/, then the skill's vendor-icons/; see its README.md).
   --map    a JSON object, one entry per mark the figures use:
              "lambda": {"pack": "aws-icons.zip",
                         "match": "Arch_AWS-Lambda_64.svg",
@@ -40,7 +41,8 @@ its output with the vendor file (ids, classes and references aside), and it stop
 
 The output holds no absolute path and no date, so the same packs and map give the same bytes on any
 machine. Run it from the kit folder:
-  python tools/make_icons.py --packs ../vendor-icons --map icons.relay.json --out icons.js
+  python tools/make_icons.py --map icons.relay.json --out icons.js
+Add --packs <dir> to read the packs from another folder.
 Then add "icons": "icons.js" to doc.json, and build.
 """
 from __future__ import annotations
@@ -54,6 +56,10 @@ import sys
 import zipfile
 from collections import Counter
 from pathlib import Path, PurePosixPath
+
+# The pack folder search lives in scripts/icons.py; this tool uses the same one.
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "scripts"))
+import icons as iconlib  # noqa: E402
 
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
@@ -112,7 +118,8 @@ class Pack:
         else:
             have = sorted(p.name for p in packs.iterdir() if p.suffix.lower() == ".zip" or p.is_dir())
             raise IconError(f'no pack "{name}" in {show(packs)}. It holds: {", ".join(have) or "nothing"}. '
-                            f"Download the pack from the vendor page (vendor-icons/README.md lists them), "
+                            f"Download the pack from "
+                            f"{iconlib.PACK_URLS.get(name, 'the vendor page (vendor-icons/README.md lists them)')}, "
                             f"put it in {show(packs)}, or fix \"pack\" in the map")
 
     def read(self, inner: str) -> str:
@@ -305,11 +312,17 @@ def safe_comment(text: str) -> str:
 
 def main(argv: list[str]) -> int:
     ap = argparse.ArgumentParser(description="Inline official vendor icons into icons.js.")
-    ap.add_argument("--packs", required=True, metavar="DIR", help="the folder that holds the vendor packs")
+    ap.add_argument("--packs", metavar="DIR", help="the folder that holds the vendor packs (default: the "
+                    "folder scripts/icons.py finds, e.g. ~/.tech-design-doc/icons)")
     ap.add_argument("--map", required=True, metavar="FILE", help="the JSON map: key -> {pack, match, label, credit}")
     ap.add_argument("--out", required=True, metavar="FILE", help="the icons.js to write")
     a = ap.parse_args(argv)
-    packs, map_path, out = Path(a.packs).resolve(), Path(a.map).resolve(), Path(a.out).resolve()
+    if a.packs is None and iconlib.PACKS is None:
+        print(iconlib.no_pack_message(), file=sys.stderr)
+        print("make_icons stopped: no file written")
+        return 1
+    packs = Path(a.packs).resolve() if a.packs else iconlib.PACKS.resolve()
+    map_path, out = Path(a.map).resolve(), Path(a.out).resolve()
     try:
         return run(packs, map_path, out)
     except IconError as e:
@@ -321,7 +334,7 @@ def main(argv: list[str]) -> int:
 def run(packs: Path, map_path: Path, out: Path) -> int:
     if not packs.is_dir():
         raise IconError(f"--packs {show(packs)} is not a folder. Point it at the folder that holds the "
-                        f"vendor zips (the skill keeps them in vendor-icons/)")
+                        f"vendor zips (recommended: {show(iconlib.user_packs())})")
     if not map_path.is_file():
         raise IconError(f"--map {show(map_path)} does not exist")
     try:
